@@ -1,0 +1,76 @@
+device:
+    gpu: 4
+    n_workers: 16
+
+model:
+    arch: icnet
+    version: cityscapes
+    path:  /path/to/pretrained/carla_icnetBN_best_model.pkl #
+    with_bn: True
+   
+data:
+    dataset: carla
+    version: pascal #needed for pretrained version
+    train_split: train/train
+    val_split: val/val
+    test_split: val/val
+    img_rows: 1025
+    img_cols: 2049
+    path: /path/to/carla/root
+    img_norm: False
+    bottom_crop: 0 
+    bgr: True
+    std_version: 
+
+
+adv_patch:
+    path: 
+        resume: #exp/11_may_2021_eot_0000/patches/patch_500.png # FOR RESUMING OPTIMIZATION
+        out_dir: ./exp/
+        save_patch: True
+        exp_name: exp_name
+    optimization:
+        optimizer:
+            lr: 10
+            name: adam
+        loss:
+            adv_loss:
+                name: 'multi_scale_patch_composition'
+                args: 1
+                mult_factor: 1
+            smoothness:
+                name: 'smoothness_loss'
+                args: None
+                mult_factor: 0.1
+            NPS:
+                name: 'NPS'
+                args: '/path/to/printable/color/list/printable_colors_test.txt'
+                mult_factor: 0
+        
+        num_opt_samples: 100
+        opt_iters: 500
+        batch_size: 5
+
+        use_multiple_outputs: True    # Aux logits on/off
+
+        batch_size_val: 5
+        test_log: 50 # test_every
+        checkpoint_patch: 20   # save_every
+
+        opt_validation_log1: True   # online_validation
+        
+        # EOT
+        use_transformations: True
+
+    attr:
+        width : 300
+        height : 150
+        world_width: 7.5
+        pixel_width: 0.08
+        height_offset: 1
+        offset: [0, 3.75, 1.875]
+        rescale: 2
+        x_offset: 1
+        block_width: 5 # width and height must be divisible by this number. The exceeding parts of the patch will not be projected.
+        pos_x: 500
+        pos_y: 300
