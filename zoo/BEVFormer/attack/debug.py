@@ -1,9 +1,10 @@
 import sys
 sys.path.append('/home/cihangxie/shaoyuan/BEV-Attack')
 sys.path.append('/home/cihangxie/shaoyuan/BEV-Attack/zoo/BEVFormer')
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '5'
 import argparse
 import mmcv
-import os
 import torch
 import warnings
 from mmcv import Config, DictAction
@@ -12,17 +13,55 @@ from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from mmcv.runner import (get_dist_info, init_dist, load_checkpoint,
                          wrap_fp16_model)
 
-from mmdet3d.apis import single_gpu_test
 from mmdet3d.datasets import build_dataset
 from projects.mmdet3d_plugin.datasets.builder import build_dataloader
 from mmdet3d.models import build_model
 from mmdet.apis import set_random_seed
 from projects.mmdet3d_plugin.bevformer.apis.test import custom_multi_gpu_test
+from mmcv.parallel.data_container import DataContainer
 from mmdet.datasets import replace_ImageToTensor
 import time
 import os.path as osp
 
-config = '/home/cihangxie/shaoyuan/BEV-Attack/zoo/BEVFormer/projects/configs/bevformer/bevformer_base.py'
+
+def single_gpu_test(model,
+                    data_loader,
+                    show=False,
+                    out_dir=None,
+                    show_score_thr=0.3):
+    """Test model with single gpu.
+
+    This method tests model with single gpu and gives the 'show' option.
+    By setting ``show=True``, it saves the visualization results under
+    ``out_dir``.
+
+    Args:
+        model (nn.Module): Model to be tested.
+        data_loader (nn.Dataloader): Pytorch data loader.
+        show (bool): Whether to save viualization results.
+            Default: True.
+        out_dir (str): The path to save visualization results.
+            Default: None.
+
+    Returns:
+        list[dict]: The prediction results.
+    """
+    model.eval()
+    results = []
+    dataset = data_loader.dataset
+    prog_bar = mmcv.ProgressBar(len(dataset))
+    for i, data in enumerate(data_loader):
+        with torch.no_grad():
+            result = model(return_loss=False, rescale=True, **data)
+
+        results.extend(result)
+
+        batch_size = len(result)
+        for _ in range(batch_size):
+            prog_bar.update()
+    return results
+
+config = '/home/cihangxie/shaoyuan/BEV-Attack/zoo/BEVFormer/projects/configs/bevformer/bevformer_base_adv.py'
 checkpoint = '/home/cihangxie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
 
 cfg = Config.fromfile(config)
@@ -70,9 +109,7 @@ data_loader = build_dataloader(
 # build the model and load checkpoint
 cfg.model.train_cfg = None
 model = build_model(cfg.model, test_cfg=cfg.get('test_cfg'))
-fp16_cfg = cfg.get('fp16', None)
-if fp16_cfg is not None:
-    wrap_fp16_model(model)
+
 checkpoint = load_checkpoint(model, checkpoint, map_location='cpu')
 
 if 'CLASSES' in checkpoint.get('meta', {}):
@@ -86,4 +123,8 @@ elif hasattr(dataset, 'PALETTE'):
     # segmentation dataset has `PALETTE` attribute
     model.PALETTE = dataset.PALETTE
 
-data = dataset[0]
+# model = model.cuda()
+model = MMDataParallel(model, device_ids=[0])
+single_gpu_test(model, data_loader)
+
+

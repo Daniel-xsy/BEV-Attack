@@ -256,14 +256,14 @@ eval_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=4,
-    workers_per_gpu=6,
+    samples_per_gpu=1,
+    workers_per_gpu=4,
     train=dict(
         type='CBGSDataset',
         dataset=dict(
             type=dataset_type,
             data_root=data_root,
-            ann_file=data_root + 'nuscenes_infos_train.pkl',
+            ann_file=data_root + 'nuscenes_infos_temporal_train.pkl',
             pipeline=train_pipeline,
             classes=class_names,
             modality=input_modality,
