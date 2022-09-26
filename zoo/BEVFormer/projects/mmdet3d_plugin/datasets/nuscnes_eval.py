@@ -557,7 +557,7 @@ class NuScenesEval_custom(NuScenesEval):
         self.gt_boxes = load_gt(self.nusc, self.eval_set, DetectionBox_modified, verbose=verbose)
 
         assert set(self.pred_boxes.sample_tokens) == set(self.gt_boxes.sample_tokens), \
-            "Samples in split doesn't match samples in predictions."
+            f"Samples in split doesn't match samples in predictions. split: {len(self.pred_boxes.sample_tokens)}, gt: {len(self.gt_boxes.sample_tokens)}"
 
         # Add center distances.
         self.pred_boxes = add_center_dist(nusc, self.pred_boxes)

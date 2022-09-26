@@ -1,7 +1,7 @@
 _base_ = [
-    '../../../mmdetection3d/configs/_base_/datasets/nus-3d.py',
-    '../../../mmdetection3d/configs/_base_/schedules/cyclic_20e.py', 
-    '../../../mmdetection3d/configs/_base_/default_runtime.py'
+    '/home/cihangxie/shaoyuan/mmdetection3d/configs/_base_/datasets/nus-3d.py',
+    '/home/cihangxie/shaoyuan/mmdetection3d/configs/_base_/schedules/cyclic_20e.py', 
+    '/home/cihangxie/shaoyuan/mmdetection3d/configs/_base_/default_runtime.py'
 ]
 
 plugin=True
@@ -132,7 +132,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'NuScenesDataset'
-data_root = 'data/nuscenes/'
+data_root = '/data1/data/shaoyuan/nuscenes/'
 
 file_client_args = dict(backend='disk')
 

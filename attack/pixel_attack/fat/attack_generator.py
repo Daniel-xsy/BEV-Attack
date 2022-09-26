@@ -1,5 +1,9 @@
 import numpy as np
-from models import *
+import torch
+
+import torch.nn as nn
+from torch.autograd import Variable
+
 
 def cwloss(output, target,confidence=50, num_classes=10):
     # Compute the probability of the label class versus the maximum other
@@ -64,7 +68,28 @@ def eval_robust(model, test_loader, perturb_steps, epsilon, step_size, loss_fn, 
     with torch.enable_grad():
         for data, target in test_loader:
             data, target = data.cuda(), target.cuda()
-            x_adv = pgd(model,data,target,epsilon,step_size,perturb_steps,loss_fn,category,rand_init=rand_init)
+            x_adv = pgd(model, data, target,epsilon, step_size, perturb_steps, loss_fn, category, rand_init=rand_init)
+            output = model(x_adv)
+            test_loss += nn.CrossEntropyLoss(reduction='mean')(output, target).item()
+            pred = output.max(1, keepdim=True)[1]
+            correct += pred.eq(target.view_as(pred)).sum().item()
+    test_loss /= len(test_loader.dataset)
+    log = 'Attack Setting ==> Loss_fn:{}, Perturb steps:{}, Epsilon:{}, Step dize:{} \n Test Result ==> Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)'.format(loss_fn,perturb_steps,epsilon,step_size,
+        test_loss, correct, len(test_loader.dataset),
+        100. * correct / len(test_loader.dataset))
+    # print(log)
+    test_accuracy = correct / len(test_loader.dataset)
+    return test_loss, test_accuracy
+
+def custom_eval_robust(model, test_loader, perturb_steps, epsilon, step_size, loss_fn, category, rand_init):
+    ## TODO: adapt to evaluate BEV model
+    model.eval()
+    test_loss = 0
+    correct = 0
+    with torch.enable_grad():
+        for data, target in test_loader:
+            data, target = data.cuda(), target.cuda()
+            x_adv = pgd(model, data, target,epsilon, step_size, perturb_steps, loss_fn, category, rand_init=rand_init)
             output = model(x_adv)
             test_loss += nn.CrossEntropyLoss(reduction='mean')(output, target).item()
             pred = output.max(1, keepdim=True)[1]
