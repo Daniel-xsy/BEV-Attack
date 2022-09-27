@@ -1,10 +1,14 @@
+from ensurepip import version
+
+
 _base_ = [
     '../datasets/custom_nus-3d.py',
     '../_base_/default_runtime.py'
 ]
 #
 plugin = True
-plugin_dir = 'projects/mmdet3d_plugin/'
+plugin_dir = ['projects/mmdet3d_plugin/',
+              'attacks/']
 
 # If point cloud range is changed, the models should also change their point
 # cloud range accordingly
@@ -159,7 +163,7 @@ model = dict(
             iou_cost=dict(type='IoUCost', weight=0.0), # Fake cost. This is just to make it compatible with DETR head.
             pc_range=point_cloud_range))))
 
-dataset_type = 'CustomNuScenesDataset'
+dataset_type = 'CustomNuScenesDataset_Adv'
 data_root = '/data1/data/shaoyuan/nuscenes/'
 file_client_args = dict(backend='disk')
 
@@ -178,6 +182,7 @@ train_pipeline = [
 
 test_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
+    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
     dict(type='PadMultiViewImage', size_divisor=32),
     dict(
@@ -190,7 +195,7 @@ test_pipeline = [
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='CustomCollect3D', keys=['img'])
+            dict(type='CustomCollect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img'])
         ])
 ]
 
@@ -215,11 +220,15 @@ data = dict(
              data_root=data_root,
              ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
              pipeline=test_pipeline,  bev_size=(bev_h_, bev_w_),
+             test_mode=False,
+             adv_mode=True,
              classes=class_names, modality=input_modality, samples_per_gpu=1),
     test=dict(type=dataset_type,
               data_root=data_root,
               ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
               pipeline=test_pipeline, bev_size=(bev_h_, bev_w_),
+              test_mode=False,
+              adv_mode=True,
               classes=class_names, modality=input_modality),
     shuffler_sampler=dict(type='DistributedGroupSampler'),
     nonshuffler_sampler=dict(type='DistributedSampler')
@@ -255,3 +264,13 @@ log_config = dict(
     ])
 
 checkpoint_config = dict(interval=1)
+
+attack = dict(
+    type='PGD',
+    epsilon=0.05,
+    step_size=0.001,
+    num_steps=50,
+    loss_fn=None,
+    category='Madry',
+    rand_init=True,
+)
