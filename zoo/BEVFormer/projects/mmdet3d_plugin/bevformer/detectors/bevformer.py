@@ -76,7 +76,9 @@ class BEVFormer(MVXTwoStageDetector):
             #     img_meta.update(input_shape=input_shape)
 
             if img.dim() == 5 and img.size(0) == 1:
-                img.squeeze_()
+                ## img.squeeze_()
+                ## modified in order to calculate grad
+                img = img.squeeze()
             elif img.dim() == 5 and img.size(0) > 1:
                 B, N, C, H, W = img.size()
                 img = img.reshape(B * N, C, H, W)
@@ -277,8 +279,8 @@ class BEVFormer(MVXTwoStageDetector):
         bbox_list = self.pts_bbox_head.get_bboxes(
             outs, img_metas, rescale=rescale)
         bbox_results = [
-            bbox3d2result(bboxes, scores, labels)
-            for bboxes, scores, labels in bbox_list
+            custom_bbox3d2result(bboxes, scores, labels, logits)
+            for bboxes, scores, labels, logits in bbox_list
         ]
         return outs['bev_embed'], bbox_results
 
@@ -292,3 +294,34 @@ class BEVFormer(MVXTwoStageDetector):
         for result_dict, pts_bbox in zip(bbox_list, bbox_pts):
             result_dict['pts_bbox'] = pts_bbox
         return new_prev_bev, bbox_list
+
+
+def custom_bbox3d2result(bboxes, scores, labels, logits, attrs=None):
+    """Convert detection results to a list of numpy arrays.
+
+    Args:
+        bboxes (torch.Tensor): Bounding boxes with shape of (n, 5).
+        labels (torch.Tensor): Labels with shape of (n, ).
+        scores (torch.Tensor): Scores with shape of (n, ).
+        logits (torch.Tensor): Logits with shape of (n, num_cls).
+        attrs (torch.Tensor, optional): Attributes with shape of (n, ). \
+            Defaults to None.
+
+    Returns:
+        dict[str, torch.Tensor]: Bounding box results in cpu mode.
+
+            - boxes_3d (torch.Tensor): 3D boxes.
+            - scores (torch.Tensor): Prediction scores.
+            - labels_3d (torch.Tensor): Box labels.
+            - attrs_3d (torch.Tensor, optional): Box attributes.
+    """
+    result_dict = dict(
+        boxes_3d=bboxes.to('cpu'),
+        scores_3d=scores.cpu(),
+        labels_3d=labels.cpu(),
+        logits_3d=logits.cpu())
+
+    if attrs is not None:
+        result_dict['attrs_3d'] = attrs.cpu()
+
+    return result_dict

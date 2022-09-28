@@ -130,7 +130,7 @@ model = dict(
                     operation_order=('self_attn', 'norm', 'cross_attn', 'norm',
                                      'ffn', 'norm')))),
         bbox_coder=dict(
-            type='NMSFreeCoder',
+            type='NMSFreeCoder_Adv',
             post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0],
             pc_range=point_cloud_range,
             max_num=300,
@@ -210,6 +210,7 @@ data = dict(
         classes=class_names,
         modality=input_modality,
         test_mode=False,
+        adv_mode=False,
         use_valid_flag=True,
         bev_size=(bev_h_, bev_w_),
         queue_length=queue_length,
@@ -272,5 +273,5 @@ attack = dict(
     num_steps=50,
     loss_fn=None,
     category='Madry',
-    rand_init=True,
-)
+    rand_init=False,
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))

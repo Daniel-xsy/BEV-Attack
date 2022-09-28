@@ -517,7 +517,8 @@ class BEVFormerHead(DETRHead):
             bboxes = img_metas[i]['box_type_3d'](bboxes, code_size)
             scores = preds['scores']
             labels = preds['labels']
+            logits = preds['logits']
 
-            ret_list.append([bboxes, scores, labels])
+            ret_list.append([bboxes, scores, labels, logits])
 
         return ret_list
