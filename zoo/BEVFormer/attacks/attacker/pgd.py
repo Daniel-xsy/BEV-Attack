@@ -40,14 +40,15 @@ class PGD(BaseAttacker):
 
         if self.category == "Madry":
             x_adv = img_.detach() + torch.from_numpy(np.random.uniform(-self.epsilon, self.epsilon, img_.shape)).float().to(img_.device) if self.rand_init else img_.detach()
-            x_adv = torch.clamp(x_adv, 0.0, 1.0)
+            # x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
         for k in range(self.num_steps):
         
             x_adv.requires_grad_()
             img[0].data[0] = x_adv
             inputs = {'img': img, 'img_metas': img_metas}
-            outputs = model(return_loss=False, rescale=True, **inputs)
+            with torch.no_grad():
+                outputs = model(return_loss=False, rescale=True, **inputs)
             mmcv.dump({
                 'outputs': outputs,
                 'gt_bboxes_3d': gt_bboxes_3d,
@@ -65,7 +66,7 @@ class PGD(BaseAttacker):
             eta = self.step_size * x_adv.grad.sign()
             x_adv = x_adv.detach() + eta
             x_adv = torch.min(torch.max(x_adv, img_ - self.epsilon), img_ + self.epsilon)
-            x_adv = torch.clamp(x_adv, 0.0, 1.0)
+            # x_adv = torch.clamp(x_adv, 0.0, 1.0)
 
         return x_adv
 
