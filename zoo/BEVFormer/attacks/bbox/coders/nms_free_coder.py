@@ -51,6 +51,7 @@ class NMSFreeCoder_Adv(BaseBBoxCoder):
         """
         max_num = self.max_num
 
+        cls_logits = cls_scores.clone()
         cls_scores = cls_scores.sigmoid()
         scores, indexs = cls_scores.view(-1).topk(max_num)
         labels = indexs % self.num_classes
@@ -84,15 +85,16 @@ class NMSFreeCoder_Adv(BaseBBoxCoder):
                 mask &= thresh_mask
 
             boxes3d = final_box_preds[mask]
-            # scores = final_scores[mask]
-            # return all score for adversarial attack
-            scores = cls_scores[bbox_index]
-
+            scores = final_scores[mask]
             labels = final_preds[mask]
+            # return all class score for adversarial attack
+            logits = cls_logits[bbox_index][mask]
+
             predictions_dict = {
                 'bboxes': boxes3d,
                 'scores': scores,
-                'labels': labels
+                'labels': labels,
+                'logits': logits
             }
 
         else:
