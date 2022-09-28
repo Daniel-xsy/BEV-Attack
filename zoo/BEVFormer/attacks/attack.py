@@ -31,6 +31,7 @@ import os.path as osp
 
 from attacks.attacker.builder import build_attack
 import attacks.dataset
+import attacks.bbox
 
 
 def main():
@@ -100,6 +101,7 @@ def main():
         shuffle=False,
         nonshuffler_sampler=cfg.data.nonshuffler_sampler,
     )
+
     attacker = build_attack(cfg.attack)
 
     # build the model and load checkpoint
@@ -123,12 +125,14 @@ def main():
         # segmentation dataset has `PALETTE` attribute
         model.PALETTE = dataset.PALETTE
 
+    for n, p in model.named_parameters():
+        p.requires_grad = False
     model = MMDataParallel(model, device_ids=[0])
     
     ## -----------------------
     ## TODO: add attacker here
     ## -----------------------
-    outputs = single_gpu_attack(model, data_loader, attacker=attacker)
+    outputs = single_gpu_attack(model, data_loader, attacker)
 
     rank, _ = get_dist_info()
     if rank == 0:

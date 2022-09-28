@@ -20,6 +20,7 @@ class PGD(BaseAttacker):
                  loss_fn,
                  category,
                  rand_init,
+                 assigner,
                  *args, 
                  **kwargs):
         super().__init__(*args, **kwargs)
@@ -29,6 +30,7 @@ class PGD(BaseAttacker):
         self.loss_fn = loss_fn
         self.category = category
         self.rand_init = rand_init
+        self.assigner = assigner
 
     def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels_3d):
         model.eval()
@@ -47,20 +49,15 @@ class PGD(BaseAttacker):
             x_adv.requires_grad_()
             img[0].data[0] = x_adv
             inputs = {'img': img, 'img_metas': img_metas}
-            with torch.no_grad():
-                outputs = model(return_loss=False, rescale=True, **inputs)
-            mmcv.dump({
-                'outputs': outputs,
-                'gt_bboxes_3d': gt_bboxes_3d,
-                'gt_labels_3d': gt_labels_3d
-            }, 'test.pkl')
-            model.zero_grad()
+            # with torch.no_grad():
+            outputs = model(return_loss=False, rescale=True, **inputs)
 
             with torch.enable_grad():
                 # -----------------------------
                 # TODO: add GT in attacker
                 # -----------------------------
-                loss_adv = self.loss_fn(outputs, gt_bboxes_3d, gt_labels_3d)
+                assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
+                loss_adv = self.loss_fn(**assign_results)
 
             loss_adv.backward()
             eta = self.step_size * x_adv.grad.sign()
