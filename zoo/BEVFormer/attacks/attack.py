@@ -32,6 +32,7 @@ import os.path as osp
 from attacks.attacker.builder import build_attack
 import attacks.dataset
 import attacks.bbox
+import attacks.losses
 
 
 def main():
