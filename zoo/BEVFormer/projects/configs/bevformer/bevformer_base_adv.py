@@ -268,10 +268,11 @@ checkpoint_config = dict(interval=1)
 
 attack = dict(
     type='PGD',
-    epsilon=0.05,
-    step_size=0.001,
+    epsilon=5,
+    step_size=0.1,
     num_steps=50,
-    loss_fn=None,
+    img_norm=img_norm_cfg,
+    loss_fn=dict(type='ClassficationObjective', activate=False),
     category='Madry',
-    rand_init=False,
+    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
