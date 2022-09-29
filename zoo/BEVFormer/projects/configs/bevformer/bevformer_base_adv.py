@@ -43,7 +43,7 @@ queue_length = 4 # each sequence contains `queue_length` frames.
 model = dict(
     type='BEVFormer',
     use_grid_mask=True,
-    video_test_mode=True,
+    video_test_mode=False,
     img_backbone=dict(
         type='ResNet',
         depth=101,
@@ -164,7 +164,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'CustomNuScenesDataset_Adv'
-data_root = '/data1/data/shaoyuan/nuscenes/'
+data_root = '/data1/shaoyuan/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
