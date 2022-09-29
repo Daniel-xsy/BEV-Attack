@@ -7,6 +7,7 @@
 ## Updates
 
 - [2022.09.23] - Project starts
+- [2022.09.29] - Build baseline attack
 
 ## Outline
 - [Installation](#installation)
@@ -16,51 +17,11 @@
 
 ## Installation
 
-**a. Create a conda virtual environment and activate it.**
-```shell
-conda create -n bev python=3.8 -y
-conda activate bev
-```
-
-**b. Install PyTorch and torchvision following the [official instructions](https://pytorch.org/).**
-```shell
-pip install torch==1.9.1+cu111 torchvision==0.10.1+cu111 torchaudio==0.9.1 -f https://download.pytorch.org/whl/torch_stable.html
-# Recommended torch>=1.9
-```
-
-**c. Install gcc>=5 in conda env (optional).**
-```shell
-conda install -c omgarcia gcc-6 # gcc-6.2
-```
-
-**c. Install mmcv-full.**
-```shell
-pip install mmcv-full==1.4.0
-#  pip install mmcv-full==1.4.0 -f https://download.openmmlab.com/mmcv/dist/cu111/torch1.9.0/index.html
-```
-
-**d. Install mmdet and mmseg.**
-```shell
-pip install mmdet==2.14.0
-pip install mmsegmentation==0.14.1
-```
-
-**e. Install mmdet3d from source code.**
-```shell
-git clone https://github.com/open-mmlab/mmdetection3d.git
-cd mmdetection3d
-git checkout v0.17.1 # Other versions may not be compatible.
-python setup.py install
-```
-
-**f. Install timm.**
-```shell
-pip install timm
-```
+Please refer to [installation.md](docs/installation.md) for more details.
 
 ## Data Preparation
 
-Coming soon.
+Please refer to [prepare_dataset.md](docs/prepare_dataset.md) for more details.
 
 ## Getting Started
 
@@ -68,4 +29,5 @@ Coming soon.
 
 ## TODO List
 - [x] Intial release.
-- [ ] Build attack baseline
+- [x] Build attack baseline.
+- [ ] Add patch attack, reorganize code structure for more flexible usage.
