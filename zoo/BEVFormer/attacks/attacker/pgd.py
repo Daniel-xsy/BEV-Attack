@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 import numpy as np
+import random
 
 import mmcv
 
@@ -35,14 +36,20 @@ class PGD(BaseAttacker):
     def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels_3d):
         model.eval()
 
+        camera = random.randint(0, 5)
+
         img_ = img[0].data[0].clone()
         B, M, C, H, W = img_.size()
+        # only calculate grad of single camera image
+        camera_mask = torch.zeros((B, M, C, H, W))
+        camera_mask[:, camera] = 1
 
         if self.category == "trades":
             x_adv = img_.detach() + 0.001 * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
 
         if self.category == "Madry":
             x_adv = img_.detach() + torch.from_numpy(np.random.uniform(-self.epsilon, self.epsilon, img_.shape)).float().to(img_.device) if self.rand_init else img_.detach()
+        x_adv = x_adv * camera_mask
         x_adv = torch.clamp(x_adv, self.lower.view(1, 1, C, 1, 1), self.upper.view(1, 1, C, 1, 1))
 
         for k in range(self.num_steps):
@@ -61,6 +68,7 @@ class PGD(BaseAttacker):
 
             loss_adv.backward()
             eta = self.step_size * x_adv.grad.sign()
+            eta = eta * camera_mask
             x_adv = x_adv.detach() + eta
             x_adv = torch.min(torch.max(x_adv, img_ - self.epsilon), img_ + self.epsilon)
             x_adv = torch.clamp(x_adv, self.lower.view(1, 1, C, 1, 1), self.upper.view(1, 1, C, 1, 1))
