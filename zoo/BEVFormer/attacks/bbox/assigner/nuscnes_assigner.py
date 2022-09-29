@@ -73,10 +73,11 @@ class NuScenesAssigner:
         gt_bboxes = gt_bboxes_3d[0].data[0][0].tensor
         gt_labels = gt_labels_3d[0].data[0][0]
 
-        targets_pred_bbox = []
+        targets_pred_bboxes = []
         targets_pred_scores = []
         targets_pred_logits = []
-        targets_gt_bbox = []
+        targets_gt_bboxes = []
+        targets_gt_labels = []
         # assign single class
         for i, cls in enumerate(self.CLASSES):
 
@@ -91,15 +92,17 @@ class NuScenesAssigner:
             results = self.get_target(cls_output_bbox, cls_outputs_scores, cls_outputs_logits, cls_gt_bbox)
             if results is not None:
                 bbox, scores, logits, gt_bbox = results
-                targets_pred_bbox.append(bbox)
+                targets_pred_bboxes.append(bbox)
                 targets_pred_scores.append(scores)
                 targets_pred_logits.append(logits)
-                targets_gt_bbox.append(gt_bbox)
+                targets_gt_bboxes.append(gt_bbox)
+                targets_gt_labels.append((i * torch.ones(len(gt_bbox))).long())
 
         return {
-            'pred_bboxes': torch.cat(targets_pred_bbox, dim=0),
+            'pred_bboxes': torch.cat(targets_pred_bboxes, dim=0),
             'pred_scores': torch.cat(targets_pred_scores, dim=0),
             'pred_logits': torch.cat(targets_pred_logits, dim=0),
-            'gt_bbox': torch.cat(targets_gt_bbox, dim=0)
+            'gt_bbox': torch.cat(targets_gt_bboxes, dim=0),
+            'gt_label': torch.cat(targets_gt_labels, dim=0)
         }
 
