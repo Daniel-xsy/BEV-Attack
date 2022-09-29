@@ -34,7 +34,7 @@ class NuScenesAssigner:
             for j, gt_bbox in enumerate(gt_bboxes):
 
                 if j not in taken:
-                    dist = np.linalg.norm(np.array(bbox[:2]) - np.array(gt_bbox[:2]))
+                    dist = np.linalg.norm(np.array(bbox[:2].detach().cpu()) - np.array(gt_bbox[:2].detach().cpu()))
                     if dist < min_dist:
                         gt_inds = j
                         min_dist = dist

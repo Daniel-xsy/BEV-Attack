@@ -47,7 +47,7 @@ class PGD(BaseAttacker):
 
         for k in range(self.num_steps):
         
-            # x_adv.requires_grad_()
+            x_adv.requires_grad_()
             img[0].data[0] = x_adv
             inputs = {'img': img, 'img_metas': img_metas}
             # with torch.no_grad():
@@ -60,7 +60,7 @@ class PGD(BaseAttacker):
             eta = self.step_size * x_adv.grad.sign()
             x_adv = x_adv.detach() + eta
             x_adv = torch.min(torch.max(x_adv, img_ - self.epsilon), img_ + self.epsilon)
-            x_adv = torch.clamp(x_adv, self.lower.view(1, 1, C, 1, 1), self.upper(1, 1, C, 1, 1))
+            x_adv = torch.clamp(x_adv, self.lower.view(1, 1, C, 1, 1), self.upper.view(1, 1, C, 1, 1))
 
         return x_adv
 
