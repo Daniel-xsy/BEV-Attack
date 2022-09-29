@@ -54,6 +54,9 @@ class PGD(BaseAttacker):
             outputs = model(return_loss=False, rescale=True, **inputs)
             # assign pred bbox to ground truth
             assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
+            # no prediction are assign to ground truth, stop attack
+            if assign_results is None:
+                break
             loss_adv = self.loss_fn(**assign_results)
 
             loss_adv.backward()
@@ -62,5 +65,9 @@ class PGD(BaseAttacker):
             x_adv = torch.min(torch.max(x_adv, img_ - self.epsilon), img_ + self.epsilon)
             x_adv = torch.clamp(x_adv, self.lower.view(1, 1, C, 1, 1), self.upper.view(1, 1, C, 1, 1))
 
-        return x_adv
+
+        img[0].data[0] = x_adv.detach()
+        torch.cuda.empty_cache()
+
+        return {'img': img, 'img_metas':img_metas}
 
