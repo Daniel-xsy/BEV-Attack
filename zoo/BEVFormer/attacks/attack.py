@@ -4,9 +4,10 @@
 #  Modified by Zhiqi Li
 # ---------------------------------------------
 import sys
-sys.path.append('/home/cihangxie/shaoyuan/BEV-Attack/zoo/BEVFormer')
+## an ugly workaround to add path
+## TODO: reorganize the code structure
+sys.path.append('/home/cixie/shaoyuan/BEV-Attack/zoo/BEVFormer')
 from typing import Tuple
-
 from attacks.utils import single_gpu_attack
 
 import argparse
@@ -37,8 +38,8 @@ import attacks.losses
 
 def main():
 
-    config = '/home/cihangxie/shaoyuan/BEV-Attack/zoo/BEVFormer/projects/configs/bevformer/bevformer_base_adv.py'
-    checkpoint_path = '/home/cihangxie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
+    config = '/home/cixie/shaoyuan/BEV-Attack/zoo/BEVFormer/projects/configs/bevformer/bevformer_base_adv.py'
+    checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
 
 
     cfg = Config.fromfile(config)
@@ -130,9 +131,6 @@ def main():
         p.requires_grad = False
     model = MMDataParallel(model, device_ids=[0])
     
-    ## -----------------------
-    ## TODO: add attacker here
-    ## -----------------------
     outputs = single_gpu_attack(model, data_loader, attacker)
 
     rank, _ = get_dist_info()
