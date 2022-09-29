@@ -46,6 +46,9 @@ class NuScenesAssigner:
                 match_pair.append((i, gt_inds))
 
         match_pair = np.array(match_pair)
+        # no match pair
+        if len(match_pair) == 0:
+            return None
 
         bboxes = bboxes[match_pair[:, 0]]
         scores = scores[match_pair[:, 0]]
@@ -97,6 +100,10 @@ class NuScenesAssigner:
                 targets_pred_logits.append(logits)
                 targets_gt_bboxes.append(gt_bbox)
                 targets_gt_labels.append((i * torch.ones(len(gt_bbox))).long())
+
+        # no assign results
+        if len(targets_pred_bboxes) == 0:
+            return None
 
         return {
             'pred_bboxes': torch.cat(targets_pred_bboxes, dim=0),
