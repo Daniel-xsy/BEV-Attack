@@ -10,25 +10,17 @@ from attacks.attacker.builder import ATTACKER
 
 @ATTACKER.register_module()
 class BaseAttacker:
-    def __init__(self):
-        pass
-
-        # self.version = version
-        # self.data_root = data_root
-
-        # eval_set_map = {
-        #     'v1.0-mini': 'mini_val',
-        #     'v1.0-trainval': 'val',
-        # }
-
-        # # load ground truth to attack
-        # self.nusc = NuScenes(version=self.version, dataroot=self.data_root,
-        #                      verbose=True)
-        
-        # self.nusc = 1
-        # self.gt_boxes = load_gt(self.nusc, eval_set_map[self.version], DetectionBox_modified, verbose=True)
-
+    def __init__(self, img_norm):
+        self.img_norm = img_norm
+        self.upper, self.lower = self._get_bound()
 
     def run(self, model, data):
         pass
 
+    def _get_bound(self):
+        """Calculate max/min pixel value bound
+        """
+        upper = (255.0 - torch.tensor(self.img_norm['mean'])) / torch.tensor(self.img_norm['std'])
+        lower = - torch.tensor(self.img_norm['mean']) / torch.tensor(self.img_norm['std'])
+        
+        return upper, lower
