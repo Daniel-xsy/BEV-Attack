@@ -40,6 +40,7 @@ class PGD(BaseAttacker):
 
         img_ = img[0].data[0].clone()
         B, M, C, H, W = img_.size()
+        assert B == 1, f"Batchsize should set to 1 in attack, but now is {B}"
         # only calculate grad of single camera image
         camera_mask = torch.zeros((B, M, C, H, W))
         camera_mask[:, camera] = 1
