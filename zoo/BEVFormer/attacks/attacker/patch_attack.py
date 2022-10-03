@@ -31,13 +31,23 @@ class PatchAttack(BaseAttacker):
         self.patch_size = torch.tensor(patch_size)
 
     def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels_3d):
+        """Run patch attack optimization
+        Args:
+            model (nn.Module): model to be attacked
+            img (DataContainer): [B, M, C, H, W]
+            img_metas (DataContainer): img_meta information
+            gt_bboxes_3d: ground truth of bboxes
+            gt_labels_3d: ground truth of labels
+        Return:
+            inputs: (dict) {'img': img, 'img_metas': img_metas}
+        """
         model.eval()
 
         img = deepcopy(img)
         img_ = img[0].data[0].clone()
         B, M, C, H, W = img_.size()
         gt_bboxes_3d_ = gt_bboxes_3d[0].data[0][0].clone()
-        # ground truth center world coordinate
+        # project from world coordinate to image coordinate
         center = gt_bboxes_3d_.gravity_center
         center = torch.cat(
             (center, torch.ones_like(center[..., :1])), -1).unsqueeze(dim=-1)
@@ -45,10 +55,11 @@ class PatchAttack(BaseAttacker):
         lidar2img = img_metas[0].data[0][0]['lidar2img']
         lidar2img = np.asarray(lidar2img)
         lidar2img = center.new_tensor(lidar2img).view(-1, 1, 4, 4)  # (M, 1, 4, 4)
-        # project from world coordinate to image coordinate
+        
         reference_points_cam = torch.matmul(lidar2img.to(torch.float32),
                                             center.to(torch.float32)).squeeze(-1)
 
+        # filter out invalid project: object center can be seen only by subset of camera
         eps = 1e-5
         bev_mask = (reference_points_cam[..., 2:3] > eps)
 
@@ -68,12 +79,13 @@ class PatchAttack(BaseAttacker):
         patch_mask = torch.zeros_like(img_)
         # get patch mask of original image
         patch_mask = self.get_patch_mask(reference_points_cam, bev_mask, patch_mask, self.patch_size)
-        # randon init patch
+        # use pixel mean to random init patch
         x_adv = torch.tensor(self.img_norm['mean']).view(1,1,3,1,1) * torch.randn(img_.shape).to(img_.device).detach()
 
         x_adv = x_adv * patch_mask + img_ * (1 - patch_mask)
         x_adv = torch.clamp(x_adv, self.lower.view(1, 1, C, 1, 1), self.upper.view(1, 1, C, 1, 1))
 
+        # optimization
         for k in range(self.num_steps):
         
             x_adv.requires_grad_()
@@ -104,7 +116,9 @@ class PatchAttack(BaseAttacker):
         """Calculate patch mask position for placing patches
         Args:
             reference_points_cam (torch.Tensor): [M, N, 2], M-camera number, N-ground truth, 2-(x, y) position
+            bev_mask (torch.Tensor): [M, N, 1], True if the ground truth `n`'s center hit camera `m`, else: False
             mask (torch.Tensor): [B, M, C, H, W]: initial mask, where all the position is 0
+            patch_size (torch.Tensor): patch size of each object
         Return:
             mask (torch.Tensor): [B, M, C, H, W]: patch mask, set to 1 if patch exist
         """
@@ -133,3 +147,11 @@ class PatchAttack(BaseAttacker):
 
         return patch_mask
 
+    def _get_patch_size(self, reference_points_cam, bev_mask):
+        """Calculate patch size according to object size, use different patch size for different object,
+        which is more make sense than fixed size patch
+        Args:
+            reference_points_cam (torch.Tensor): [M, N, 2], M-camera number, N-ground truth, 2-(x, y) position
+            mask (torch.Tensor): [B, M, C, H, W]: initial mask, where all the position is 0
+        """
+        pass
