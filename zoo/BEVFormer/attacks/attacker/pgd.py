@@ -68,12 +68,17 @@ class PGD(BaseAttacker):
             camera_mask[:, camera] = 1
 
         if self.category == "trades":
-            x_adv = img_.detach() + 0.001 * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
+            if self.single_camera:
+                x_adv = img_.detach() + camera_mask * 0.001 * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
+            else:
+                x_adv = img_.detach() + 0.001 * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
 
         if self.category == "Madry":
-            x_adv = img_.detach() + torch.from_numpy(np.random.uniform(-self.epsilon, self.epsilon, img_.shape)).float().to(img_.device) if self.rand_init else img_.detach()
-        if self.single_camera:
-            x_adv = x_adv * camera_mask
+            if self.single_camera:
+                x_adv = img_.detach() + camera_mask * torch.from_numpy(np.random.uniform(-self.epsilon, self.epsilon, img_.shape)).float().to(img_.device) if self.rand_init else img_.detach()
+            else:
+                x_adv = img_.detach() + torch.from_numpy(np.random.uniform(-self.epsilon, self.epsilon, img_.shape)).float().to(img_.device) if self.rand_init else img_.detach()
+
         x_adv = torch.clamp(x_adv, self.lower.view(1, 1, C, 1, 1), self.upper.view(1, 1, C, 1, 1))
 
         for k in range(self.num_steps):
@@ -82,7 +87,7 @@ class PGD(BaseAttacker):
             img[0].data[0] = x_adv
             inputs = {'img': img, 'img_metas': img_metas}
             # with torch.no_grad():
-            outputs = model(return_loss=False, rescale=True, **inputs)
+            outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs)
             # assign pred bbox to ground truth
             assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
             # no prediction are assign to ground truth, stop attack
