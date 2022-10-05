@@ -313,7 +313,7 @@ class UniversalPatchAttack(BaseAttacker):
 
         return self.patches
 
-    def run(self, img, img_metas, gt_bboxes_3d, gt_labels):
+    def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels):
         """Paste patch on the image on-the-fly
 
         Args:

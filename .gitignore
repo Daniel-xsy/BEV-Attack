@@ -4,3 +4,4 @@ test
 .vscode
 *.pkl
 results
+*.pdf

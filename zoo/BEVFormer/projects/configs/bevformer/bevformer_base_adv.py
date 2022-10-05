@@ -43,7 +43,7 @@ queue_length = 4 # each sequence contains `queue_length` frames.
 model = dict(
     type='BEVFormer',
     use_grid_mask=True,
-    video_test_mode=False,
+    video_test_mode=True,
     img_backbone=dict(
         type='ResNet',
         depth=101,
@@ -266,13 +266,39 @@ log_config = dict(
 
 checkpoint_config = dict(interval=1)
 
+
 attack = dict(
-    type='PGD',
-    epsilon=5,
-    step_size=0.1,
-    num_steps=50,
-    img_norm=img_norm_cfg,
+    type='UniversalPatchAttack',
+    step_size=5,
+    epoch=10,
     loss_fn=dict(type='ClassficationObjective', activate=False),
-    category='Madry',
-    rand_init=True,
-    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4),
+    category_specify=True,
+    catagory_num=10,
+    patch_size=(15,15),
+    dynamic_patch_size=False,
+    scale=0.5,
+    img_norm=img_norm_cfg,
+)
+
+# attack = dict(
+#     type='PatchAttack',
+#     step_size=5,
+#     dynamic_patch_size=True,
+#     scale=0.4,
+#     num_steps=50,
+#     img_norm=img_norm_cfg,
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+# attack = dict(
+#     type='PGD',
+#     epsilon=5,
+#     step_size=0.1,
+#     num_steps=50,
+#     img_norm=img_norm_cfg,
+#     single_camera=True,
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     category='Madry',
+#     rand_init=True,
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
