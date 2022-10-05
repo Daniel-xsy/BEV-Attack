@@ -7,12 +7,13 @@ import sys
 ## an ugly workaround to add path
 ## TODO: reorganize the code structure
 sys.path.append('/home/cixie/shaoyuan/BEV-Attack/zoo/BEVFormer')
+
+import os
 from typing import Tuple
 from attacks.utils import single_gpu_attack
 
 import argparse
 import mmcv
-import os
 import torch
 import warnings
 from mmcv import Config, DictAction
@@ -35,12 +36,12 @@ import attacks.dataset
 import attacks.bbox
 import attacks.losses
 
+from shutil import copyfile
 
 def main():
 
     config = '/home/cixie/shaoyuan/BEV-Attack/zoo/BEVFormer/projects/configs/bevformer/bevformer_base_adv.py'
     checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
-
 
     cfg = Config.fromfile(config)
     # import modules from string list.
@@ -137,7 +138,10 @@ def main():
     if rank == 0:
 
         kwargs = {}
-        kwargs['jsonfile_prefix'] = osp.join('test', 'bevformer_base', 'debug')
+        kwargs['jsonfile_prefix'] = osp.join('results', 'bevformer_base', 'patch_attack_dynamic_0.4')
+        if not osp.isdir(kwargs['jsonfile_prefix']): os.makedirs(kwargs['jsonfile_prefix'])
+        # copy config file
+        copyfile(config, osp.join(kwargs['jsonfile_prefix'], 'config.py'))
 
         eval_kwargs = cfg.get('evaluation', {}).copy()
         # hard-code way to remove EvalHook args
