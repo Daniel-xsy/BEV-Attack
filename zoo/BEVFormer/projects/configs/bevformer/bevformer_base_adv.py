@@ -273,7 +273,7 @@ attack = dict(
     epoch=10,
     loss_fn=dict(type='ClassficationObjective', activate=False),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4),
-    category_specify=True,
+    category_specify=False,
     catagory_num=10,
     patch_size=(15,15),
     dynamic_patch_size=False,

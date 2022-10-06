@@ -138,7 +138,8 @@ def main():
     if rank == 0:
 
         kwargs = {}
-        kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 'exp1')
+        kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
+        f'epoch_10_step_5_specify_{cfg.attack.category_specify}_temp_{str(cfg.model.video_test_mode)}')
         if not osp.isdir(kwargs['jsonfile_prefix']): os.makedirs(kwargs['jsonfile_prefix'])
         # copy config file
         copyfile(config, osp.join(kwargs['jsonfile_prefix'], 'config.py'))

@@ -278,7 +278,7 @@ class UniversalPatchAttack(BaseAttacker):
         # normalize
         patches = (patches - torch.tensor(self.img_norm['mean']).view(1, 3, 1, 1)) / torch.tensor(self.img_norm['std']).view(1, 3, 1, 1)
 
-        return nn.parameter.Parameter(patches, requires_grad=True)
+        return patches
         
     def train(self, model, loader):
         """Run patch attack optimization
@@ -290,8 +290,13 @@ class UniversalPatchAttack(BaseAttacker):
         """
         model.eval()
 
+        # add momentum to gradient
+        eta_prev = 0
+        momentum = 0.8
         for i in range(self.epoch):
             for batch_id, data in enumerate(loader):
+
+                self.patches.requires_grad_()
 
                 img, img_metas = data['img'], data['img_metas']
                 gt_bboxes_3d = data['gt_bboxes_3d']
@@ -299,21 +304,24 @@ class UniversalPatchAttack(BaseAttacker):
 
                 reference_points_cam, bev_mask, patch_size = self.get_reference_points(img, img_metas, gt_bboxes_3d)
                 inputs = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
-                outputs = model(return_loss=False, rescale=True, **inputs)
+                outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs)
                 # assign pred bbox to ground truth
                 assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
-
+                # use sgd, multiply -1 to max loss_adv
                 loss_adv = self.loss_fn(**assign_results)
 
                 loss_adv.backward()
 
-                eta = self.step_size * self.patches.grad.sign()
-                self.patches.grad = self.patches.grad + eta
-                self.patches.grad = torch.clamp(self.patches.grad, self.lower.view(1, 3, 1, 1), self.upper.view(1, 3, 1, 1))
+                eta = momentum * eta_prev + (1 - momentum) * self.step_size * self.patches.grad.sign()
+                # update
+                eta_prev = eta
+                self.patches = self.patches.detach() + eta
+                self.patches = torch.clamp(self.patches, self.lower.view(1, 3, 1, 1), self.upper.view(1, 3, 1, 1))
+                print(f'[Epoch: {i}/{self.epoch}] Iteration: {batch_id}/{len(loader)}  Loss: {loss_adv}')
 
         return self.patches
 
-    def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels):
+    def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels_3d):
         """Paste patch on the image on-the-fly
 
         Args:
@@ -323,7 +331,7 @@ class UniversalPatchAttack(BaseAttacker):
             inputs (dict): {'img': img, 'img_metas': img_metas}
         """
         reference_points_cam, bev_mask, patch_size = self.get_reference_points(img, img_metas, gt_bboxes_3d)
-        inputs = self.place_patch(img, img_metas, gt_labels, reference_points_cam, bev_mask, patch_size)
+        inputs = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
         return inputs
 
     def place_patch(self, img, img_metas, gt_labels, reference_points_cam, bev_mask, patch_size=torch.tensor((5,5))):
