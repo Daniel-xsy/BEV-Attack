@@ -1,4 +1,4 @@
-models
+*.pth
 __pycache__
 test
 .vscode

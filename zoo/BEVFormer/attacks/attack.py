@@ -106,6 +106,17 @@ def main():
     )
 
     attacker = build_attack(cfg.attack)
+    if hasattr(attacker, 'loader'):
+        attack_dataset = build_dataset(attacker.loader)
+        attack_loader = build_dataloader(
+            attack_dataset,
+            samples_per_gpu=samples_per_gpu,
+            workers_per_gpu=cfg.data.workers_per_gpu,
+            dist=False,
+            shuffle=False,
+            nonshuffler_sampler=cfg.data.nonshuffler_sampler,
+        )
+        attacker.loader = attack_loader
 
     # build the model and load checkpoint
     cfg.model.train_cfg = None
