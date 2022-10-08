@@ -40,8 +40,8 @@ from shutil import copyfile
 
 def main():
 
-    config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_base_adv.py'
-    checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
+    config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/detr3d_adv.py'
+    checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/detr3d/detr3d_vovnet_trainval.pth'
     # config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_base_adv.py'
     # checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
 
@@ -155,7 +155,7 @@ def main():
         kwargs = {}
         # kwargs['jsonfile_prefix'] = osp.join('results', 'debug_only')
         kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
-        f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_single_{cfg.attack.single_camera}_temp_{str(cfg.model.video_test_mode)}')
+        f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_single_{cfg.attack.single_camera}')
         if not osp.isdir(kwargs['jsonfile_prefix']): os.makedirs(kwargs['jsonfile_prefix'])
         # copy config file
         copyfile(config, osp.join(kwargs['jsonfile_prefix'], 'config.py'))

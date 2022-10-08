@@ -1,15 +1,18 @@
 _base_ = [
-    '/home/cixie/shaoyuan/mmdetection3d/configs/_base_/datasets/nus-3d.py',
-    '/home/cixie/shaoyuan/mmdetection3d/configs/_base_/default_runtime.py'
+    '../datasets/custom_nus-3d.py',
+    '../_base_/default_runtime.py'
 ]
-
-plugin=True
-plugin_dir='projects/mmdet3d_plugin/'
+#
+plugin = True
+plugin_dir = ['projects/mmdet3d_plugin/',
+              'attacks/']
 
 # If point cloud range is changed, the models should also change their point
 # cloud range accordingly
 point_cloud_range = [-51.2, -51.2, -5.0, 51.2, 51.2, 3.0]
 voxel_size = [0.2, 0.2, 8]
+
+
 
 img_norm_cfg = dict(
     mean=[103.530, 116.280, 123.675], std=[57.375, 57.120, 58.395], to_rgb=False)
@@ -25,6 +28,14 @@ input_modality = dict(
     use_radar=False,
     use_map=False,
     use_external=True)
+
+_dim_ = 256
+_pos_dim_ = _dim_//2
+_ffn_dim_ = _dim_*2
+_num_levels_ = 4
+bev_h_ = 200
+bev_w_ = 200
+queue_length = 4 # each sequence contains `queue_length` frames.
 
 model = dict(
     type='Detr3D',
@@ -78,7 +89,7 @@ model = dict(
                     operation_order=('self_attn', 'norm', 'cross_attn', 'norm',
                                      'ffn', 'norm')))),
         bbox_coder=dict(
-            type='NMSFreeCoder',
+            type='NMSFreeCoder_Adv',
             post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0],
             pc_range=point_cloud_range,
             max_num=300,
@@ -110,46 +121,10 @@ model = dict(
             iou_cost=dict(type='IoUCost', weight=0.0), # Fake cost. This is just to make it compatible with DETR head. 
             pc_range=point_cloud_range))))
 
-dataset_type = 'NuScenesDataset'
+dataset_type = 'CustomNuScenesDataset_Adv'
 data_root = '/data1/shaoyuan/nuscenes/'
-
 file_client_args = dict(backend='disk')
 
-db_sampler = dict(
-    data_root=data_root,
-    info_path=data_root + 'nuscenes_dbinfos_train.pkl',
-    rate=1.0,
-    prepare=dict(
-        filter_by_difficulty=[-1],
-        filter_by_min_points=dict(
-            car=5,
-            truck=5,
-            bus=5,
-            trailer=5,
-            construction_vehicle=5,
-            traffic_cone=5,
-            barrier=5,
-            motorcycle=5,
-            bicycle=5,
-            pedestrian=5)),
-    classes=class_names,
-    sample_groups=dict(
-        car=2,
-        truck=3,
-        construction_vehicle=7,
-        bus=4,
-        trailer=6,
-        barrier=2,
-        motorcycle=6,
-        bicycle=6,
-        pedestrian=2,
-        traffic_cone=2),
-    points_loader=dict(
-        type='LoadPointsFromFile',
-        coord_type='LIDAR',
-        load_dim=5,
-        use_dim=[0, 1, 2, 3, 4],
-        file_client_args=file_client_args))
 
 train_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
@@ -160,16 +135,17 @@ train_pipeline = [
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
     dict(type='PadMultiViewImage', size_divisor=32),
     dict(type='DefaultFormatBundle3D', class_names=class_names),
-    dict(type='Collect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img'])
+    dict(type='CustomCollect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img'])
 ]
+
 test_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
-    # dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False), # new add
+    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
     dict(type='PadMultiViewImage', size_divisor=32),
     dict(
         type='MultiScaleFlipAug3D',
-        img_scale=(1333, 800),
+        img_scale=(1600, 900),
         pts_scale_ratio=1,
         flip=False,
         transforms=[
@@ -177,53 +153,55 @@ test_pipeline = [
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='Collect3D', keys=['img'])
-            # dict(type='Collect3D', keys=['img', 'gt_bboxes_3d', 'gt_labels_3d'])                # new add
+            dict(type='CustomCollect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img'])
         ])
 ]
-
 
 data = dict(
     samples_per_gpu=1,
     workers_per_gpu=4,
     train=dict(
-        type='CBGSDataset',
-        dataset=dict(
-            type=dataset_type,
-            data_root=data_root,
-            ann_file=data_root + 'nuscenes_infos_temporal_train.pkl',
-            pipeline=train_pipeline,
-            classes=class_names,
-            modality=input_modality,
-            test_mode=False,
-            use_valid_flag=True,
-            # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
-            # and box_type_3d='Depth' in sunrgbd and scannet dataset.
-            box_type_3d='LiDAR'),
-    ),
-    val=dict(
-            data_root=data_root,
-            ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
-            pipeline=test_pipeline, 
-            classes=class_names, 
-            modality=input_modality),
-    test=dict(
-            data_root=data_root,
-            ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
-            pipeline=test_pipeline, 
-            classes=class_names, 
-            modality=input_modality),
+        type=dataset_type,
+        data_root=data_root,
+        ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+        pipeline=train_pipeline,
+        classes=class_names,
+        modality=input_modality,
+        test_mode=False,
+        adv_mode=False,
+        use_valid_flag=True,
+        bev_size=(bev_h_, bev_w_),
+        queue_length=queue_length,
+        # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
+        # and box_type_3d='Depth' in sunrgbd and scannet dataset.
+        box_type_3d='LiDAR'),
+    val=dict(type=dataset_type,
+             data_root=data_root,
+             ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+             pipeline=test_pipeline,  bev_size=(bev_h_, bev_w_),
+             test_mode=False,
+             adv_mode=True,
+             classes=class_names, modality=input_modality),
+    test=dict(type=dataset_type,
+              data_root=data_root,
+              ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+              pipeline=test_pipeline, bev_size=(bev_h_, bev_w_),
+              test_mode=False,
+              adv_mode=True,
+              classes=class_names, modality=input_modality),
     shuffler_sampler=dict(type='DistributedGroupSampler'),
-    nonshuffler_sampler=dict(type='DistributedSampler'))
+    nonshuffler_sampler=dict(type='DistributedSampler')
+)
 
 optimizer = dict(
-    type='AdamW', 
+    type='AdamW',
     lr=2e-4,
     paramwise_cfg=dict(
         custom_keys={
             'img_backbone': dict(lr_mult=0.1),
         }),
     weight_decay=0.01)
+
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -233,12 +211,18 @@ lr_config = dict(
     warmup_ratio=1.0 / 3,
     min_lr_ratio=1e-3)
 total_epochs = 24
-evaluation = dict(interval=2, pipeline=test_pipeline)
+evaluation = dict(interval=1, pipeline=test_pipeline)
 
 runner = dict(type='EpochBasedRunner', max_epochs=total_epochs)
-load_from='ckpts/dd3d_det_final.pth'
+load_from = 'ckpts/r101_dcn_fcos3d_pretrain.pth'
+log_config = dict(
+    interval=50,
+    hooks=[
+        dict(type='TextLoggerHook'),
+        dict(type='TensorboardLoggerHook')
+    ])
 
-find_unused_parameters=True
+checkpoint_config = dict(interval=1)
 
 
 # attack = dict(
@@ -274,9 +258,9 @@ find_unused_parameters=True
 
 attack = dict(
     type='PGD',
-    epsilon=5/57,
+    epsilon=[5/57.375, 5/57.120, 5/58.395],
+    step_size=[0.1/57.375, 0.1/57.120, 0.1/58.395],
     num_steps=50,
-    step_size=5./57./50.,
     img_norm=img_norm_cfg,
     single_camera=True,
     loss_fn=dict(type='ClassficationObjective', activate=False),

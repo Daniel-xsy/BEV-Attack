@@ -43,6 +43,10 @@ class PGD(BaseAttacker):
         self.single_camera = single_camera
         self.rand_init = rand_init
         self.assigner = assigner
+        if isinstance(epsilon, list or tuple):
+            self.epsilon = torch.tensor(epsilon).view(1, 1, 3, 1, 1)
+        if isinstance(step_size, list or tuple):
+            self.step_size = torch.tensor(step_size).view(1, 1, 3, 1, 1)
 
     def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels_3d):
         """Run PGD attack optimization
@@ -87,7 +91,7 @@ class PGD(BaseAttacker):
             img[0].data[0] = x_adv
             inputs = {'img': img, 'img_metas': img_metas}
             # with torch.no_grad():
-            outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs)
+            outputs = model(return_loss=False, rescale=True, **inputs)
             # assign pred bbox to ground truth
             assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
             # no prediction are assign to ground truth, stop attack
