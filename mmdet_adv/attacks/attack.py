@@ -40,8 +40,10 @@ from shutil import copyfile
 
 def main():
 
-    config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/bevformer/bevformer_base_adv.py'
+    config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_base_adv.py'
     checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
+    # config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_base_adv.py'
+    # checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
 
     cfg = Config.fromfile(config)
     # import modules from string list.
@@ -91,10 +93,12 @@ def main():
                 ds_cfg.pipeline = replace_ImageToTensor(ds_cfg.pipeline)
 
 
+    set_random_seed(0, deterministic=False)
+
     # build the dataloader
     # It seems set in config don't work
     # an ugly workaround to set test_mode = False
-    cfg.data.test.test_mode = False
+    # cfg.data.test.test_mode = False
     dataset = build_dataset(cfg.data.test)
     data_loader = build_dataloader(
         dataset,
@@ -149,8 +153,9 @@ def main():
     if rank == 0:
 
         kwargs = {}
+        # kwargs['jsonfile_prefix'] = osp.join('results', 'debug_only')
         kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
-        f'epoch_10_step_5_specify_{cfg.attack.category_specify}_temp_{str(cfg.model.video_test_mode)}')
+        f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_single_{cfg.attack.single_camera}_temp_{str(cfg.model.video_test_mode)}')
         if not osp.isdir(kwargs['jsonfile_prefix']): os.makedirs(kwargs['jsonfile_prefix'])
         # copy config file
         copyfile(config, osp.join(kwargs['jsonfile_prefix'], 'config.py'))
