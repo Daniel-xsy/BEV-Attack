@@ -40,8 +40,8 @@ from shutil import copyfile
 
 def main():
 
-    config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/detr3d_adv.py'
-    checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/detr3d/detr3d_vovnet_trainval.pth'
+    config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/mmdet3d_plugin/configs/attack/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d.py'
+    checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d_20210715_235813-4bed5239.pth'
     # config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_base_adv.py'
     # checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
 
@@ -96,10 +96,11 @@ def main():
     set_random_seed(0, deterministic=False)
 
     # build the dataloader
-    # It seems set in config don't work
-    # an ugly workaround to set test_mode = False
-    # cfg.data.test.test_mode = False
     dataset = build_dataset(cfg.data.test)
+    # test_mode false to return ground truth used in the attack
+    # chnage after build the dataset to avoid data filtering
+    # an ugly workaround to set test_mode = False
+    dataset.test_mode = False
     data_loader = build_dataloader(
         dataset,
         samples_per_gpu=samples_per_gpu,
