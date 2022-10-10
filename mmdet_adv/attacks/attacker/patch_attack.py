@@ -21,6 +21,7 @@ class PatchAttack(BaseAttacker):
                  assigner,
                  patch_size=None,
                  dynamic_patch_size=False,
+                 mono_model=False,
                  scale=0.5,
                  *args, 
                  **kwargs):
@@ -39,6 +40,7 @@ class PatchAttack(BaseAttacker):
         self.step_size = step_size
         self.num_steps = num_steps
         self.dynamic_patch = dynamic_patch_size
+        self.mono_model = mono_model
         self.scale = scale
         self.loss_fn = loss_fn
         self.assigner = assigner
@@ -49,6 +51,14 @@ class PatchAttack(BaseAttacker):
         assert patch_size is not None or dynamic_patch_size, \
             "Should activate one of patch_size and dynamic_patch_size, now all off"
         assert scale > 0 and scale < 1, f"Scale should be chosen from (0, 1), but now: {scale}"
+
+        if mono_model:
+            self.size = (1, 3, 1, 1) # do not have stereo camera information
+        else:
+            self.size = (1, 1, 3, 1, 1)
+
+        if isinstance(step_size, list or tuple):
+            self.step_size = torch.tensor(step_size).view(self.size)
 
     def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels_3d):
         """Run patch attack optimization
@@ -65,7 +75,9 @@ class PatchAttack(BaseAttacker):
 
         img = deepcopy(img)
         img_ = img[0].data[0].clone()
-        B, M, C, H, W = img_.size()
+        B = img_.size(0)
+        assert B == 1, f"When attack models, batchsize should be set to 1, but now {B}"
+        C, H, W = img_.size()[-3:]
         gt_bboxes_3d_ = gt_bboxes_3d[0].data[0][0].clone()
         # project from world coordinate to image coordinate
         center = gt_bboxes_3d_.gravity_center
@@ -105,11 +117,11 @@ class PatchAttack(BaseAttacker):
                                                 patch_size if self.dynamic_patch else self.patch_size)
 
         # use pixel mean to random init patch
-        x_adv = torch.tensor(self.img_norm['mean']).view(1,1,3,1,1) * torch.randn(img_.shape).to(img_.device).detach()
+        x_adv = torch.tensor(self.img_norm['mean']).view(self.size) * torch.randn(img_.shape).to(img_.device).detach()
         # x_adv = torch.ones_like(img_) * 255. # this line is for visualization purpose
 
         x_adv = x_adv * patch_mask + img_ * (1 - patch_mask)
-        x_adv = torch.clamp(x_adv, self.lower.view(1, 1, C, 1, 1), self.upper.view(1, 1, C, 1, 1))
+        x_adv = torch.clamp(x_adv, self.lower.view(self.size), self.upper.view(self.size))
 
         # optimization
         for k in range(self.num_steps):
@@ -118,7 +130,7 @@ class PatchAttack(BaseAttacker):
             img[0].data[0] = x_adv
             inputs = {'img': img, 'img_metas': img_metas}
             # with torch.no_grad():
-            outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs)
+            outputs = model(return_loss=False, rescale=True, **inputs) # adv_mode=True, 
             # assign pred bbox to ground truth
             assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
             # no prediction are assign to ground truth, stop attack
@@ -130,7 +142,7 @@ class PatchAttack(BaseAttacker):
             eta = self.step_size * x_adv.grad.sign()
             eta = eta * patch_mask
             x_adv = x_adv.detach() + eta
-            x_adv = torch.clamp(x_adv, self.lower.view(1, 1, C, 1, 1), self.upper.view(1, 1, C, 1, 1))
+            x_adv = torch.clamp(x_adv, self.lower.view(self.size), self.upper.view(self.size))
 
 
         img[0].data[0] = x_adv.detach()
@@ -162,10 +174,10 @@ class PatchAttack(BaseAttacker):
         # patch size on single side
         patch_size = torch.div(patch_size, 2, rounding_mode='floor')
         bev_mask = bev_mask.squeeze()
-        neg_x = torch.maximum(reference_points_cam[..., 0] - patch_size[..., 0], torch.zeros_like(reference_points_cam[..., 0])) * bev_mask
-        pos_x = torch.minimum(reference_points_cam[..., 0] + patch_size[..., 0] + 1, W * torch.ones_like(reference_points_cam[..., 0])) * bev_mask
-        neg_y = torch.maximum(reference_points_cam[..., 1] - patch_size[..., 1], torch.zeros_like(reference_points_cam[..., 1])) * bev_mask
-        pos_y = torch.minimum(reference_points_cam[..., 1] + patch_size[..., 1] + 1, H * torch.ones_like(reference_points_cam[..., 1])) * bev_mask
+        neg_x = (torch.maximum(reference_points_cam[..., 0] - patch_size[..., 0], torch.zeros_like(reference_points_cam[..., 0])) * bev_mask).int()
+        pos_x = (torch.minimum(reference_points_cam[..., 0] + patch_size[..., 0] + 1, W * torch.ones_like(reference_points_cam[..., 0])) * bev_mask).int()
+        neg_y = (torch.maximum(reference_points_cam[..., 1] - patch_size[..., 1], torch.zeros_like(reference_points_cam[..., 1])) * bev_mask).int()
+        pos_y = (torch.minimum(reference_points_cam[..., 1] + patch_size[..., 1] + 1, H * torch.ones_like(reference_points_cam[..., 1])) * bev_mask).int()
 
         for m in range(M):
             for n in range(N):
