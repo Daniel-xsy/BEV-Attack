@@ -1,5 +1,5 @@
-dataset_type = 'CustomNuScenesMonoDataset'
-data_root = 'data/nuscenes/'
+dataset_type = 'NuScenesMonoDataset'
+data_root = '/data1/shaoyuan/nuscenes/'
 class_names = [
     'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
     'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
@@ -70,7 +70,7 @@ data = dict(
     train=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + 'nuscenes_infos_train_mono3d.coco.json',
+        ann_file=data_root + 'nuscenes_infos_temporal_train_mono3d.coco.json',
         img_prefix=data_root,
         classes=class_names,
         pipeline=train_pipeline,
@@ -80,7 +80,7 @@ data = dict(
     val=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + 'nuscenes_infos_val_mono3d.coco.json',
+        ann_file=data_root + 'nuscenes_infos_temporal_val_mono3d.coco.json',
         img_prefix=data_root,
         classes=class_names,
         pipeline=test_pipeline,
@@ -90,7 +90,7 @@ data = dict(
     test=dict(
         type=dataset_type,
         data_root=data_root,
-        ann_file=data_root + 'nuscenes_infos_val_mono3d.coco.json',
+        ann_file=data_root + 'nuscenes_infos_temporal_val_mono3d.coco.json',
         img_prefix=data_root,
         classes=class_names,
         pipeline=test_pipeline,

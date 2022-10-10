@@ -1,5 +1,6 @@
 model = dict(
-    type='FCOSMono3D',
+    # type='FCOSMono3D',
+    type='CustomFCOSMono3D',
     pretrained='open-mmlab://detectron2/resnet101_caffe',
     backbone=dict(
         type='ResNet',
@@ -19,7 +20,8 @@ model = dict(
         num_outs=5,
         relu_before_extra_convs=True),
     bbox_head=dict(
-        type='FCOSMono3DHead',
+        # type='FCOSMono3DHead',
+        type='CustomFCOSMono3DHead',
         num_classes=10,
         in_channels=256,
         stacked_convs=2,
