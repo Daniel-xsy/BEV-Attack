@@ -21,6 +21,7 @@ class PGD(BaseAttacker):
                  category="Madry",
                  rand_init=False,
                  single_camera=False,
+                 mono_model=False,
                  *args, 
                  **kwargs):
         """ PGD pixel attack
@@ -41,12 +42,24 @@ class PGD(BaseAttacker):
         self.loss_fn = loss_fn
         self.category = category
         self.single_camera = single_camera
+        self.mono_model = mono_model
         self.rand_init = rand_init
         self.assigner = assigner
+
+        if self.mono_model:
+            self.size = (1, 3, 1, 1) # do not have stereo camera information
+        else:
+            self.size = (1, 1, 3, 1, 1)
+
+        # when attack mono model, can only attack one camera only
+        if mono_model:
+            assert single_camera, \
+                f"When attack mono detetoc, single_camera should be set to False, but now {single_camera}"
+
         if isinstance(epsilon, list or tuple):
-            self.epsilon = torch.tensor(epsilon).view(1, 1, 3, 1, 1)
+            self.epsilon = torch.tensor(epsilon).view(self.size)
         if isinstance(step_size, list or tuple):
-            self.step_size = torch.tensor(step_size).view(1, 1, 3, 1, 1)
+            self.step_size = torch.tensor(step_size).view(self.size)
 
     def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels_3d):
         """Run PGD attack optimization
@@ -64,26 +77,27 @@ class PGD(BaseAttacker):
         camera = random.randint(0, 5)
 
         img_ = img[0].data[0].clone()
-        B, M, C, H, W = img_.size()
+        B = img_.size(0)
         assert B == 1, f"Batchsize should set to 1 in attack, but now is {B}"
         # only calculate grad of single camera image
-        if self.single_camera:
+        if self.single_camera and not self.mono_model:
+            B, M, C, H, W = img_.size()
             camera_mask = torch.zeros((B, M, C, H, W))
             camera_mask[:, camera] = 1
 
         if self.category == "trades":
-            if self.single_camera:
-                x_adv = img_.detach() + camera_mask * 0.001 * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
+            if self.single_camera and not self.mono_model:
+                x_adv = img_.detach() + camera_mask * self.epsilon * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
             else:
-                x_adv = img_.detach() + 0.001 * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
+                x_adv = img_.detach() + self.epsilon * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
 
         if self.category == "Madry":
-            if self.single_camera:
+            if self.single_camera and not self.mono_model:
                 x_adv = img_.detach() + camera_mask * torch.from_numpy(np.random.uniform(-self.epsilon, self.epsilon, img_.shape)).float().to(img_.device) if self.rand_init else img_.detach()
             else:
                 x_adv = img_.detach() + torch.from_numpy(np.random.uniform(-self.epsilon, self.epsilon, img_.shape)).float().to(img_.device) if self.rand_init else img_.detach()
 
-        x_adv = torch.clamp(x_adv, self.lower.view(1, 1, C, 1, 1), self.upper.view(1, 1, C, 1, 1))
+        x_adv = torch.clamp(x_adv, self.lower.view(self.size), self.upper.view(self.size))
 
         for k in range(self.num_steps):
         
@@ -101,11 +115,11 @@ class PGD(BaseAttacker):
 
             loss_adv.backward()
             eta = self.step_size * x_adv.grad.sign()
-            if self.single_camera:
+            if self.single_camera and not self.mono_model:
                 eta = eta * camera_mask
             x_adv = x_adv.detach() + eta
             x_adv = torch.min(torch.max(x_adv, img_ - self.epsilon), img_ + self.epsilon)
-            x_adv = torch.clamp(x_adv, self.lower.view(1, 1, C, 1, 1), self.upper.view(1, 1, C, 1, 1))
+            x_adv = torch.clamp(x_adv, self.lower.view(self.size), self.upper.view(self.size))
 
 
         img[0].data[0] = x_adv.detach()

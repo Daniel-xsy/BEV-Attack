@@ -68,10 +68,14 @@ class NuScenesAssigner:
                 :obj:`Dict`
         """
         
-        outputs_bboxes = outputs[0]['pts_bbox']['boxes_3d'].tensor
-        outputs_scores = outputs[0]['pts_bbox']['scores_3d']
-        outputs_labels = outputs[0]['pts_bbox']['labels_3d']
-        outputs_logits = outputs[0]['pts_bbox']['logits_3d']
+        keys = list(outputs[0].keys())
+        assert len(keys) == 1 and keys[0] in ['pts_bbox', 'img_bbox'], \
+            f"Output keys should be either 'pts_bbox' or img_bbox, but now {keys}"
+        key = keys[0]
+        outputs_bboxes = outputs[0][key]['boxes_3d'].tensor
+        outputs_scores = outputs[0][key]['scores_3d']
+        outputs_labels = outputs[0][key]['labels_3d']
+        outputs_logits = outputs[0][key]['logits_3d']
 
         gt_bboxes = gt_bboxes_3d[0].data[0][0].tensor
         gt_labels = gt_labels_3d[0].data[0][0]
