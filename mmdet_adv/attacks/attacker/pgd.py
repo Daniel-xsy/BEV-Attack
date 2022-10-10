@@ -53,7 +53,7 @@ class PGD(BaseAttacker):
 
         # when attack mono model, can only attack one camera only
         if mono_model:
-            assert single_camera, \
+            assert not single_camera, \
                 f"When attack mono detetoc, single_camera should be set to False, but now {single_camera}"
 
         if isinstance(epsilon, list or tuple):
@@ -80,19 +80,19 @@ class PGD(BaseAttacker):
         B = img_.size(0)
         assert B == 1, f"Batchsize should set to 1 in attack, but now is {B}"
         # only calculate grad of single camera image
-        if self.single_camera and not self.mono_model:
+        if self.single_camera:
             B, M, C, H, W = img_.size()
             camera_mask = torch.zeros((B, M, C, H, W))
             camera_mask[:, camera] = 1
 
         if self.category == "trades":
-            if self.single_camera and not self.mono_model:
+            if self.single_camera:
                 x_adv = img_.detach() + camera_mask * self.epsilon * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
             else:
                 x_adv = img_.detach() + self.epsilon * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
 
         if self.category == "Madry":
-            if self.single_camera and not self.mono_model:
+            if self.single_camera:
                 x_adv = img_.detach() + camera_mask * torch.from_numpy(np.random.uniform(-self.epsilon, self.epsilon, img_.shape)).float().to(img_.device) if self.rand_init else img_.detach()
             else:
                 x_adv = img_.detach() + torch.from_numpy(np.random.uniform(-self.epsilon, self.epsilon, img_.shape)).float().to(img_.device) if self.rand_init else img_.detach()
@@ -115,7 +115,7 @@ class PGD(BaseAttacker):
 
             loss_adv.backward()
             eta = self.step_size * x_adv.grad.sign()
-            if self.single_camera and not self.mono_model:
+            if self.single_camera:
                 eta = eta * camera_mask
             x_adv = x_adv.detach() + eta
             x_adv = torch.min(torch.max(x_adv, img_ - self.epsilon), img_ + self.epsilon)
