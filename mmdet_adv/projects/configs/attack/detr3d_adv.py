@@ -15,7 +15,7 @@ voxel_size = [0.2, 0.2, 8]
 
 
 img_norm_cfg = dict(
-    mean=[103.530, 116.280, 123.675], std=[57.375, 57.120, 58.395], to_rgb=False)
+    mean=[103.530, 116.280, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False)
 # For nuScenes we usually do 10-class detection
 class_names = [
     'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
@@ -29,10 +29,6 @@ input_modality = dict(
     use_map=False,
     use_external=True)
 
-_dim_ = 256
-_pos_dim_ = _dim_//2
-_ffn_dim_ = _dim_*2
-_num_levels_ = 4
 bev_h_ = 200
 bev_w_ = 200
 queue_length = 4 # each sequence contains `queue_length` frames.
@@ -41,17 +37,21 @@ model = dict(
     type='Detr3D',
     use_grid_mask=True,
     img_backbone=dict(
-        type='VoVNet',
-        spec_name='V-99-eSE',
-        norm_eval=True,
+        type='ResNet',
+        depth=101,
+        num_stages=4,
+        out_indices=(0, 1, 2, 3),
         frozen_stages=1,
-        input_ch=3,
-        out_features=['stage2', 'stage3', 'stage4', 'stage5']),
+        norm_cfg=dict(type='BN2d', requires_grad=False),
+        norm_eval=True,
+        style='caffe',
+        dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False),
+        stage_with_dcn=(False, False, True, True)),
     img_neck=dict(
         type='FPN',
-        in_channels=[256, 512, 768, 1024],
+        in_channels=[256, 512, 1024, 2048],
         out_channels=256,
-        start_level=0,
+        start_level=1,
         add_extra_convs='on_output',
         num_outs=4,
         relu_before_extra_convs=True),
@@ -63,7 +63,6 @@ model = dict(
         sync_cls_avg_factor=True,
         with_box_refine=True,
         as_two_stage=False,
-        code_weights=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.2, 0.2],
         transformer=dict(
             type='Detr3DTransformer',
             decoder=dict(
@@ -122,7 +121,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'CustomNuScenesDataset_Adv'
-data_root = '/data2/shaoyuan/nuscenes/'
+data_root = '/data1/data/shaoyuan/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
