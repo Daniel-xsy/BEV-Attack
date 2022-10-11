@@ -838,56 +838,56 @@ class PGDHead(FCOSMono3DHead):
         result_list = []
         for img_id in range(len(img_metas)):
             cls_score_list = [
-                cls_scores[i][img_id].detach() for i in range(num_levels)
+                cls_scores[i][img_id] for i in range(num_levels)
             ]
             bbox_pred_list = [
-                bbox_preds[i][img_id].detach() for i in range(num_levels)
+                bbox_preds[i][img_id] for i in range(num_levels)
             ]
             if self.use_direction_classifier:
                 dir_cls_pred_list = [
-                    dir_cls_preds[i][img_id].detach()
+                    dir_cls_preds[i][img_id]
                     for i in range(num_levels)
                 ]
             else:
                 dir_cls_pred_list = [
                     cls_scores[i][img_id].new_full(
-                        [2, *cls_scores[i][img_id].shape[1:]], 0).detach()
+                        [2, *cls_scores[i][img_id].shape[1:]], 0)
                     for i in range(num_levels)
                 ]
             if self.use_depth_classifier:
                 depth_cls_pred_list = [
-                    depth_cls_preds[i][img_id].detach()
+                    depth_cls_preds[i][img_id]
                     for i in range(num_levels)
                 ]
             else:
                 depth_cls_pred_list = [
                     cls_scores[i][img_id].new_full(
                         [self.num_depth_cls, *cls_scores[i][img_id].shape[1:]],
-                        0).detach() for i in range(num_levels)
+                        0) for i in range(num_levels)
                 ]
             if self.weight_dim != -1:
                 weight_list = [
-                    weights[i][img_id].detach() for i in range(num_levels)
+                    weights[i][img_id] for i in range(num_levels)
                 ]
             else:
                 weight_list = [
                     cls_scores[i][img_id].new_full(
-                        [1, *cls_scores[i][img_id].shape[1:]], 0).detach()
+                        [1, *cls_scores[i][img_id].shape[1:]], 0)
                     for i in range(num_levels)
                 ]
             if self.pred_attrs:
                 attr_pred_list = [
-                    attr_preds[i][img_id].detach() for i in range(num_levels)
+                    attr_preds[i][img_id] for i in range(num_levels)
                 ]
             else:
                 attr_pred_list = [
                     cls_scores[i][img_id].new_full(
                         [self.num_attrs, *cls_scores[i][img_id].shape[1:]],
-                        self.attr_background_label).detach()
+                        self.attr_background_label)
                     for i in range(num_levels)
                 ]
             centerness_pred_list = [
-                centernesses[i][img_id].detach() for i in range(num_levels)
+                centernesses[i][img_id] for i in range(num_levels)
             ]
             input_meta = img_metas[img_id]
             det_bboxes = self._get_bboxes_single(
