@@ -98,15 +98,27 @@ test_pipeline = [
             dict(type='Collect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img']),
         ])
 ]
-version = 'v1.0-mini'
+version = 'v1.0-trainval'
 dataset_type = 'CustomNuScenesMonoDataset'
+data_root = '/data2/shaoyuan/nuscenes/'
 # dataset_type = 'NuScenesMonoDataset'
 data = dict(
     samples_per_gpu=1,
     workers_per_gpu=2,
-    train=dict(type=dataset_type, pipeline=train_pipeline, version=version),
-    val=dict(type=dataset_type, pipeline=test_pipeline, version=version, test_mode=False),
-    test=dict(type=dataset_type, pipeline=test_pipeline, version=version, test_mode=False),
+    train=dict(type=dataset_type, 
+               data_root=data_root,
+               pipeline=train_pipeline, 
+               version=version),
+    val=dict(type=dataset_type, 
+             data_root=data_root,
+             pipeline=test_pipeline, 
+             version=version, 
+             test_mode=False),
+    test=dict(type=dataset_type, 
+              data_root=data_root,
+              pipeline=test_pipeline, 
+              version=version, 
+              test_mode=False),
     nonshuffler_sampler=dict(type='DistributedSampler'))
 # optimizer
 optimizer = dict(

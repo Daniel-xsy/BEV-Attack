@@ -283,10 +283,18 @@ class BEVFormer(MVXTwoStageDetector):
 
         bbox_list = self.pts_bbox_head.get_bboxes(
             outs, img_metas, rescale=rescale)
-        bbox_results = [
-            custom_bbox3d2result(bboxes, scores, labels, logits)
-            for bboxes, scores, labels, logits in bbox_list
-        ]
+        # wrokaround to collect different results
+        try:
+            bbox_results = [
+                custom_bbox3d2result(bboxes, scores, labels, logits)
+                for bboxes, scores, labels, logits in bbox_list
+            ]
+        except:
+            bbox_results = [
+                bbox3d2result(bboxes, scores, labels)
+                for bboxes, scores, labels in bbox_list
+            ]
+
         return outs['bev_embed'], bbox_results
 
     def simple_test(self, img_metas, img=None, prev_bev=None, rescale=False):

@@ -1,5 +1,5 @@
 dataset_type = 'NuScenesMonoDataset'
-data_root = '/data1/shaoyuan/nuscenes/'
+data_root = '/data2/shaoyuan/nuscenes/'
 class_names = [
     'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
     'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
