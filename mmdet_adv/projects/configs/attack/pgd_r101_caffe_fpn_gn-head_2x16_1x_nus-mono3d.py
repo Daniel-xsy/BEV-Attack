@@ -70,6 +70,7 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(type='LoadImageFromFileMono3D'),
+    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
     dict(
         type='MultiScaleFlipAug',
         scale_factor=1.0,
@@ -82,16 +83,30 @@ test_pipeline = [
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='Collect3D', keys=['img']),
+            dict(type='Collect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img']),
         ])
 ]
 version = 'v1.0-mini'
+dataset_type = 'CustomNuScenesMonoDataset'
+data_root = '/data1/data/shaoyuan/nuscenes_mini/'
+# dataset_type = 'NuScenesMonoDataset'
 data = dict(
-    samples_per_gpu=2,
+    samples_per_gpu=1,
     workers_per_gpu=2,
-    train=dict(pipeline=train_pipeline, version=version),
-    val=dict(pipeline=test_pipeline, version=version),
-    test=dict(pipeline=test_pipeline, version=version),
+    train=dict(type=dataset_type, 
+               data_root=data_root,
+               pipeline=train_pipeline, 
+               version=version),
+    val=dict(type=dataset_type, 
+             data_root=data_root,
+             pipeline=test_pipeline, 
+             version=version, 
+             test_mode=False),
+    test=dict(type=dataset_type, 
+              data_root=data_root,
+              pipeline=test_pipeline, 
+              version=version, 
+              test_mode=False),
     nonshuffler_sampler=dict(type='DistributedSampler'))
 # optimizer
 optimizer = dict(
@@ -131,25 +146,26 @@ runner = dict(max_epochs=total_epochs)
 #     img_norm=img_norm_cfg,
 # )
 
-attack = dict(
-    type='PatchAttack',
-    step_size=[5/57.375, 5/57.120, 5/58.395],
-    dynamic_patch_size=False,
-    scale=0.4,
-    num_steps=50,
-    patch_size=(15,15),
-    img_norm=img_norm_cfg,
-    loss_fn=dict(type='ClassficationObjective', activate=False),
-    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
-
 # attack = dict(
-#     type='PGD',
-#     epsilon=[5/57.375, 5/57.120, 5/58.395],
-#     step_size=[0.1/57.375, 0.1/57.120, 0.1/58.395],
+#     type='PatchAttack',
+#     step_size=[5/57.375, 5/57.120, 5/58.395],
+#     dynamic_patch_size=False,
+#     scale=0.4,
 #     num_steps=50,
+#     patch_size=(15,15),
 #     img_norm=img_norm_cfg,
-#     single_camera=False,
 #     loss_fn=dict(type='ClassficationObjective', activate=False),
-#     category='Madry',
-#     rand_init=True,
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+attack = dict(
+    type='PGD',
+    epsilon=5,
+    step_size=0.1,
+    num_steps=40,
+    img_norm=img_norm_cfg,
+    single_camera=False,
+    mono_model=True,
+    loss_fn=dict(type='ClassficationObjective', activate=False),
+    category='Madry',
+    rand_init=True,
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
