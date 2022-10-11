@@ -22,6 +22,7 @@ from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from mmcv.runner import (get_dist_info, init_dist, load_checkpoint,
                          wrap_fp16_model)
 
+import mmdet3d
 from mmdet3d.datasets import build_dataset
 from projects.mmdet3d_plugin.datasets.builder import build_dataloader
 from mmdet3d.models import build_model
@@ -40,10 +41,14 @@ from shutil import copyfile
 
 def main():
 
-    config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/mmdet3d_plugin/configs/attack/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d.py'
-    checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d_20210715_235813-4bed5239.pth'
-    # config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_base_adv.py'
-    # checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
+    # config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d.py'
+    # checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d_20210715_235813-4bed5239.pth'
+
+    config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_base_adv.py'
+    checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
+
+    # config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/detr3d_adv.py'
+    # checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/detr3d/detr3d_vovnet_trainval.pth'
 
     cfg = Config.fromfile(config)
     # import modules from string list.
@@ -154,9 +159,11 @@ def main():
     if rank == 0:
 
         kwargs = {}
-        # kwargs['jsonfile_prefix'] = osp.join('results', 'debug_only')
-        kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
-        f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_single_{cfg.attack.single_camera}')
+        kwargs['jsonfile_prefix'] = osp.join('results', 'debug_only')
+        # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
+        # f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_single_{cfg.attack.single_camera}')
+        # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
+        # f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_size_{cfg.attack.patch_size}')
         if not osp.isdir(kwargs['jsonfile_prefix']): os.makedirs(kwargs['jsonfile_prefix'])
         # copy config file
         copyfile(config, osp.join(kwargs['jsonfile_prefix'], 'config.py'))
