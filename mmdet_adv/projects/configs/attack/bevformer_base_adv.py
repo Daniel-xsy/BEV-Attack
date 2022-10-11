@@ -1,6 +1,3 @@
-from ensurepip import version
-
-
 _base_ = [
     '../datasets/custom_nus-3d.py',
     '../_base_/default_runtime.py'
@@ -43,7 +40,7 @@ queue_length = 4 # each sequence contains `queue_length` frames.
 model = dict(
     type='BEVFormer',
     use_grid_mask=True,
-    video_test_mode=False,
+    video_test_mode=True,
     img_backbone=dict(
         type='ResNet',
         depth=101,
@@ -164,7 +161,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'CustomNuScenesDataset_Adv'
-data_root = '/data1/shaoyuan/nuscenes/'
+data_root = '/data2/shaoyuan/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
@@ -201,7 +198,7 @@ test_pipeline = [
 
 data = dict(
     samples_per_gpu=1,
-    workers_per_gpu=4,
+    workers_per_gpu=8,
     train=dict(
         type=dataset_type,
         data_root=data_root,
@@ -302,9 +299,9 @@ attack = dict(
     type='PGD',
     epsilon=5,
     step_size=0.1,
-    num_steps=10,
+    num_steps=40,
     img_norm=img_norm_cfg,
-    single_camera=False,
+    single_camera=True,
     loss_fn=dict(type='ClassficationObjective', activate=False),
     category='Madry',
     rand_init=True,
