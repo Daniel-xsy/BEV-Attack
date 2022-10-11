@@ -6,7 +6,7 @@
 import sys
 ## an ugly workaround to add path
 ## TODO: reorganize the code structure
-sys.path.append('/home/cixie/shaoyuan/BEV-Attack/mmdet_adv')
+sys.path.append('/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv')
 
 import os
 from typing import Tuple
@@ -41,14 +41,17 @@ from shutil import copyfile
 
 def main():
 
-    # config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d.py'
-    # checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d_20210715_235813-4bed5239.pth'
+    # config = '/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d.py'
+    # checkpoint_path = '/home/cihangxie/shaoyuan/BEV-Attack/models/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d_finetune_20210717_095645-8d806dc2.pth'
 
-    config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_base_adv.py'
-    checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
+    # config = '/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_base_adv.py'
+    # checkpoint_path = '/home/cihangxie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
 
-    # config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/detr3d_adv.py'
-    # checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/detr3d/detr3d_vovnet_trainval.pth'
+    # config = '/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/detr3d_adv.py'
+    # checkpoint_path = '/home/cihangxie/shaoyuan/BEV-Attack/models/detr3d/detr3d_resnet101_cbgs.pth'
+
+    config = '/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/pgd_r101_caffe_fpn_gn-head_2x16_1x_nus-mono3d.py'
+    checkpoint_path = '/home/cihangxie/shaoyuan/BEV-Attack/models/pgd/pgd_r101_caffe_fpn_gn-head_2x16_2x_nus-mono3d_finetune_20211114_162135-5ec7c1cd.pth'
 
     cfg = Config.fromfile(config)
     # import modules from string list.
@@ -159,9 +162,9 @@ def main():
     if rank == 0:
 
         kwargs = {}
-        kwargs['jsonfile_prefix'] = osp.join('results', 'debug_only')
-        # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
-        # f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_single_{cfg.attack.single_camera}')
+        # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, 'trainval')
+        kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
+        f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_single_{cfg.attack.single_camera}')
         # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
         # f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_size_{cfg.attack.patch_size}')
         if not osp.isdir(kwargs['jsonfile_prefix']): os.makedirs(kwargs['jsonfile_prefix'])
