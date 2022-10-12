@@ -1,4 +1,7 @@
 # Copyright (c) Megvii Inc. All rights reserved.
+import sys
+sys.path.append('/home/cihangxie/shaoyuan/BEV-Attack/zoo/BEVDepth')
+
 import torch
 import torch.nn.parallel
 import torch.utils.data

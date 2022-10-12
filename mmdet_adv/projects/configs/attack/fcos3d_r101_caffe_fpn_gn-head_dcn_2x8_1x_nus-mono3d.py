@@ -136,14 +136,11 @@ total_epochs = 12
 evaluation = dict(interval=2)
 
 attack = dict(
-    type='PGD',
-    epsilon=5,
-    step_size=0.1,
+    type='PatchAttack',
+    step_size=5,
+    dynamic_patch_size=False,
+    scale=(15, 15),
     num_steps=50,
     img_norm=img_norm_cfg,
-    single_camera=False,
-    mono_model=True,
     loss_fn=dict(type='ClassficationObjective', activate=False),
-    category='Madry',
-    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

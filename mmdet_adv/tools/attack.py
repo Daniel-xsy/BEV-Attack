@@ -119,6 +119,8 @@ def main():
         nonshuffler_sampler=cfg.data.nonshuffler_sampler,
     )
 
+    a = dataset[0]
+
     attacker = build_attack(cfg.attack)
     if hasattr(attacker, 'loader'):
         attack_dataset = build_dataset(attacker.loader)
@@ -171,7 +173,7 @@ def main():
             # f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_size_{cfg.attack.patch_size}')
         else:
             kwargs['jsonfile_prefix'] = osp.join('results', args.out)
-            
+
         if not osp.isdir(kwargs['jsonfile_prefix']): os.makedirs(kwargs['jsonfile_prefix'])
         # copy config file
         copyfile(args.config, osp.join(kwargs['jsonfile_prefix'], 'config.py'))

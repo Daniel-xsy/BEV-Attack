@@ -71,6 +71,7 @@ train_pipeline = [
 test_pipeline = [
     dict(type='LoadImageFromFileMono3D'),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
+    dict(type='LoadImageInfo3D', with_lidar2img=True),
     dict(
         type='MultiScaleFlipAug',
         scale_factor=1.0,
@@ -87,7 +88,7 @@ test_pipeline = [
         ])
 ]
 version = 'v1.0-mini'
-dataset_type = 'CustomNuScenesMonoDataset'
+dataset_type = 'CustomNuScenesMonoDataset_Adv'
 data_root = '/data1/data/shaoyuan/nuscenes_mini/'
 # dataset_type = 'NuScenesMonoDataset'
 data = dict(
@@ -146,26 +147,28 @@ runner = dict(max_epochs=total_epochs)
 #     img_norm=img_norm_cfg,
 # )
 
-# attack = dict(
-#     type='PatchAttack',
-#     step_size=[5/57.375, 5/57.120, 5/58.395],
-#     dynamic_patch_size=False,
-#     scale=0.4,
-#     num_steps=50,
-#     patch_size=(15,15),
-#     img_norm=img_norm_cfg,
-#     loss_fn=dict(type='ClassficationObjective', activate=False),
-#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 attack = dict(
-    type='PGD',
-    epsilon=5,
-    step_size=0.1,
-    num_steps=9,
+    type='PatchAttack',
+    step_size=5,
+    dynamic_patch_size=False,
+    scale=0.4,
+    num_steps=50,
+    patch_size=(15,15),
     img_norm=img_norm_cfg,
-    single_camera=False,
-    mono_model=True,
     loss_fn=dict(type='ClassficationObjective', activate=False),
-    category='Madry',
-    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+
+# attack = dict(
+#     type='PGD',
+#     epsilon=5,
+#     step_size=0.1,
+#     num_steps=9,
+#     img_norm=img_norm_cfg,
+#     single_camera=False,
+#     mono_model=True,
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     category='Madry',
+#     rand_init=True,
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

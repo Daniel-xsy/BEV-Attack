@@ -4,8 +4,7 @@ _base_ = [
 ]
 #
 plugin = True
-plugin_dir = ['projects/mmdet3d_plugin/',
-              'attacks/']
+plugin_dir = 'projects/mmdet3d_plugin/'
 
 # If point cloud range is changed, the models should also change their point
 # cloud range accordingly
@@ -247,7 +246,7 @@ checkpoint_config = dict(interval=1)
 
 attack = dict(
     type='PatchAttack',
-    step_size=[5/57.375, 5/57.120, 5/58.395],
+    step_size=5,
     dynamic_patch_size=True,
     scale=0.1,
     num_steps=50,

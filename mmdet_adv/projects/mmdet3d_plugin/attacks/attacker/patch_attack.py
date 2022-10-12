@@ -99,8 +99,8 @@ class PatchAttack(BaseAttacker):
         reference_points_cam = reference_points_cam[..., 0:2] / torch.maximum(
             reference_points_cam[..., 2:3], torch.ones_like(reference_points_cam[..., 2:3]) * eps)
 
-        reference_points_cam[..., 0] /= img_metas[0].data[0][0]['img_shape'][0][1]
-        reference_points_cam[..., 1] /= img_metas[0].data[0][0]['img_shape'][0][0]
+        reference_points_cam[..., 0] /= W
+        reference_points_cam[..., 1] /= H
         bev_mask = (bev_mask & (reference_points_cam[..., 1:2] > 0.0)
                     & (reference_points_cam[..., 1:2] < 1.0)
                     & (reference_points_cam[..., 0:1] < 1.0)

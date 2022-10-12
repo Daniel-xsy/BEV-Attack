@@ -426,6 +426,9 @@ def export_2d_annotation(root_path, info_path, version, mono3d=True):
                     cam2ego_translation=cam_info['sensor2ego_translation'],
                     ego2global_rotation=info['ego2global_rotation'],
                     ego2global_translation=info['ego2global_translation'],
+                    # usage for patch attack
+                    sensor2lidar_translation=cam_info['sensor2lidar_translation'],
+                    sensor2lidar_rotation=cam_info['sensor2lidar_rotation'],
                     cam_intrinsic=cam_info['cam_intrinsic'],
                     width=width,
                     height=height))

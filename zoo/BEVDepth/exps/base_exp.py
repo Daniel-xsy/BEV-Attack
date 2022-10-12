@@ -186,7 +186,7 @@ class BEVDepthLightningModel(LightningModule):
 
     def __init__(self,
                  gpus: int = 1,
-                 data_root='/data1/shaoyuan/nuscenes',
+                 data_root='/data1/data/shaoyuan/nuscenes',
                  eval_interval=1,
                  batch_size_per_device=8,
                  class_names=CLASSES,
