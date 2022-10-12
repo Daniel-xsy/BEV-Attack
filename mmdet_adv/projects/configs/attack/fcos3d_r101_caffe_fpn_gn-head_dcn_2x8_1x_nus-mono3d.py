@@ -98,9 +98,9 @@ test_pipeline = [
             dict(type='Collect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img']),
         ])
 ]
-version = 'v1.0-trainval'
+version = 'v1.0-mini'
 dataset_type = 'CustomNuScenesMonoDataset'
-data_root = '/data2/shaoyuan/nuscenes/'
+data_root = '/data1/data/shaoyuan/nuscenes_mini/'
 # dataset_type = 'NuScenesMonoDataset'
 data = dict(
     samples_per_gpu=1,
@@ -139,7 +139,7 @@ attack = dict(
     type='PGD',
     epsilon=5,
     step_size=0.1,
-    num_steps=20,
+    num_steps=50,
     img_norm=img_norm_cfg,
     single_camera=False,
     mono_model=True,

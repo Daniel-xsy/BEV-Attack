@@ -9,51 +9,52 @@ import sys
 sys.path.append('/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv')
 
 import os
-from typing import Tuple
-from attacks.utils import single_gpu_attack
-
+import time
+import os.path as osp
+import warnings
 import argparse
+from typing import Tuple
+
 import mmcv
 import torch
-import warnings
+
 from mmcv import Config, DictAction
 from mmcv.cnn import fuse_conv_bn
 from mmcv.parallel import MMDataParallel, MMDistributedDataParallel
 from mmcv.runner import (get_dist_info, init_dist, load_checkpoint,
                          wrap_fp16_model)
 
+from mmdet.apis import set_random_seed
+from mmdet.datasets import replace_ImageToTensor
 import mmdet3d
 from mmdet3d.datasets import build_dataset
-from projects.mmdet3d_plugin.datasets.builder import build_dataloader
 from mmdet3d.models import build_model
-from mmdet.apis import set_random_seed
-from projects.mmdet3d_plugin.bevformer.apis.test import custom_multi_gpu_test
-from mmdet.datasets import replace_ImageToTensor
-import time
-import os.path as osp
 
-from attacks.attacker.builder import build_attack
-import attacks.dataset
-import attacks.bbox
-import attacks.losses
+from projects.mmdet3d_plugin.bevformer.apis.test import custom_multi_gpu_test
+from projects.mmdet3d_plugin.datasets.builder import build_dataloader
+
+from projects.mmdet3d_plugin.attacks import build_attack
+from tools.utils import single_gpu_attack
 
 from shutil import copyfile
 
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='MMDet attack a model')
+    parser.add_argument('config', help='test config file path')
+    parser.add_argument('checkpoint', help='checkpoint file')
+    parser.add_argument('--out', help='output result file in pickle format')
+    args = parser.parse_args()
+
+    return args
+
+
 def main():
 
-    # config = '/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d.py'
-    # checkpoint_path = '/home/cihangxie/shaoyuan/BEV-Attack/models/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d_finetune_20210717_095645-8d806dc2.pth'
+    args = parse_args()
 
-    # config = '/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_base_adv.py'
-    # checkpoint_path = '/home/cihangxie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
-
-    # config = '/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/detr3d_adv.py'
-    # checkpoint_path = '/home/cihangxie/shaoyuan/BEV-Attack/models/detr3d/detr3d_resnet101_cbgs.pth'
-
-    config = '/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/pgd_r101_caffe_fpn_gn-head_2x16_1x_nus-mono3d.py'
-    checkpoint_path = '/home/cihangxie/shaoyuan/BEV-Attack/models/pgd/pgd_r101_caffe_fpn_gn-head_2x16_2x_nus-mono3d_finetune_20211114_162135-5ec7c1cd.pth'
-
-    cfg = Config.fromfile(config)
+    cfg = Config.fromfile(args.config)
     # import modules from string list.
     if cfg.get('custom_imports', None):
         from mmcv.utils import import_modules_from_strings
@@ -137,7 +138,7 @@ def main():
     fp16_cfg = cfg.get('fp16', None)
     if fp16_cfg is not None:
         wrap_fp16_model(model)
-    checkpoint = load_checkpoint(model, checkpoint_path, map_location='cpu')
+    checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
 
     # old versions did not save class info in checkpoints, this walkaround is
     # for backward compatibility
@@ -162,14 +163,18 @@ def main():
     if rank == 0:
 
         kwargs = {}
-        # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, 'trainval')
-        kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
-        f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_single_{cfg.attack.single_camera}')
-        # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
-        # f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_size_{cfg.attack.patch_size}')
+        if not args.out:
+            # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, 'trainval')
+            kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
+            f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_single_{cfg.attack.single_camera}')
+            # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
+            # f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_size_{cfg.attack.patch_size}')
+        else:
+            kwargs['jsonfile_prefix'] = osp.join('results', args.out)
+            
         if not osp.isdir(kwargs['jsonfile_prefix']): os.makedirs(kwargs['jsonfile_prefix'])
         # copy config file
-        copyfile(config, osp.join(kwargs['jsonfile_prefix'], 'config.py'))
+        copyfile(args.config, osp.join(kwargs['jsonfile_prefix'], 'config.py'))
 
         eval_kwargs = cfg.get('evaluation', {}).copy()
         # hard-code way to remove EvalHook args

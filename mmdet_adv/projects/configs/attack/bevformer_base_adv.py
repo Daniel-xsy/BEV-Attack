@@ -161,7 +161,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'CustomNuScenesDataset_Adv'
-data_root = '/data2/shaoyuan/nuscenes/'
+data_root = '/data1/data/shaoyuan/nuscenes/'
 file_client_args = dict(backend='disk')
 
 

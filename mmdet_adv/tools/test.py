@@ -24,10 +24,6 @@ from mmdet.datasets import replace_ImageToTensor
 import time
 import os.path as osp
 
-import attacks.dataset
-import attacks.bbox
-import attacks.losses
-
 
 def parse_args():
     parser = argparse.ArgumentParser(
