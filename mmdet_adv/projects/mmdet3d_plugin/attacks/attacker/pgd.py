@@ -6,8 +6,8 @@ import random
 
 import mmcv
 
-from attacks.attacker.base import BaseAttacker
-from attacks.attacker.builder import ATTACKER
+from .base import BaseAttacker
+from .builder import ATTACKER
 
 
 @ATTACKER.register_module()

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
-CUDA_VISIBLE_DEVICES=1 \
-python attack.python \
+CUDA_VISIBLE_DEVICES=0 \
+python ./tools/attack.py \
 '/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/pgd_r101_caffe_fpn_gn-head_2x16_1x_nus-mono3d.py' \
 '/home/cihangxie/shaoyuan/BEV-Attack/models/pgd/pgd_r101_caffe_fpn_gn-head_2x16_2x_nus-mono3d_finetune_20211114_162135-5ec7c1cd.pth' \
 

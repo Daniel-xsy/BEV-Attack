@@ -5,7 +5,7 @@ import numpy as np
 
 from nuscenes import NuScenes
 
-from attacks.attacker.builder import ATTACKER
+from .builder import ATTACKER
 
 
 @ATTACKER.register_module()

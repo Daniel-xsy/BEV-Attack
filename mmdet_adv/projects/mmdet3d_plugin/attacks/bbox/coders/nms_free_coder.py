@@ -2,7 +2,7 @@ import torch
 
 from mmdet.core.bbox import BaseBBoxCoder
 from mmdet.core.bbox.builder import BBOX_CODERS
-from attacks.bbox.util import denormalize_bbox
+from ..util import denormalize_bbox
 import numpy as np
 
 
