@@ -1,5 +1,6 @@
 # Copyright (c) Megvii Inc. All rights reserved.
 from functools import partial
+import os
 
 import mmcv
 import torch
@@ -186,7 +187,7 @@ class BEVDepthLightningModel(LightningModule):
 
     def __init__(self,
                  gpus: int = 1,
-                 data_root='/data1/data/shaoyuan/nuscenes',
+                 data_root='/data1/data/shaoyuan/nuscenes_mini',
                  eval_interval=1,
                  batch_size_per_device=8,
                  class_names=CLASSES,
@@ -227,9 +228,9 @@ class BEVDepthLightningModel(LightningModule):
         self.depth_channels = int(
             (self.dbound[1] - self.dbound[0]) / self.dbound[2])
         self.use_fusion = False
-        self.train_info_paths = '/data1/shaoyuan/nuscenes/nuscenes_infos_train.pkl'
-        self.val_info_paths = '/data1/shaoyuan/nuscenes/nuscenes_infos_val.pkl'
-        self.predict_info_paths = '/data1/shaoyuan/nuscenes/nuscenes_infos_test.pkl'
+        self.train_info_paths = os.path.join(data_root, 'nuscenes_infos_train.pkl')
+        self.val_info_paths = os.path.join(data_root, 'nuscenes_infos_val.pkl')
+        self.predict_info_paths = os.path.join(data_root, 'nuscenes_infos_val.pkl')
 
     def forward(self, sweep_imgs, mats):
         return self.model(sweep_imgs, mats)
