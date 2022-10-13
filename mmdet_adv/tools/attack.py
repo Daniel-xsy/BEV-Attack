@@ -172,7 +172,7 @@ def main():
             # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
             # f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_size_{cfg.attack.patch_size}')
         else:
-            kwargs['jsonfile_prefix'] = osp.join('results', args.out)
+            kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, args.out)
 
         if not osp.isdir(kwargs['jsonfile_prefix']): os.makedirs(kwargs['jsonfile_prefix'])
         # copy config file
