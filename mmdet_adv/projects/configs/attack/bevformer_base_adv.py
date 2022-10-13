@@ -4,8 +4,7 @@ _base_ = [
 ]
 #
 plugin = True
-plugin_dir = ['projects/mmdet3d_plugin/',
-              'attacks/']
+plugin_dir = 'projects/mmdet3d_plugin/'
 
 # If point cloud range is changed, the models should also change their point
 # cloud range accordingly
@@ -161,7 +160,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'CustomNuScenesDataset_Adv'
-data_root = '/data1/data/shaoyuan/nuscenes/'
+data_root = '/data1/shaoyuan/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
@@ -285,24 +284,25 @@ checkpoint_config = dict(interval=1)
 #     img_norm=img_norm_cfg,
 # )
 
-# attack = dict(
-#     type='PatchAttack',
-#     step_size=5,
-#     dynamic_patch_size=True,
-#     scale=0.4,
-#     num_steps=50,
-#     img_norm=img_norm_cfg,
-#     loss_fn=dict(type='ClassficationObjective', activate=False),
-#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
-
 attack = dict(
-    type='PGD',
-    epsilon=5,
-    step_size=0.1,
-    num_steps=40,
+    type='PatchAttack',
+    step_size=5,
+    dynamic_patch_size=True,
+    scale=0.1,
+    num_steps=50,
+    # patch_size=(15,15),
     img_norm=img_norm_cfg,
-    single_camera=True,
     loss_fn=dict(type='ClassficationObjective', activate=False),
-    category='Madry',
-    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+# attack = dict(
+#     type='PGD',
+#     epsilon=5,
+#     step_size=0.1,
+#     num_steps=9,
+#     img_norm=img_norm_cfg,
+#     single_camera=False,
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     category='Madry',
+#     rand_init=True,
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

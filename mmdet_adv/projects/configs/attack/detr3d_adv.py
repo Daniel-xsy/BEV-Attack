@@ -120,7 +120,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'CustomNuScenesDataset_Adv'
-data_root = '/data1/data/shaoyuan/nuscenes/'
+data_root = '/data1/shaoyuan/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
@@ -247,8 +247,9 @@ checkpoint_config = dict(interval=1)
 attack = dict(
     type='PatchAttack',
     step_size=5,
-    dynamic_patch_size=True,
+    dynamic_patch_size=False,
     scale=0.1,
+    patch_size=(15,15),
     num_steps=50,
     img_norm=img_norm_cfg,
     loss_fn=dict(type='ClassficationObjective', activate=False),

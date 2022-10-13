@@ -271,7 +271,7 @@ class BEVFormer(MVXTwoStageDetector):
             img_metas_[0], img[0], prev_bev=self.prev_frame_info['prev_bev'], **kwargs)
         # During inference, we save the BEV features and ego motion of each timestamp.
         # Only update in adversarial attack outer loop
-        if not adv_mode:
+        if not adv_mode and self.video_test_mode:
             self.prev_frame_info['prev_pos'] = tmp_pos
             self.prev_frame_info['prev_angle'] = tmp_angle
             self.prev_frame_info['prev_bev'] = new_prev_bev
