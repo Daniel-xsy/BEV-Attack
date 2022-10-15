@@ -137,7 +137,7 @@ model = dict(
 
 # Data
 dataset_type = 'NuScenesDataset'
-data_root = 'data/nuscenes/'
+data_root = '/data1//data/shaoyuan/nuscenes_mini/'
 file_client_args = dict(backend='disk')
 
 
