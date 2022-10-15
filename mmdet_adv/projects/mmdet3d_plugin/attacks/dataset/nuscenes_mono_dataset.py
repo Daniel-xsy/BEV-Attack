@@ -162,7 +162,7 @@ class CustomNuScenesMonoDataset_Adv(CocoDataset):
         ann_info = self.get_ann_info(idx)
         # collect lidar2img matrix for patch attack
 
-        results = dict(img_info=img_info, ann_info=ann_info, lidar2img=img_info['lidar2img'])
+        results = dict(img_info=img_info, ann_info=ann_info)
         if self.proposals is not None:
             results['proposals'] = self.proposals[idx]
         self.pre_pipeline(results)
