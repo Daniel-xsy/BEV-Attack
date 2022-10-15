@@ -82,6 +82,12 @@ class PatchAttack(BaseAttacker):
         # project from world coordinate to image coordinate
         center = gt_bboxes_3d_.gravity_center
         corners = gt_bboxes_3d_.corners
+
+        if self.mono_model:
+            # when attack monocular models, the coordinate is camera coordinate
+            # we need to transform to lidar coordinate first
+            center, corners = self.camera2lidar(center, corners, img_metas)
+
         center = torch.cat(
             (center, torch.ones_like(center[..., :1])), -1).unsqueeze(dim=-1)
 
@@ -130,7 +136,7 @@ class PatchAttack(BaseAttacker):
             img[0].data[0] = x_adv
             inputs = {'img': img, 'img_metas': img_metas}
             # with torch.no_grad():
-            outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs) # adv_mode=True, 
+            outputs = model(return_loss=False, rescale=True, **inputs) # adv_mode=True, 
             # assign pred bbox to ground truth
             assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
             # no prediction are assign to ground truth, stop attack
@@ -161,7 +167,11 @@ class PatchAttack(BaseAttacker):
             mask (torch.Tensor): [B, M, C, H, W]: patch mask, set to 1 if patch exist
         """
 
-        B, M, C, H, W = patch_mask.size()
+        if self.mono_model:
+            B, C, H, W = patch_mask.size()
+            M = 1
+        else:
+            B, M, C, H, W = patch_mask.size()
         M_, N = reference_points_cam.size()[:2]
         assert M == M_, f"camera number in image(f{M}) not equal to camera number in anno(f{M_})"
         assert B == 1, f"Batchsize should be set to 1 when attack, now f{B}"
@@ -184,7 +194,10 @@ class PatchAttack(BaseAttacker):
                 # reference point do not hit the image
                 if neg_x[m, n] == pos_x[m, n]:
                     continue
-                patch_mask[0, m, :, neg_y[m, n] : pos_y[m, n], neg_x[m, n] : pos_x[m, n]] = 1
+                if self.mono_model:
+                    patch_mask[0, :, neg_y[m, n] : pos_y[m, n], neg_x[m, n] : pos_x[m, n]] = 1
+                else:
+                    patch_mask[0, m, :, neg_y[m, n] : pos_y[m, n], neg_x[m, n] : pos_x[m, n]] = 1
 
         return patch_mask
 
@@ -228,6 +241,20 @@ class PatchAttack(BaseAttacker):
         patch_size[..., 1] = (scale * (ymax - ymin)).int()
         
         return patch_size
+
+    def camera2lidar(self, center, corners, img_metas):
+        """Convert camera coordinate to lidar coordinate
+        """
+        assert 'sensor2lidar_translation' in list(img_metas[0].data[0][0].keys())
+        assert 'sensor2lidar_rotation' in list(img_metas[0].data[0][0].keys())
+
+        sensor2lidar_translation = np.array(img_metas[0].data[0][0]['sensor2lidar_translation'])
+        sensor2lidar_rotation = np.array(img_metas[0].data[0][0]['sensor2lidar_rotation'])
+
+        center = center @ sensor2lidar_rotation.T + sensor2lidar_translation
+        corners = corners @ sensor2lidar_rotation.T + sensor2lidar_translation
+
+        return center, corners
 
 
 @ATTACKER.register_module()
