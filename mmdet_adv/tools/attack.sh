@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
-python ./tools/attack.py \
-'projects/configs/attack/bevformer_base_adv.py' \
-'/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth' \
+python -m debugpy --listen 5679 --wait-for-client ./tools/attack.py \
+--config projects/configs/attack/bevdepth-r50.py \
+--checkpoint /home/cixie/shaoyuan/BEV-Attack/models/bevdepth/bevdepth-r50.pth \
 --out patch_attack15x15 \
+
+# BEVDepth 
+# config = 'projects/configs/attack/bevdepth-r50.py'
+# checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevdepth/bevdepth-r50.pth'
 
 # FCOS3D
 # config = 'projects/configs/attack/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d.py'

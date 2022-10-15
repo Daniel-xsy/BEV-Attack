@@ -66,6 +66,71 @@ def visualize_object(data):
                 plot_api(x, y, 'patch_scale', f'{class_}_{metric_}', out_path=os.path.join('visual', 'patch_scale', f'ap_{class_}.pdf'))
             
 
+def multi_plot_api(xs, ys, labels, xtitle, ytitle, out_path):
+    assert isinstance(xs, list or tuple)
+    assert isinstance(ys, list or tuple)
+    assert isinstance(labels, list or tuple)
+    assert len(xs) == len(ys) and len(xs) == len(labels)
+
+    for i in range(len(xs)):
+        plt.plot(xs[i], ys[i], 'o-', label=labels[i])
+    plt.xlabel(xtitle)
+    plt.ylabel(ytitle)
+    plt.legend()
+    plt.savefig(out_path)
+    plt.cla()
+
+
+pgd_attack = dict(
+    max_steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50],
+    bevformer = [0.3185, 0.2400,0.1955, 0.1692,0.1462,0.1272,0.1194,0.1095,0.0905,0.0871,0.0775,0.0447,0.0331,0.0221,0.0159],
+    bevformer_temp = [0.3766,0,0,0,0,0,0,0,0,0,0.0553,0.0221,0.0109,0.0017,0.0001],
+    detr = [0.3219,0.2756,0.2456,0.2283,0.2077,0.1932,0.1745,0.1705,0.1538,0.1551,0.1530,0.1017,0.0753,0.0559,0.0448],
+    fcos3d = [0.3083,0.2532,0.2082,0.1587,0.1385,0.1121,0.0929,0.0759,0.0627,0.0524,0.0423,0.0085,0.0005,0.0000,0.0000],
+    pgd = [0.3344,0.2666,0.2203,0.1819,0.1504,0.1234,0.1017,0.0838,0.0722,0.0631,0.0502,0.0104,0.0021,0.0001,0.0000],
+
+)
+
+patch_attack = dict(
+    patch_size = [0, 0.15],
+    bevformer = [0.3185, 0.1905],
+    bevformer_temp = [0.3766, 0.1962],
+    detr = [0.3219, 0.2133],
+)
+
+dynamic_patch_attack = dict(
+    scale = [0, 0.1],
+    bevformer = [0.3185, 0.2197],
+    bevformer_temp = [0.3766, 0.2161],
+    detr = [0.3219, 0.2381],
+)
+
+
+def parse_data(results, relative=False):
+    """
+    Args:
+        results (dict)
+        relative (bool): visualize relative performance drop
+    """
+    assert isinstance(results, dict)
+    keys = list(results.keys())
+    xs = []
+    ys = []
+    labels = []
+    for key in keys:
+        if key == 'scale':
+            continue
+        x = results['scale']
+        y = results[key]
+        if relative:
+            y = [y[i] / y[0] for i in range(len(y))]
+        xs.append(x)
+        ys.append(y)
+        labels.append(key)
+    
+    return xs, ys, labels
+
 
 if __name__ == '__main__':
-    visualize_object(results)
+    xs, ys, labels = parse_data(dynamic_patch_attack, relative=False)
+    multi_plot_api(xs, ys, labels, 'scale', 'mAP', 'visual/patch_attack/dyn_abs.pdf')
