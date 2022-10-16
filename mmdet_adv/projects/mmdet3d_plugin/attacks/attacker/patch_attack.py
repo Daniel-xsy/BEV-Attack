@@ -79,9 +79,14 @@ class PatchAttack(BaseAttacker):
         assert B == 1, f"When attack models, batchsize should be set to 1, but now {B}"
         C, H, W = img_.size()[-3:]
         gt_bboxes_3d_ = gt_bboxes_3d[0].data[0][0].clone()
+
+        # when evaluate monocular model, some camera do not cantain bbox
+        if len(gt_bboxes_3d_.tensor) == 0:
+            return {'img': img, 'img_metas':img_metas}
         # project from world coordinate to image coordinate
-        center = gt_bboxes_3d_.gravity_center
-        corners = gt_bboxes_3d_.corners
+        
+        center = deepcopy(gt_bboxes_3d_.gravity_center)
+        corners = deepcopy(gt_bboxes_3d_.corners)
 
         if self.mono_model:
             # when attack monocular models, the coordinate is camera coordinate
