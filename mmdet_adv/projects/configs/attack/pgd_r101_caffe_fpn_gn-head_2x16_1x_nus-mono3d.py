@@ -71,7 +71,7 @@ train_pipeline = [
 test_pipeline = [
     dict(type='LoadImageFromFileMono3D'),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
-    dict(type='LoadImageInfo3D', with_lidar2img=True),
+    dict(type='LoadImageInfo3D', with_lidar2img=True, with_sensor2lidar=True),
     dict(
         type='MultiScaleFlipAug',
         scale_factor=1.0,
@@ -84,7 +84,15 @@ test_pipeline = [
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='Collect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img']),
+            dict(type='Collect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img'],
+                                   meta_keys=['filename', 'ori_shape', 'img_shape', 'lidar2img',
+                                            'depth2img', 'cam2img', 'pad_shape',
+                                            'scale_factor', 'flip', 'pcd_horizontal_flip',
+                                            'pcd_vertical_flip', 'box_mode_3d', 'box_type_3d',
+                                            'img_norm_cfg', 'pcd_trans', 'sample_idx',
+                                            'pcd_scale_factor', 'pcd_rotation', 'pts_filename',
+                                            'transformation_3d_flow', 'sensor2lidar_translation',
+                                            'sensor2lidar_rotation']),
         ])
 ]
 version = 'v1.0-mini'
@@ -151,10 +159,11 @@ runner = dict(max_epochs=total_epochs)
 attack = dict(
     type='PatchAttack',
     step_size=5,
-    dynamic_patch_size=False,
-    scale=0.4,
+    dynamic_patch_size=True,
+    mono_model=True,
+    # patch_size=(15, 15),
+    scale=0.3,
     num_steps=50,
-    patch_size=(15,15),
     img_norm=img_norm_cfg,
     loss_fn=dict(type='ClassficationObjective', activate=False),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
