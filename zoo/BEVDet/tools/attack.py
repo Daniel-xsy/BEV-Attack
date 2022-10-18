@@ -67,18 +67,21 @@ def main():
     # init distributed env first, since logger depends on the dist info.
     distributed = False
 
-
     # set random seeds
     set_random_seed(0, deterministic=False)
 
     # build the dataloader
     dataset = build_dataset(cfg.data.test)
+    dataset.test_mode = False
     data_loader = build_dataloader(
         dataset,
         samples_per_gpu=samples_per_gpu,
         workers_per_gpu=cfg.data.workers_per_gpu,
         dist=distributed,
         shuffle=False)
+
+    # # only used for debug
+    # a = dataset[0]
 
     attacker = build_attack(cfg.attack)
     if hasattr(attacker, 'loader'):
