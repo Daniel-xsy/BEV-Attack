@@ -14,6 +14,7 @@ from mmcv.runner import (get_dist_info, init_dist, load_checkpoint,
 from mmdet3d.apis import single_gpu_test
 from mmdet3d.datasets import build_dataloader, build_dataset
 from mmdet3d.models import build_model
+from mmdet3d.attacks import build_attack
 from mmdet.apis import multi_gpu_test, set_random_seed
 from mmdet.datasets import replace_ImageToTensor
 
@@ -79,6 +80,19 @@ def main():
         dist=distributed,
         shuffle=False)
 
+    attacker = build_attack(cfg.attack)
+    if hasattr(attacker, 'loader'):
+        attack_dataset = build_dataset(attacker.loader)
+        attack_loader = build_dataloader(
+            attack_dataset,
+            samples_per_gpu=samples_per_gpu,
+            workers_per_gpu=cfg.data.workers_per_gpu,
+            dist=False,
+            shuffle=False,
+            nonshuffler_sampler=cfg.data.nonshuffler_sampler,
+        )
+        attacker.loader = attack_loader
+
     # build the model and load checkpoint
     cfg.model.train_cfg = None
     model = build_model(cfg.model, test_cfg=cfg.get('test_cfg'))
@@ -103,7 +117,7 @@ def main():
 
     if not distributed:
         model = MMDataParallel(model, device_ids=[0])
-        outputs = single_gpu_attack(model, data_loader)
+        outputs = single_gpu_attack(model, data_loader, attacker)
     else:
         assert False
         model = MMDistributedDataParallel(
