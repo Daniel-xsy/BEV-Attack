@@ -39,7 +39,7 @@ voxel_size = [0.1, 0.1, 0.2]
 numC_Trans=64
 
 model = dict(
-    type='BEVDepth',
+    type='BEVDepth_Adv',
     img_backbone=dict(
         pretrained='torchvision://resnet50',
         type='ResNet',
@@ -73,7 +73,7 @@ model = dict(
                                 in_channels=numC_Trans*8+numC_Trans*2,
                                 out_channels=256),
     pts_bbox_head=dict(
-        type='CenterHead',
+        type='CenterHead_Adv',
         task_specific=True,
         in_channels=256,
         tasks=[
@@ -88,7 +88,7 @@ model = dict(
             reg=(2, 2), height=(1, 2), dim=(3, 2), rot=(2, 2), vel=(2, 2)),
         share_conv_channel=64,
         bbox_coder=dict(
-            type='CenterPointBBoxCoder',
+            type='CenterPointBBoxCoder_Adv',
             pc_range=point_cloud_range[:2],
             post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0],
             max_num=500,
@@ -185,6 +185,7 @@ test_pipeline = [
         load_dim=5,
         use_dim=5,
         file_client_args=file_client_args),
+    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
     dict(type='PointToMultiViewDepth', grid_config=grid_config),
     dict(
         type='MultiScaleFlipAug3D',
@@ -196,7 +197,7 @@ test_pipeline = [
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='Collect3D', keys=['points','img_inputs'])
+            dict(type='Collect3D', keys=['img_inputs', 'gt_bboxes_3d', 'gt_labels_3d'])
         ])
 ]
 # construct a pipeline for data and gt loading in show function
@@ -242,10 +243,16 @@ data = dict(
             # and box_type_3d='Depth' in sunrgbd and scannet dataset.
             box_type_3d='LiDAR',
             img_info_prototype='bevdet')),
-    val=dict(pipeline=test_pipeline, classes=class_names,
-        modality=input_modality, img_info_prototype='bevdet'),
-    test=dict(pipeline=test_pipeline, classes=class_names,
-        modality=input_modality, img_info_prototype='bevdet'))
+    val=dict(pipeline=test_pipeline, 
+             classes=class_names,
+             filter_empty_gt=False,
+             modality=input_modality, 
+             img_info_prototype='bevdet'),
+    test=dict(pipeline=test_pipeline, 
+              classes=class_names,
+              filter_empty_gt=False,
+              modality=input_modality, 
+              img_info_prototype='bevdet'))
 
 # Optimizer
 optimizer = dict(type='AdamW', lr=2e-4, weight_decay=0.01)
@@ -259,14 +266,16 @@ lr_config = dict(
 runner = dict(type='EpochBasedRunner', max_epochs=24)
 
 img_norm_cfg = dict(
-    mean=[103.530, 116.280, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False)
+    mean=[[0.485, 0.456, 0.406]], std=[0.229, 0.224, 0.225], to_rgb=False)
 attack = dict(
-    type='PatchAttack',
-    step_size=5,
-    dynamic_patch_size=True,
-    scale=0.1,
-    num_steps=50,
-    # patch_size=(15,15),
+    type='PGD',
+    epsilon=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+    step_size=[0.1/255/0.229, 0.1/255/0.224, 0.1/255/0.225],
+    num_steps=9,
     img_norm=img_norm_cfg,
+    single_camera=False,
+    totensor=True,
     loss_fn=dict(type='ClassficationObjective', activate=False),
+    category='Madry',
+    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

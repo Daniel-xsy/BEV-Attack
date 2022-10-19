@@ -6,7 +6,7 @@ python ./tools/attack.py \
 '/home/cihangxie/shaoyuan/BEV-Attack/models/bevdet/bevdet-r50.pth' \
 --out patch_attack15x15 \
 
-# -m debugpy --listen 5679 --wait-for-client 
+# -m debugpy --listen 5678 --wait-for-client 
 
 # BEVDet
 # configs/attack/bevdet-r50.py

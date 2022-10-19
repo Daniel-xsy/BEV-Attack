@@ -56,12 +56,12 @@ class PGD(BaseAttacker):
             assert not single_camera, \
                 f"When attack mono detetoc, single_camera should be set to False, but now {single_camera}"
 
-        if isinstance(epsilon, list or tuple):
+        if isinstance(epsilon, list) or isinstance(epsilon, tuple):
             self.epsilon = torch.tensor(epsilon).view(self.size)
-        if isinstance(step_size, list or tuple):
+        if isinstance(step_size, list) or isinstance(step_size, tuple):
             self.step_size = torch.tensor(step_size).view(self.size)
 
-    def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels_3d):
+    def run(self, model, img_inputs, img_metas, gt_bboxes_3d, gt_labels_3d):
         """Run PGD attack optimization
         Args:
             model (nn.Module): model to be attacked
@@ -74,14 +74,15 @@ class PGD(BaseAttacker):
         """
         model.eval()
 
-        camera = random.randint(0, 5)
-
-        img_ = img[0].data[0].clone()
+        # img_ = img_inputs[0].data[0].clone()
+        # custom for attack BEVDepth
+        img_ = img_inputs[0][0].clone()
         B = img_.size(0)
         assert B == 1, f"Batchsize should set to 1 in attack, but now is {B}"
         # only calculate grad of single camera image
         if self.single_camera:
             B, M, C, H, W = img_.size()
+            camera = random.randint(0, 5)
             camera_mask = torch.zeros((B, M, C, H, W))
             camera_mask[:, camera] = 1
 
@@ -102,8 +103,8 @@ class PGD(BaseAttacker):
         for k in range(self.num_steps):
         
             x_adv.requires_grad_()
-            img[0].data[0] = x_adv
-            inputs = {'img': img, 'img_metas': img_metas}
+            img_inputs[0][0] = x_adv
+            inputs = {'img_inputs': img_inputs, 'img_metas': img_metas}
             # with torch.no_grad():
             outputs = model(return_loss=False, rescale=True, **inputs)
             # assign pred bbox to ground truth
@@ -122,8 +123,8 @@ class PGD(BaseAttacker):
             x_adv = torch.clamp(x_adv, self.lower.view(self.size), self.upper.view(self.size))
 
 
-        img[0].data[0] = x_adv.detach()
+        img_inputs[0][0] = x_adv.detach()
         torch.cuda.empty_cache()
 
-        return {'img': img, 'img_metas':img_metas}
+        return {'img_inputs': img_inputs, 'img_metas':img_metas}
 
