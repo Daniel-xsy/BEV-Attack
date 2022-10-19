@@ -244,14 +244,17 @@ lr_config = dict(
 runner = dict(type='EpochBasedRunner', max_epochs=24)
 
 img_norm_cfg = dict(
-    mean=[103.530, 116.280, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False)
+    mean=[[0.485, 0.456, 0.406]], std=[0.229, 0.224, 0.225], to_rgb=False)
+attack_severity_type = 'num_steps'
 attack = dict(
-    type='PatchAttack',
-    step_size=5,
-    dynamic_patch_size=True,
-    scale=0.1,
-    num_steps=50,
-    # patch_size=(15,15),
+    type='PGD',
+    epsilon=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+    step_size=[0.1/255/0.229, 0.1/255/0.224, 0.1/255/0.225],
+    num_steps=[1,2,3,4,5,6,7,8,9,10,20,30,40,50],
     img_norm=img_norm_cfg,
+    single_camera=False,
+    totensor=True,
     loss_fn=dict(type='ClassficationObjective', activate=False),
+    category='Madry',
+    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

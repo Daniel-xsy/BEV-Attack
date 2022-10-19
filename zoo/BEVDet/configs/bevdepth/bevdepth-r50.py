@@ -63,6 +63,7 @@ model = dict(
                               grid_config=grid_config,
                               data_config=data_config,
                               numC_Trans=numC_Trans,
+                              use_bev_pool=False,
                               extra_depth_net=dict(type='ResNetForBEVDet',
                                                    numC_input=256,
                                                    num_layer=[3,],

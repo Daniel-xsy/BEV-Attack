@@ -8,6 +8,8 @@ import mmcv
 
 from .base import BaseAttacker
 from .builder import ATTACKER
+from mmdet.core.bbox.builder import BBOX_ASSIGNERS
+from mmdet.models.builder import LOSSES
 
 
 @ATTACKER.register_module()
@@ -39,12 +41,12 @@ class PGD(BaseAttacker):
         self.epsilon = epsilon
         self.step_size = step_size
         self.num_steps = num_steps
-        self.loss_fn = loss_fn
+        self.assigner = BBOX_ASSIGNERS.build(assigner)
+        self.loss_fn = LOSSES.build(loss_fn)
         self.category = category
         self.single_camera = single_camera
         self.mono_model = mono_model
         self.rand_init = rand_init
-        self.assigner = assigner
 
         if self.mono_model:
             self.size = (1, 3, 1, 1) # do not have stereo camera information

@@ -63,6 +63,7 @@ model = dict(
                               grid_config=grid_config,
                               data_config=data_config,
                               numC_Trans=numC_Trans,
+                              use_bev_pool=False,
                               extra_depth_net=dict(type='ResNetForBEVDet',
                                                    numC_input=256,
                                                    num_layer=[3,],
@@ -267,11 +268,12 @@ runner = dict(type='EpochBasedRunner', max_epochs=24)
 
 img_norm_cfg = dict(
     mean=[[0.485, 0.456, 0.406]], std=[0.229, 0.224, 0.225], to_rgb=False)
+attack_severity_type = 'num_steps'
 attack = dict(
     type='PGD',
     epsilon=[5/255/0.229, 5/255/0.224, 5/255/0.225],
     step_size=[0.1/255/0.229, 0.1/255/0.224, 0.1/255/0.225],
-    num_steps=9,
+    num_steps=[1,2,3,4,5,6,7,8,9,10,20,30,40,50],
     img_norm=img_norm_cfg,
     single_camera=False,
     totensor=True,
