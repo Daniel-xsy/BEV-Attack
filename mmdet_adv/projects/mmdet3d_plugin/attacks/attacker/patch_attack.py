@@ -8,6 +8,8 @@ import numpy as np
 
 from .base import BaseAttacker
 from .builder import ATTACKER
+from mmdet.core.bbox.builder import BBOX_ASSIGNERS
+from mmdet.models.builder import LOSSES
 
 
 @ATTACKER.register_module()
@@ -42,8 +44,8 @@ class PatchAttack(BaseAttacker):
         self.dynamic_patch = dynamic_patch_size
         self.mono_model = mono_model
         self.scale = scale
-        self.loss_fn = loss_fn
-        self.assigner = assigner
+        self.assigner = BBOX_ASSIGNERS.build(assigner)
+        self.loss_fn = LOSSES.build(loss_fn)
         if patch_size is not None:
             self.patch_size = torch.tensor(patch_size)
         assert patch_size is None or not dynamic_patch_size, \
@@ -300,8 +302,8 @@ class UniversalPatchAttack(BaseAttacker):
         self.dynamic_patch = dynamic_patch_size
         self.scale = scale
         self.loader = loader
-        self.loss_fn = loss_fn
-        self.assigner = assigner
+        self.assigner = BBOX_ASSIGNERS.build(assigner)
+        self.loss_fn = LOSSES.build(loss_fn)
         assert patch_size is not None
         self.patch_size = torch.tensor(patch_size)
 

@@ -6,14 +6,14 @@
 import sys
 ## an ugly workaround to add path
 ## TODO: reorganize the code structure
-sys.path.append('/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv')
+sys.path.append('/home/cixie/shaoyuan/BEV-Attack/mmdet_adv')
 
 import os
 import time
 import os.path as osp
 import warnings
 import argparse
-from typing import Tuple
+from typing import List, Tuple
 
 import mmcv
 import torch
@@ -38,6 +38,8 @@ from tools.utils import single_gpu_attack
 
 from shutil import copyfile
 
+from tools.analysis_tools.parse_results import collect_metric, Logging_str
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -53,6 +55,7 @@ def parse_args():
 def main():
 
     args = parse_args()
+    assert args.out is not None, "Specify output dir by add --out argument"
 
     cfg = Config.fromfile(args.config)
     # import modules from string list.
@@ -119,21 +122,6 @@ def main():
         nonshuffler_sampler=cfg.data.nonshuffler_sampler,
     )
 
-    a = dataset[0]
-
-    attacker = build_attack(cfg.attack)
-    if hasattr(attacker, 'loader'):
-        attack_dataset = build_dataset(attacker.loader)
-        attack_loader = build_dataloader(
-            attack_dataset,
-            samples_per_gpu=samples_per_gpu,
-            workers_per_gpu=cfg.data.workers_per_gpu,
-            dist=False,
-            shuffle=False,
-            nonshuffler_sampler=cfg.data.nonshuffler_sampler,
-        )
-        attacker.loader = attack_loader
-
     # build the model and load checkpoint
     cfg.model.train_cfg = None
     model = build_model(cfg.model, test_cfg=cfg.get('test_cfg'))
@@ -158,21 +146,37 @@ def main():
     for n, p in model.named_parameters():
         p.requires_grad = False
     model = MMDataParallel(model, device_ids=[0])
-    
-    outputs = single_gpu_attack(model, data_loader, attacker)
 
-    rank, _ = get_dist_info()
-    if rank == 0:
+
+    attack_severity_type = cfg.attack_severity_type
+    assert attack_severity_type in list(cfg.attack.keys()), f"Attack severity type {attack_severity_type} \
+        is not a parameters in attack type {cfg.attack.type}"
+    severity_list = cfg.attack[attack_severity_type]
+    assert isinstance(severity_list, List), f"{attack_severity_type} in attack {cfg.attack.type} should be list\
+        now {type(severity_list)}"
+    logging = Logging_str(osp.join('log', cfg.model.type, args.out, 'log.md'))
+
+    for i in range(len(severity_list)):
+        cfg.attack[attack_severity_type] = severity_list[i]
+        # build attack
+        attacker = build_attack(cfg.attack)
+        if hasattr(attacker, 'loader'):
+            attack_dataset = build_dataset(attacker.loader)
+            attack_loader = build_dataloader(
+                attack_dataset,
+                samples_per_gpu=samples_per_gpu,
+                workers_per_gpu=cfg.data.workers_per_gpu,
+                dist=False,
+                shuffle=False,
+                nonshuffler_sampler=cfg.data.nonshuffler_sampler,
+            )
+            attacker.loader = attack_loader
+
+        outputs = single_gpu_attack(model, data_loader, attacker)
+
 
         kwargs = {}
-        if not args.out:
-            # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, 'trainval')
-            kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
-            f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_single_{cfg.attack.single_camera}')
-            # kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, cfg.attack.type, 
-            # f'num_steps_{cfg.attack.num_steps}_step_size_{cfg.attack.step_size}_size_{cfg.attack.patch_size}')
-        else:
-            kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, args.out)
+        kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, args.out, f"{attack_severity_type}_{severity_list[i]}")
 
         if not osp.isdir(kwargs['jsonfile_prefix']): os.makedirs(kwargs['jsonfile_prefix'])
         # copy config file
@@ -187,7 +191,9 @@ def main():
             eval_kwargs.pop(key, None)
         eval_kwargs.update(dict(metric='bbox', **kwargs))
 
-        print(dataset.evaluate(outputs, **eval_kwargs))
+        results = dataset.evaluate(outputs, **eval_kwargs)
+        logging.write(f"### {attack_severity_type} {severity_list[i]}\n")
+        collect_metric(results, logging)
 
 
 if __name__ == '__main__':

@@ -2,9 +2,9 @@
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/attack.py \
-projects/configs/attack/pgd_r101_caffe_fpn_gn-head_2x16_1x_nus-mono3d.py \
-/home/cihangxie/shaoyuan/BEV-Attack/models/pgd/pgd_r101_caffe_fpn_gn-head_2x16_2x_nus-mono3d_finetune_20211114_162135-5ec7c1cd.pth \
---out PatchAttack/dynamic_patch_attack_scale0.4 \
+projects/configs/attack/bevformer_tiny.py \
+/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_tiny_epoch_24.pth \
+--out PGD \
 
 # -m debugpy --listen 5679 --wait-for-client 
 # BEVDepth 
@@ -18,6 +18,10 @@ projects/configs/attack/pgd_r101_caffe_fpn_gn-head_2x16_1x_nus-mono3d.py \
 # BEVFormer
 # config = 'projects/configs/attack/bevformer_base_adv.py'
 # checkpoint_path = '/home/cihangxie/shaoyuan/BEV-Attack/models/bevformer/bevformer_r101_dcn_24ep.pth'
+
+# BEVFormer tiny
+# config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_tiny.py'
+# checkpoint_path = '/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_tiny_epoch_24.pth'
 
 # DETR3D
 # config = 'projects/configs/attack/detr3d_adv.py'
