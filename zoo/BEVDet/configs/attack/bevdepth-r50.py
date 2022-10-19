@@ -138,7 +138,7 @@ model = dict(
 
 # Data
 dataset_type = 'NuScenesDataset'
-data_root = '/data1/data/shaoyuan/nuscenes/'
+data_root = '/data1/shaoyuan/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
@@ -244,12 +244,16 @@ data = dict(
             # and box_type_3d='Depth' in sunrgbd and scannet dataset.
             box_type_3d='LiDAR',
             img_info_prototype='bevdet')),
-    val=dict(pipeline=test_pipeline, 
+    val=dict(data_root=data_root,
+             ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+             pipeline=test_pipeline, 
              classes=class_names,
              filter_empty_gt=False,
              modality=input_modality, 
              img_info_prototype='bevdet'),
-    test=dict(pipeline=test_pipeline, 
+    test=dict(data_root=data_root,
+              ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+              pipeline=test_pipeline, 
               classes=class_names,
               filter_empty_gt=False,
               modality=input_modality, 
@@ -273,7 +277,8 @@ attack = dict(
     type='PGD',
     epsilon=[5/255/0.229, 5/255/0.224, 5/255/0.225],
     step_size=[0.1/255/0.229, 0.1/255/0.224, 0.1/255/0.225],
-    num_steps=[1,2,3,4,5,6,7,8,9,10,20,30,40,50],
+    # num_steps=[1,2,3,4,5,6,7,8,9,10,20,30,40,50],
+    num_steps=[1],
     img_norm=img_norm_cfg,
     single_camera=False,
     totensor=True,
