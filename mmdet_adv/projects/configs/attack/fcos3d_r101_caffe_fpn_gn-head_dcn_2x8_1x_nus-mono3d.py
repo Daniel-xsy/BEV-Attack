@@ -109,7 +109,7 @@ test_pipeline = [
 ]
 version = 'v1.0-mini'
 dataset_type = 'CustomNuScenesMonoDataset_Adv'
-data_root = '/data1/shaoyuan/nuscenes/'
+data_root = '/data1/data/shaoyuan/nuscenes_mini/'
 # dataset_type = 'NuScenesMonoDataset'
 data = dict(
     samples_per_gpu=1,
@@ -147,9 +147,10 @@ evaluation = dict(interval=2)
 attack = dict(
     type='PatchAttack',
     step_size=5,
-    dynamic_patch_size=False,
+    dynamic_patch_size=True,
     mono_model=True,
-    patch_size=(15, 15),
+    # patch_size=(15, 15),
+    scale=0.4,
     num_steps=50,
     img_norm=img_norm_cfg,
     loss_fn=dict(type='ClassficationObjective', activate=False),

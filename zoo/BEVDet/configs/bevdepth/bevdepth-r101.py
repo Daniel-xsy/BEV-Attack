@@ -41,16 +41,18 @@ numC_Trans=64
 model = dict(
     type='BEVDepth',
     img_backbone=dict(
-        pretrained='torchvision://resnet50',
+        pretrained='open-mmlab://detectron2/resnet101_caffe',
         type='ResNet',
-        depth=50,
+        depth=101,
         num_stages=4,
         out_indices=(2, 3),
         frozen_stages=-1,
         norm_cfg=dict(type='BN', requires_grad=True),
+        dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False),
+        stage_with_dcn=(False, False, True, True),
         norm_eval=False,
         with_cp=True,
-        style='pytorch'),
+        style='caffe'),
     img_neck=dict(
         type='FPNForBEVDet',
         in_channels=[1024, 2048],
@@ -257,16 +259,3 @@ lr_config = dict(
     warmup_ratio=0.001,
     step=[16, 22])
 runner = dict(type='EpochBasedRunner', max_epochs=24)
-
-img_norm_cfg = dict(
-    mean=[103.530, 116.280, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False)
-attack = dict(
-    type='PatchAttack',
-    step_size=5,
-    dynamic_patch_size=True,
-    scale=0.1,
-    num_steps=50,
-    # patch_size=(15,15),
-    img_norm=img_norm_cfg,
-    loss_fn=dict(type='ClassficationObjective', activate=False),
-    assigner=dict(type='NuScenesAssigner', dis_thresh=4))

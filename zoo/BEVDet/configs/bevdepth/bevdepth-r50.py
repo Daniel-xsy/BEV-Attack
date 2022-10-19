@@ -137,7 +137,7 @@ model = dict(
 
 # Data
 dataset_type = 'NuScenesDataset'
-data_root = '/data1//data/shaoyuan/nuscenes_mini/'
+data_root = '/data1/data/shaoyuan/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
@@ -232,7 +232,7 @@ data = dict(
         dataset=dict(
             type=dataset_type,
             data_root=data_root,
-            ann_file=data_root + 'nuscenes_infos_train.pkl',
+            ann_file=data_root + 'nuscenes_infos_temporal_train.pkl',
             pipeline=train_pipeline,
             classes=class_names,
             test_mode=False,
