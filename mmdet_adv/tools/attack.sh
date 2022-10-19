@@ -3,7 +3,7 @@
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/attack.py \
 projects/configs/attack/bevformer_tiny.py \
-/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_tiny_epoch_24.pth \
+/home/cihangxie/shaoyuan/BEV-Attack/models/bevformer/bevformer_tiny_epoch_24.pth \
 --out PGD \
 
 # -m debugpy --listen 5679 --wait-for-client 

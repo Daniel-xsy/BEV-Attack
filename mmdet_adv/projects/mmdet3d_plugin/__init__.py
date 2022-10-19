@@ -14,3 +14,4 @@ from .models.dense_heads.detr3d_head import Detr3DHead
 from .models.utils.detr import Deformable3DDetrTransformerDecoder
 from .models.utils.dgcnn_attn import DGCNNAttn
 from .models.utils.detr3d_transformer import Detr3DTransformer, Detr3DTransformerDecoder, Detr3DCrossAtten
+from .apis import *

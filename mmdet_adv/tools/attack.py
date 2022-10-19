@@ -34,7 +34,7 @@ from projects.mmdet3d_plugin.bevformer.apis.test import custom_multi_gpu_test
 from projects.mmdet3d_plugin.datasets.builder import build_dataloader
 
 from projects.mmdet3d_plugin.attacks import build_attack
-from tools.utils import single_gpu_attack
+from projects.mmdet3d_plugin.apis import single_gpu_attack
 
 from shutil import copyfile
 
@@ -146,7 +146,6 @@ def main():
     for n, p in model.named_parameters():
         p.requires_grad = False
     model = MMDataParallel(model, device_ids=[0])
-
 
     attack_severity_type = cfg.attack_severity_type
     assert attack_severity_type in list(cfg.attack.keys()), f"Attack severity type {attack_severity_type} \
