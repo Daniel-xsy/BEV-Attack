@@ -41,14 +41,12 @@ class PGD(BaseAttacker):
         self.epsilon = epsilon
         self.step_size = step_size
         self.num_steps = num_steps
-        self.loss_fn = loss_fn
         self.assigner = BBOX_ASSIGNERS.build(assigner)
         self.loss_fn = LOSSES.build(loss_fn)
         self.category = category
         self.single_camera = single_camera
         self.mono_model = mono_model
         self.rand_init = rand_init
-        self.assigner = assigner
 
         if self.mono_model:
             self.size = (1, 3, 1, 1) # do not have stereo camera information
@@ -109,7 +107,7 @@ class PGD(BaseAttacker):
             img[0].data[0] = x_adv
             inputs = {'img': img, 'img_metas': img_metas}
             # with torch.no_grad():
-            outputs = model(return_loss=False, rescale=True, **inputs)
+            outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs)
             # assign pred bbox to ground truth
             assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
             # no prediction are assign to ground truth, stop attack

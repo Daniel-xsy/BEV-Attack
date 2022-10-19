@@ -154,7 +154,12 @@ def main():
     severity_list = cfg.attack[attack_severity_type]
     assert isinstance(severity_list, List), f"{attack_severity_type} in attack {cfg.attack.type} should be list\
         now {type(severity_list)}"
-    logging = Logging_str(osp.join('log', cfg.model.type, args.out, 'log.md'))
+        
+    logging = Logging_str(osp.join('log', cfg.model.type, args.out, f"{os.path.splitext(os.path.basename(args.config))[0]}.md"))
+    logging.write(f"## Model Configuration\n")
+    logging.write(f"```")
+    logging.write(cfg.pretty_text)
+    logging.write(f"```\n")
 
     for i in range(len(severity_list)):
         cfg.attack[attack_severity_type] = severity_list[i]

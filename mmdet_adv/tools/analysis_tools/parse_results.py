@@ -56,7 +56,7 @@ def collect_average_metric(results_list, logging):
 class Logging_str(object):
     def __init__(self, logfile_path):
         self.logfile_path = logfile_path
-        if not os.path.isfile(logfile_path): os.makedirs(os.path.abspath(os.path.join(logfile_path, os.pardir)))
+        if not os.path.isfile(logfile_path): os.makedirs(os.path.abspath(os.path.join(logfile_path, os.pardir)), exist_ok=True)
 
     def write(self, str = None):
         assert str is not None
