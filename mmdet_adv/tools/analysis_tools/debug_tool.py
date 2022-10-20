@@ -7,7 +7,7 @@
 import sys
 ## an ugly workaround to add path
 ## TODO: reorganize the code structure
-sys.path.append('/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv')
+sys.path.append('/home/cixie/shaoyuan/BEV-Attack/mmdet_adv')
 
 import os
 import time
@@ -15,7 +15,7 @@ import numpy as np
 import os.path as osp
 import warnings
 import argparse
-from typing import Tuple
+from typing import Tuple,List
 
 import mmcv
 import torch
@@ -33,7 +33,7 @@ from mmdet3d.datasets import build_dataset
 from mmdet3d.models import build_model
 
 from projects.mmdet3d_plugin.datasets.builder import build_dataloader
-
+import projects.mmdet3d_plugin
 from projects.mmdet3d_plugin.attacks import build_attack
 from tools.utils import single_gpu_attack
 
@@ -125,9 +125,6 @@ def main():
             for ds_cfg in cfg.data.test:
                 ds_cfg.pipeline = replace_ImageToTensor(ds_cfg.pipeline)
 
-
-    set_random_seed(0, deterministic=False)
-
     # build the dataloader
     dataset = build_dataset(cfg.data.test)
     # test_mode false to return ground truth used in the attack
@@ -142,19 +139,6 @@ def main():
         shuffle=False,
         nonshuffler_sampler=cfg.data.nonshuffler_sampler,
     )
-
-    attacker = build_attack(cfg.attack)
-    if hasattr(attacker, 'loader'):
-        attack_dataset = build_dataset(attacker.loader)
-        attack_loader = build_dataloader(
-            attack_dataset,
-            samples_per_gpu=samples_per_gpu,
-            workers_per_gpu=cfg.data.workers_per_gpu,
-            dist=False,
-            shuffle=False,
-            nonshuffler_sampler=cfg.data.nonshuffler_sampler,
-        )
-        attacker.loader = attack_loader
 
     # build the model and load checkpoint
     cfg.model.train_cfg = None
@@ -180,7 +164,29 @@ def main():
     for n, p in model.named_parameters():
         p.requires_grad = False
     model = MMDataParallel(model, device_ids=[0])
-    
+
+    attack_severity_type = cfg.attack_severity_type
+    assert attack_severity_type in list(cfg.attack.keys()), f"Attack severity type {attack_severity_type} \
+        is not a parameters in attack type {cfg.attack.type}"
+    severity_list = cfg.attack[attack_severity_type]
+    assert isinstance(severity_list, List), f"{attack_severity_type} in attack {cfg.attack.type} should be list\
+        now {type(severity_list)}"
+    cfg.attack[attack_severity_type] = np.random.choice(severity_list)
+    print(f'Random choose {attack_severity_type}: {cfg.attack[attack_severity_type]}')
+
+    attacker = build_attack(cfg.attack)
+    if hasattr(attacker, 'loader'):
+        attack_dataset = build_dataset(attacker.loader)
+        attack_loader = build_dataloader(
+            attack_dataset,
+            samples_per_gpu=samples_per_gpu,
+            workers_per_gpu=cfg.data.workers_per_gpu,
+            dist=False,
+            shuffle=False,
+            nonshuffler_sampler=cfg.data.nonshuffler_sampler,
+        )
+        attacker.loader = attack_loader
+
     # outputs = single_gpu_attack(model, data_loader, attacker)
     data_loader = iter(data_loader)
     data = next(data_loader)
@@ -188,18 +194,18 @@ def main():
     mean = cfg.img_norm_cfg['mean']
     std = cfg.img_norm_cfg['std']
 
-    orig_img = make_grid(data['img'][0].data[0])
+    orig_img = make_grid(data['img'][0].data[0].squeeze()[0])
     show(orig_img, mean, std)
-    plt.savefig('original.png')
+    plt.savefig('original.png', dpi=200)
     plt.cla()
     print('running attacks')
 
     inputs = attacker.run(model, **data)   
 
     print('save results')
-    adv_img = make_grid(inputs['img'][0].data[0])
+    adv_img = make_grid(inputs['img'][0].data[0].squeeze()[0])
     show(adv_img, mean, std)
-    plt.savefig('adver.png')
+    plt.savefig('adver.png', dpi=200)
     plt.cla()
     
 

@@ -39,7 +39,7 @@ voxel_size = [0.1, 0.1, 0.2]
 numC_Trans=64
 
 model = dict(
-    type='BEVDet',
+    type='BEVDet_Adv',
     img_backbone=dict(
         pretrained='torchvision://resnet50',
         type='ResNet',
@@ -61,13 +61,14 @@ model = dict(
     img_view_transformer=dict(type='ViewTransformerLiftSplatShoot',
                               grid_config=grid_config,
                               data_config=data_config,
+                              use_bev_pool=False,
                               numC_Trans=numC_Trans),
     img_bev_encoder_backbone = dict(type='ResNetForBEVDet', numC_input=numC_Trans),
     img_bev_encoder_neck = dict(type='FPN_LSS',
                                 in_channels=numC_Trans*8+numC_Trans*2,
                                 out_channels=256),
     pts_bbox_head=dict(
-        type='CenterHead',
+        type='CenterHead_Adv',
         in_channels=256,
         tasks=[
             dict(num_class=1, class_names=['car']),
@@ -81,7 +82,7 @@ model = dict(
             reg=(2, 2), height=(1, 2), dim=(3, 2), rot=(2, 2), vel=(2, 2)),
         share_conv_channel=64,
         bbox_coder=dict(
-            type='CenterPointBBoxCoder',
+            type='CenterPointBBoxCoder_Adv',
             pc_range=point_cloud_range[:2],
             post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0],
             max_num=500,
@@ -130,7 +131,7 @@ model = dict(
 
 # Data
 dataset_type = 'NuScenesDataset'
-data_root = 'data/nuscenes/'
+data_root = '/data1/shaoyuan/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
@@ -178,6 +179,7 @@ test_pipeline = [
         load_dim=5,
         use_dim=5,
         file_client_args=file_client_args),
+    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
     dict(
         type='MultiScaleFlipAug3D',
         img_scale=(1333, 800),
@@ -188,7 +190,7 @@ test_pipeline = [
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='Collect3D', keys=['points','img_inputs'])
+            dict(type='Collect3D', keys=['img_inputs', 'gt_bboxes_3d', 'gt_labels_3d'])
         ])
 ]
 # construct a pipeline for data and gt loading in show function
@@ -217,7 +219,7 @@ data = dict(
         dataset=dict(
             type=dataset_type,
             data_root=data_root,
-            ann_file=data_root + 'nuscenes_infos_train.pkl',
+            ann_file=data_root + 'nuscenes_infos_temporal_train.pkl',
             pipeline=train_pipeline,
             classes=class_names,
             test_mode=False,
@@ -227,10 +229,16 @@ data = dict(
             # and box_type_3d='Depth' in sunrgbd and scannet dataset.
             box_type_3d='LiDAR',
             img_info_prototype='bevdet')),
-    val=dict(pipeline=test_pipeline, classes=class_names,
-        modality=input_modality, img_info_prototype='bevdet'),
-    test=dict(pipeline=test_pipeline, classes=class_names,
-        modality=input_modality, img_info_prototype='bevdet'))
+    val=dict(pipeline=test_pipeline, 
+             classes=class_names,
+             filter_empty_gt=False,
+             modality=input_modality, 
+             img_info_prototype='bevdet'),
+    test=dict(pipeline=test_pipeline, 
+             classes=class_names,
+             filter_empty_gt=False,
+             modality=input_modality, 
+             img_info_prototype='bevdet'))
 
 # Optimizer
 optimizer = dict(type='AdamW', lr=2e-4, weight_decay=0.01)
