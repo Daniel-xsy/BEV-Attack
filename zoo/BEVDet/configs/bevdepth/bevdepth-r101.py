@@ -46,13 +46,12 @@ model = dict(
         depth=101,
         num_stages=4,
         out_indices=(2, 3),
-        frozen_stages=-1,
-        norm_cfg=dict(type='BN', requires_grad=True),
+        frozen_stages=1,
+        norm_cfg=dict(type='BN2d', requires_grad=False),
+        norm_eval=True,
+        style='caffe',
         dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False),
-        stage_with_dcn=(False, False, True, True),
-        norm_eval=False,
-        with_cp=True,
-        style='caffe'),
+        stage_with_dcn=(False, False, True, True),),
     img_neck=dict(
         type='FPNForBEVDet',
         in_channels=[1024, 2048],
@@ -139,7 +138,7 @@ model = dict(
 
 # Data
 dataset_type = 'NuScenesDataset'
-data_root = '/data1/data/shaoyuan/nuscenes/'
+data_root = '/data2/shaoyuan/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
@@ -227,8 +226,8 @@ input_modality = dict(
     use_external=False)
 
 data = dict(
-    samples_per_gpu=8,
-    workers_per_gpu=4,
+    samples_per_gpu=16,
+    workers_per_gpu=32,
     train=dict(
         type='CBGSDataset',
         dataset=dict(
