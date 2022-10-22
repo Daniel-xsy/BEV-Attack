@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
-python ./tools/analysis_tools/debug_tool.py \
-projects/configs/attack/pgd_r101_caffe_fpn_gn-head_2x16_1x_nus-mono3d.py \
-/home/cihangxie/shaoyuan/BEV-Attack/models/pgd/pgd_r101_caffe_fpn_gn-head_2x16_2x_nus-mono3d_finetune_20211114_162135-5ec7c1cd.pth \
---out debug \
+python -m debugpy --listen 5679 --wait-for-client ./tools/analysis_tools/debug_tool.py \
+projects/configs/attack/bevformer_base_adv.py \
+../models/bevformer/bevformer_r101_dcn_24ep.pth \
+--attack \
 
 # -m debugpy --listen 5679 --wait-for-client 
 # BEVDepth 

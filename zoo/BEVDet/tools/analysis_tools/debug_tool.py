@@ -192,7 +192,7 @@ def main():
     mean = cfg.img_norm_cfg['mean']
     std = cfg.img_norm_cfg['std']
 
-    orig_img = make_grid(data['img_inputs'][0][0].squeeze())
+    orig_img = make_grid(data['img_inputs'][0][0].squeeze()[1])
     show(orig_img, mean, std)
     plt.savefig('original.png', dpi=200)
     plt.cla()
@@ -201,7 +201,7 @@ def main():
     inputs = attacker.run(model, **data)   
 
     print('save results')
-    adv_img = make_grid(inputs['img_inputs'][0][0].squeeze())
+    adv_img = make_grid(inputs['img_inputs'][0][0].squeeze()[1])
     show(adv_img, mean, std)
     plt.savefig('adver.png', dpi=200)
     plt.cla()
