@@ -113,7 +113,8 @@ dynamic_patch_attack = dict(
     bevformer = [0.3185, 0.2175,0.1225,0.0529,0.0132],
     bevformer_temp = [0.3766,0.2145,0.1244,0.0444,0.0031],
     detr = [0.3219,0.2376,0.1551,0.0893,0.0218],
-    fcos3d = [0.3083,0.1647,0.0458,0.0066,0.0000]
+    fcos3d = [0.3083,0.1647,0.0458,0.0066,0.0000],
+    pgd = [0.3344,0.1898,0.0551,0.0000,0.0000]
 )
 
 
@@ -129,9 +130,9 @@ def parse_data(results, relative=False):
     ys = []
     labels = []
     for key in keys:
-        if key == 'max_steps':
+        if key == 'scale':
             continue
-        x = results['max_steps']
+        x = results['scale']
         y = results[key]
         if relative:
             y = [y[i] / y[0] for i in range(len(y))]
@@ -143,5 +144,5 @@ def parse_data(results, relative=False):
 
 
 if __name__ == '__main__':
-    xs, ys, labels = parse_data(pgd_attack, relative=True)
-    multi_plot_api(xs, ys, labels, 'max_steps', 'mAP', 'visual/pgd/all_rel.pdf')
+    xs, ys, labels = parse_data(dynamic_patch_attack, relative=False)
+    multi_plot_api(xs, ys, labels, 'scale', 'mAP', 'visual/patch/dyn_abs.pdf')
