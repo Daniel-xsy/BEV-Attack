@@ -69,6 +69,7 @@ def parse_args():
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument('--attack', action='store_true', default=False)
+    parser.add_argument('--show', action='store_true', default=False)
     args = parser.parse_args()
 
     return args
@@ -196,19 +197,21 @@ def main():
         mean = cfg.img_norm_cfg['mean']
         std = cfg.img_norm_cfg['std']
 
-        orig_img = make_grid(data['img'][0].data[0].squeeze()[0])
-        show(orig_img, mean, std)
-        plt.savefig('original.png', dpi=200)
-        plt.cla()
-        print('running attacks')
+        if args.show:
+            orig_img = make_grid(data['img'][0].data[0].squeeze()[0])
+            show(orig_img, mean, std)
+            plt.savefig('original.png', dpi=200)
+            plt.cla()
 
+        print('running attacks')
         inputs = attacker.run(model, **data)   
 
-        print('save results')
-        adv_img = make_grid(inputs['img'][0].data[0].squeeze()[0])
-        show(adv_img, mean, std)
-        plt.savefig('adver.png', dpi=200)
-        plt.cla()
+        if args.show:
+            print('save results')
+            adv_img = make_grid(inputs['img'][0].data[0].squeeze()[0])
+            show(adv_img, mean, std)
+            plt.savefig('adver.png', dpi=200)
+            plt.cla()
 
     else:
         data_loader = iter(data_loader)

@@ -2,9 +2,9 @@
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python -m debugpy --listen 5679 --wait-for-client ./tools/analysis_tools/debug_tool.py \
-projects/configs/attack/bevformer_tiny.py \
-/home/cixie/shaoyuan/BEV-Attack/models/bevformer/bevformer_tiny_epoch_24.pth \
---out debug \
+projects/configs/attack/bevformer_base_adv.py \
+../models/bevformer/bevformer_r101_dcn_24ep.pth \
+--attack \
 
 # -m debugpy --listen 5679 --wait-for-client 
 # BEVDepth 

@@ -138,7 +138,7 @@ model = dict(
 
 # Data
 dataset_type = 'NuScenesDataset'
-data_root = '/data2/shaoyuan/nuscenes/'
+data_root = '../../nuscenes/'
 file_client_args = dict(backend='disk')
 
 
@@ -226,8 +226,8 @@ input_modality = dict(
     use_external=False)
 
 data = dict(
-    samples_per_gpu=16,
-    workers_per_gpu=32,
+    samples_per_gpu=8,
+    workers_per_gpu=8,
     train=dict(
         type='CBGSDataset',
         dataset=dict(
