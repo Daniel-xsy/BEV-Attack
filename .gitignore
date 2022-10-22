@@ -1,7 +1,18 @@
+# model checkpoint
 *.pth
+
+# vscode cahe
 __pycache__
-test
 .vscode
-*.pkl
+
+# logging results
 results
+test
+
+# other output
 *.pdf
+*.pkl
+
+# symlink
+nuscenes
+nuscenes_mini
