@@ -38,6 +38,10 @@ class ClassficationObjective(nn.Module):
 
 @LOSSES.register_module()
 class TargetedClassificationObjective(nn.Module):
+
+    # Fix targeted attack for fair comparasion
+    TARGETS = torch.tensor((4, 6, 0, 7, 8, 6, 2, 0, 1, 2))
+
     def __init__(self, num_cls=10, random=True, thresh=0.1):
         """Classification adversarial objective, use targeted adversarial attacks
 
@@ -51,7 +55,7 @@ class TargetedClassificationObjective(nn.Module):
         self.random = random
         self.num_cls = num_cls
         self.thresh = thresh
-        self.targets = self._random_target()
+        # self.targets = self._random_target()
 
         # TODO: Add ohther attack methods
         assert random, "Only support random targeted attack"
@@ -70,7 +74,7 @@ class TargetedClassificationObjective(nn.Module):
     def _map(self, gt_labels):
         """Map ground truth label to target label
         """
-        target_labels = self.targets[gt_labels.squeeze()]
+        target_labels = self.TARGETS[gt_labels.squeeze()]
         return target_labels
 
     def cw_loss(self, correct_score, target_score, thresh=0.1):

@@ -445,7 +445,7 @@ attack = dict(
     type='PGD',
     epsilon=5,
     step_size=0.1,
-    num_steps=[10, 20, 30, 40, 50],
+    num_steps=[2, 4, 6, 8, 10, 20, 30, 40, 50],
     img_norm=dict(
         mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False),
     single_camera=False,
@@ -460,11 +460,11 @@ attack = dict(
 
 ```
 
-### num_steps 10
+### num_steps 2
 
 Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.2431    | 0.1914    | 0.8596     | 0.5023     | 0.7470     | 1.3030     | 0.4168     |
+| 0.3128    | 0.2871    | 0.8145     | 0.4670     | 0.7201     | 0.9173     | 0.3890     |
 

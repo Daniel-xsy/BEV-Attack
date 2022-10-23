@@ -440,23 +440,21 @@ lr_config = dict(
     min_lr_ratio=0.001)
 total_epochs = 24
 runner = dict(type='EpochBasedRunner', max_epochs=24)
-attack_severity_type = 'num_steps'
+attack_severity_type = 'scale'
 attack = dict(
-    type='PGD',
-    epsilon=5,
-    step_size=0.1,
-    num_steps=[10, 20, 30, 40, 50],
+    type='PatchAttack',
+    step_size=5,
+    dynamic_patch_size=True,
+    scale=[0.1, 0.2, 0.3, 0.4],
+    num_steps=50,
     img_norm=dict(
         mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False),
-    single_camera=False,
     loss_fn=dict(
         type='LocalizationObjective',
         l2loss=False,
         loc=True,
         vel=True,
         orie=True),
-    category='Madry',
-    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 ```
@@ -903,23 +901,21 @@ lr_config = dict(
     min_lr_ratio=0.001)
 total_epochs = 24
 runner = dict(type='EpochBasedRunner', max_epochs=24)
-attack_severity_type = 'num_steps'
+attack_severity_type = 'scale'
 attack = dict(
-    type='PGD',
-    epsilon=5,
-    step_size=0.1,
-    num_steps=[10, 20, 30, 40, 50],
+    type='PatchAttack',
+    step_size=5,
+    dynamic_patch_size=True,
+    scale=[0.1, 0.2, 0.3, 0.4],
+    num_steps=50,
     img_norm=dict(
         mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False),
-    single_camera=False,
     loss_fn=dict(
         type='LocalizationObjective',
         l2loss=False,
         loc=True,
         vel=True,
         orie=True),
-    category='Madry',
-    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 ```
