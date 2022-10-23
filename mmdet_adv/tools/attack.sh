@@ -4,7 +4,7 @@ PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/attack.py \
 projects/configs/attack/bevformer_base_adv.py \
 ../models/bevformer/bevformer_r101_dcn_24ep.pth \
---out PGD_targeted \
+--out PGD_loc_vel_orie \
 
 # -m debugpy --listen 5679 --wait-for-client 
 # BEVDepth 

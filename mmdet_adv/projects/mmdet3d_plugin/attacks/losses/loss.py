@@ -119,6 +119,7 @@ class LocalizationObjective(nn.Module):
         """Localization adversarial objective, try to confuse the localization result
         of detection model
         """
+        super().__init__()
         if l2loss:
             self.loss = nn.MSELoss()
         else:
