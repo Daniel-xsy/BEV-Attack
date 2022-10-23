@@ -16,6 +16,11 @@ from mmdet.models.builder import LOSSES
 class PatchAttack(BaseAttacker):
     """PatchAttack
     """
+
+    # workaround to align different image coordinate
+    RESIZE = (768, 432)
+    CROP = (32, 176, 736, 432)
+
     def __init__(self,
                  step_size,
                  num_steps,
@@ -62,21 +67,21 @@ class PatchAttack(BaseAttacker):
         if isinstance(step_size, list or tuple):
             self.step_size = torch.tensor(step_size).view(self.size)
 
-    def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels_3d):
+    def run(self, model, img_inputs, img_metas, gt_bboxes_3d, gt_labels_3d):
         """Run patch attack optimization
         Args:
             model (nn.Module): model to be attacked
-            img (DataContainer): [B, M, C, H, W]
+            img_inputs (DataContainer): [B, M, C, H, W]
             img_metas (DataContainer): img_meta information
             gt_bboxes_3d: ground truth of bboxes
             gt_labels_3d: ground truth of labels
         Return:
-            inputs (dict): {'img': img, 'img_metas': img_metas}
+            inputs (dict): {'img_inputs': img_inputs, 'img_metas': img_metas}
         """
         model.eval()
 
-        img = deepcopy(img)
-        img_ = img[0].data[0].clone()
+        img_inputs = deepcopy(img_inputs)
+        img_ = img_inputs[0][0].clone()
         B = img_.size(0)
         assert B == 1, f"When attack models, batchsize should be set to 1, but now {B}"
         C, H, W = img_.size()[-3:]
@@ -101,15 +106,21 @@ class PatchAttack(BaseAttacker):
         reference_points_cam = reference_points_cam[..., 0:2] / torch.maximum(
             reference_points_cam[..., 2:3], torch.ones_like(reference_points_cam[..., 2:3]) * eps)
 
-        reference_points_cam[..., 0] /= W
-        reference_points_cam[..., 1] /= H
+        
+        # an workaround to adjust patch center to image coordinate
+        # this is because bevdet & bevdepth resize and crop the origianl input image
+        # RESIZE = (768, 432)
+        # CROP = (32, 176, 736, 432)
+        reference_points_cam[..., 0] /= 1600
+        reference_points_cam[..., 1] /= 900
+        reference_points_cam = (reference_points_cam * torch.tensor((self.RESIZE[0], self.RESIZE[1])) - torch.tensor((self.CROP[0], self.CROP[1])))
         bev_mask = (bev_mask & (reference_points_cam[..., 1:2] > 0.0)
-                    & (reference_points_cam[..., 1:2] < 1.0)
-                    & (reference_points_cam[..., 0:1] < 1.0)
+                    & (reference_points_cam[..., 1:2] < self.CROP[3] - self.CROP[1])
+                    & (reference_points_cam[..., 0:1] < self.CROP[2] - self.CROP[0])
                     & (reference_points_cam[..., 0:1] > 0.0))
 
         # valid image plane positions
-        reference_points_cam = (reference_points_cam * bev_mask * torch.tensor((W, H))).int()
+        reference_points_cam = (reference_points_cam * bev_mask).int()
         patch_mask = torch.zeros_like(img_)
 
         # get patch mask of original image
@@ -129,10 +140,10 @@ class PatchAttack(BaseAttacker):
         for k in range(self.num_steps):
         
             x_adv.requires_grad_()
-            img[0].data[0] = x_adv
-            inputs = {'img': img, 'img_metas': img_metas}
+            img_inputs[0][0] = x_adv
+            inputs = {'img_inputs': img_inputs, 'img_metas': img_metas}
             # with torch.no_grad():
-            outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs) # adv_mode=True, 
+            outputs = model(return_loss=False, rescale=True, **inputs) # adv_mode=True, 
             # assign pred bbox to ground truth
             assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
             # no prediction are assign to ground truth, stop attack
@@ -147,10 +158,10 @@ class PatchAttack(BaseAttacker):
             x_adv = torch.clamp(x_adv, self.lower.view(self.size), self.upper.view(self.size))
 
 
-        img[0].data[0] = x_adv.detach()
+        img_inputs[0][0] = x_adv.detach()
         torch.cuda.empty_cache()
 
-        return {'img': img, 'img_metas':img_metas}
+        return {'img_inputs': img_inputs, 'img_metas':img_metas}
 
     def get_patch_mask(self, reference_points_cam, bev_mask, patch_mask, patch_size=torch.tensor((5,5))):
         """Calculate patch mask position for placing patches
@@ -228,8 +239,9 @@ class PatchAttack(BaseAttacker):
         patch_size = torch.zeros((M, N, 2))
         patch_size[..., 0] = (scale * (xmax - xmin)).int() 
         patch_size[..., 1] = (scale * (ymax - ymin)).int()
-        
-        return patch_size
+
+        # a workaround for the misalignment between image size and camera parameters
+        return patch_size * self.RESIZE[0] / 1600
 
 
 @ATTACKER.register_module()
@@ -315,12 +327,12 @@ class UniversalPatchAttack(BaseAttacker):
 
                 self.patches.requires_grad_()
 
-                img, img_metas = data['img'], data['img_metas']
+                img_inputs, img_metas = data['img_inputs'], data['img_metas']
                 gt_bboxes_3d = data['gt_bboxes_3d']
                 gt_labels_3d = data['gt_labels_3d']
 
-                reference_points_cam, bev_mask, patch_size = self.get_reference_points(img, img_metas, gt_bboxes_3d)
-                inputs = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
+                reference_points_cam, bev_mask, patch_size = self.get_reference_points(img_inputs, img_metas, gt_bboxes_3d)
+                inputs = self.place_patch(img_inputs, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
                 outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs)
                 # assign pred bbox to ground truth
                 assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
@@ -338,23 +350,23 @@ class UniversalPatchAttack(BaseAttacker):
 
         return self.patches
 
-    def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels_3d):
+    def run(self, model, img_inputs, img_metas, gt_bboxes_3d, gt_labels_3d):
         """Paste patch on the image on-the-fly
 
         Args:
-            img (DataContainer): input image data
+            img_inputs (DataContainer): input image data
             img_metas (DataContainer): image meta information
         Return:
-            inputs (dict): {'img': img, 'img_metas': img_metas}
+            inputs (dict): {'img_inputs': img_inputs, 'img_metas': img_metas}
         """
-        reference_points_cam, bev_mask, patch_size = self.get_reference_points(img, img_metas, gt_bboxes_3d)
-        inputs = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
+        reference_points_cam, bev_mask, patch_size = self.get_reference_points(img_inputs, img_metas, gt_bboxes_3d)
+        inputs = self.place_patch(img_inputs, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
         return inputs
 
-    def place_patch(self, img, img_metas, gt_labels, reference_points_cam, bev_mask, patch_size=torch.tensor((5,5))):
+    def place_patch(self, img_inputs, img_metas, gt_labels, reference_points_cam, bev_mask, patch_size=torch.tensor((5,5))):
             """Place patch to the center of object
             Args:
-                img (torch.Tensor): [B, M, C, H, W], which img to add patch
+                img_inputs (torch.Tensor): [B, M, C, H, W], which img_inputs to add patch
                 img_metas (DataContainer): image meta information
                 patches (torch.Tensor): [cls_num, 3, H', W'], patches need to add
                 patches (torch.Tensor): [cls_num, 3, H', W'], patches need to add
@@ -366,7 +378,7 @@ class UniversalPatchAttack(BaseAttacker):
                 patch_img (torch.Tensor): pacthed image
             """
 
-            img_ = img[0].data[0].clone()
+            img_ = img_inputs[0].data[0].clone()
             gt_labels = gt_labels[0].data[0][0]
             B, M, C, H, W = img_.size()
             M_, N = reference_points_cam.size()[:2]
@@ -405,13 +417,13 @@ class UniversalPatchAttack(BaseAttacker):
                     img_[0, m, :, neg_y[m, n] : pos_y[m, n], neg_x[m, n] : pos_x[m, n]] = resize_patch
                     a = 1
 
-            img[0].data[0] = img_
-            return {'img': img, 'img_metas': img_metas}
+            img_inputs[0].data[0] = img_
+            return {'img_inputs': img_inputs, 'img_metas': img_metas}
 
-    def get_reference_points(self, img, img_metas, gt_bboxes_3d):
+    def get_reference_points(self, img_inputs, img_metas, gt_bboxes_3d):
 
-        img = deepcopy(img)
-        img_ = img[0].data[0].clone()
+        img_inputs = deepcopy(img_inputs)
+        img_ = img_inputs[0].data[0].clone()
         B, M, C, H, W = img_.size()
         gt_bboxes_3d_ = gt_bboxes_3d[0].data[0][0].clone()
         # project from world coordinate to image coordinate

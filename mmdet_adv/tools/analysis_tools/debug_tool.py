@@ -140,6 +140,8 @@ def main():
         shuffle=False
     )
 
+    test_data = dataset[0]
+
     # build the model and load checkpoint
     cfg.model.train_cfg = None
     model = build_model(cfg.model, test_cfg=cfg.get('test_cfg'))

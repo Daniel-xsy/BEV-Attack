@@ -1,3 +1,3 @@
-from .loss import ClassficationObjective
+from .loss import ClassficationObjective, TargetedClassificationObjective, LocalizationObjective
 
-__all__ = ['ClassficationObjective']
+__all__ = ['ClassficationObjective', 'TargetedClassificationObjective', 'LocalizationObjective']
