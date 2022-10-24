@@ -399,11 +399,10 @@ attack = dict(
     single_camera=False,
     mono_model=True,
     loss_fn=dict(
-        type='LocalizationObjective',
-        l2loss=False,
-        loc=True,
-        vel=True,
-        orie=True),
+        type='TargetedClassificationObjective',
+        num_cls=10,
+        random=True,
+        thresh=0.1),
     category='Madry',
     rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

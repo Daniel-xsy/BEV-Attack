@@ -388,24 +388,22 @@ resume_from = None
 workflow = [('train', 1)]
 version = 'v1.0-mini'
 total_epochs = 12
-attack_severity_type = 'num_steps'
+attack_severity_type = 'scale'
 attack = dict(
-    type='PGD',
-    epsilon=5,
-    step_size=0.1,
-    num_steps=[2, 4, 6, 8, 10, 20, 30, 40, 50],
+    type='PatchAttack',
+    step_size=5,
+    dynamic_patch_size=True,
+    scale=[0.1, 0.2, 0.3, 0.4],
+    num_steps=50,
+    mono_model=True,
     img_norm=dict(
         mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False),
-    single_camera=False,
-    mono_model=True,
     loss_fn=dict(
         type='LocalizationObjective',
         l2loss=False,
         loc=True,
         vel=True,
         orie=True),
-    category='Madry',
-    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 ```
