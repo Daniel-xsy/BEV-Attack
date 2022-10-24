@@ -109,7 +109,7 @@ test_pipeline = [
 ]
 version = 'v1.0-mini'
 dataset_type = 'CustomNuScenesMonoDataset_Adv'
-data_root = '/data1/data/shaoyuan/nuscenes_mini/'
+data_root = '../nuscenes_mini/'
 # dataset_type = 'NuScenesMonoDataset'
 data = dict(
     samples_per_gpu=1,
@@ -144,14 +144,16 @@ lr_config = dict(
 total_epochs = 12
 evaluation = dict(interval=2)
 
+attack_severity_type = 'num_steps'
 attack = dict(
-    type='PatchAttack',
-    step_size=5,
-    dynamic_patch_size=True,
-    mono_model=True,
-    # patch_size=(15, 15),
-    scale=0.4,
-    num_steps=50,
+    type='PGD',
+    epsilon=5,
+    step_size=0.1,
+    num_steps=[2,4,6,8,10,20,30,40,50],
     img_norm=img_norm_cfg,
-    loss_fn=dict(type='ClassficationObjective', activate=False),
+    single_camera=False,
+    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    category='Madry',
+    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

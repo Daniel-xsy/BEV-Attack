@@ -107,7 +107,7 @@ class PGD(BaseAttacker):
             img[0].data[0] = x_adv
             inputs = {'img': img, 'img_metas': img_metas}
             # with torch.no_grad():
-            outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs)
+            outputs = model(return_loss=False, rescale=True, **inputs) # adv_mode=True, 
             # assign pred bbox to ground truth
             assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
             # no prediction are assign to ground truth, stop attack

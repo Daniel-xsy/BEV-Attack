@@ -1,6 +1,6 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
-_base_ = ['../_base_/datasets/nus-3d.py',
+_base_ = ['../_base_/datasets/nus-3d-adv.py',
           '../_base_/default_runtime.py']
 # Global
 # If point cloud range is changed, the models should also change their point
@@ -13,8 +13,8 @@ class_names = [
 ]
 
 data_config={
-    'cams': ['CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT',
-             'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT'],
+    'cams': ['CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT', 
+             'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'],
     'Ncams': 6,
     'input_size': (256, 704),
     'src_size': (900, 1600),
@@ -137,8 +137,8 @@ model = dict(
 
 
 # Data
-dataset_type = 'NuScenesDataset'
-data_root = '/data1/shaoyuan/nuscenes/'
+dataset_type = 'NuScenesDataset_Adv'
+data_root = '../../nuscenes_mini/'
 file_client_args = dict(backend='disk')
 
 
@@ -272,17 +272,27 @@ runner = dict(type='EpochBasedRunner', max_epochs=24)
 
 img_norm_cfg = dict(
     mean=[[0.485, 0.456, 0.406]], std=[0.229, 0.224, 0.225], to_rgb=False)
-attack_severity_type = 'num_steps'
+attack_severity_type = 'scale'
+# attack = dict(
+#     type='PGD',
+#     epsilon=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+#     step_size=[0.1/255/0.229, 0.1/255/0.224, 0.1/255/0.225],
+#     # num_steps=[1,2,3,4,5,6,7,8,9,10,20,30,40,50],
+#     num_steps=[1],
+#     img_norm=img_norm_cfg,
+#     single_camera=False,
+#     totensor=True,
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     category='Madry',
+#     rand_init=True,
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 attack = dict(
-    type='PGD',
-    epsilon=[5/255/0.229, 5/255/0.224, 5/255/0.225],
-    step_size=[0.1/255/0.229, 0.1/255/0.224, 0.1/255/0.225],
-    # num_steps=[1,2,3,4,5,6,7,8,9,10,20,30,40,50],
-    num_steps=[1],
-    img_norm=img_norm_cfg,
-    single_camera=False,
+    type='PatchAttack',
+    step_size=5,
+    dynamic_patch_size=True,
+    scale=[0.1, 0.2, 0.3, 0.4],
+    num_steps=50,
     totensor=True,
+    img_norm=img_norm_cfg,
     loss_fn=dict(type='ClassficationObjective', activate=False),
-    category='Madry',
-    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

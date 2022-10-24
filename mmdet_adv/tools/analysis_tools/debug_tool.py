@@ -35,7 +35,6 @@ from mmdet3d.models import build_model
 from projects.mmdet3d_plugin.datasets.builder import build_dataloader
 import projects.mmdet3d_plugin
 from projects.mmdet3d_plugin.attacks import build_attack
-from tools.utils import single_gpu_attack
 
 import matplotlib.pyplot as plt
 import torchvision.transforms.functional as F
@@ -139,6 +138,8 @@ def main():
         dist=False,
         shuffle=False
     )
+
+    test_data = dataset[0]
 
     # build the model and load checkpoint
     cfg.model.train_cfg = None
