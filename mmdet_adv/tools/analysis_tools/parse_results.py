@@ -7,16 +7,21 @@ from mmcv.runner import (get_dist_info)
 def collect_metric(results, logging):
 
     assert type(results) == dict, f'Results should be metric dict, but now {type(results)}'
+
+    prefix = 'pts_bbox'
+    if not results.get('pts_bbox_NuScenes/NDS', None):
+        prefix = 'img_bbox'
+    
     logging.write('Evaluating Results\n')
     logging.write('| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |')
     logging.write('| ------- | ------- | -------- | -------- | -------- | -------- | -------- |')
-    NDS = results['pts_bbox_NuScenes/NDS']
-    mAP = results['pts_bbox_NuScenes/mAP']
-    mATE = results['pts_bbox_NuScenes/mATE']
-    mASE = results['pts_bbox_NuScenes/mASE']
-    mAOE = results['pts_bbox_NuScenes/mAOE']
-    mAVE = results['pts_bbox_NuScenes/mAVE']
-    mAAE = results['pts_bbox_NuScenes/mAAE']
+    NDS = results[f'{prefix}_NuScenes/NDS']
+    mAP = results[f'{prefix}_NuScenes/mAP']
+    mATE = results[f'{prefix}_NuScenes/mATE']
+    mASE = results[f'{prefix}_NuScenes/mASE']
+    mAOE = results[f'{prefix}_NuScenes/mAOE']
+    mAVE = results[f'{prefix}_NuScenes/mAVE']
+    mAAE = results[f'{prefix}_NuScenes/mAAE']
     logging.write(f'| {NDS:.4f}    | {mAP:.4f}    | {mATE:.4f}     | {mASE:.4f}     | {mAOE:.4f}     | {mAVE:.4f}     | {mAAE:.4f}     |\n')
 
 
