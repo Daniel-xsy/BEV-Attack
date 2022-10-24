@@ -1019,7 +1019,7 @@ class PGDHead(FCOSMono3DHead):
                 bbox_pred3d[:, 2] = sig_alpha * bbox_pred3d[:, 2] + \
                     (1 - sig_alpha) * prob_depth_pred
             pred_center2d = bbox_pred3d[:, :3].clone()
-            bbox_pred3d[:, :3] = points_img2cam(bbox_pred3d[:, :3], view)
+            bbox_pred3d[:, :3] = points_img2cam(bbox_pred3d[:, :3].clone(), view)
             mlvl_centers2d.append(pred_center2d)
             mlvl_bboxes.append(bbox_pred3d)
             mlvl_scores.append(scores)

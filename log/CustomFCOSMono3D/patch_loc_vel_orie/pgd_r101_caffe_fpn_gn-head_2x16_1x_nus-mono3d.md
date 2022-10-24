@@ -2,7 +2,7 @@
 
 ```
 dataset_type = 'CustomNuScenesMonoDataset_Adv'
-data_root = '../nuscenes_mini/'
+data_root = '/data1/data/shaoyuan/nuscenes_mini/'
 class_names = [
     'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
     'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
@@ -104,7 +104,7 @@ data = dict(
     workers_per_gpu=2,
     train=dict(
         type='CustomNuScenesMonoDataset_Adv',
-        data_root='../nuscenes_mini/',
+        data_root='/data1/data/shaoyuan/nuscenes_mini/',
         ann_file=
         '../nuscenes_mini/nuscenes_infos_temporal_train_mono3d.coco.json',
         img_prefix='../nuscenes_mini/',
@@ -155,7 +155,7 @@ data = dict(
         version='v1.0-mini'),
     val=dict(
         type='CustomNuScenesMonoDataset_Adv',
-        data_root='../nuscenes_mini/',
+        data_root='/data1/data/shaoyuan/nuscenes_mini/',
         ann_file=
         '../nuscenes_mini/nuscenes_infos_temporal_val_mono3d.coco.json',
         img_prefix='../nuscenes_mini/',
@@ -220,7 +220,7 @@ data = dict(
         version='v1.0-mini'),
     test=dict(
         type='CustomNuScenesMonoDataset_Adv',
-        data_root='../nuscenes_mini/',
+        data_root='/data1/data/shaoyuan/nuscenes_mini/',
         ann_file=
         '../nuscenes_mini/nuscenes_infos_temporal_val_mono3d.coco.json',
         img_prefix='../nuscenes_mini/',
@@ -284,7 +284,7 @@ data = dict(
         box_type_3d='Camera',
         version='v1.0-mini'),
     nonshuffler_sampler=dict(type='DistributedSampler'))
-evaluation = dict(interval=2)
+evaluation = dict(interval=4)
 model = dict(
     type='CustomFCOSMono3D',
     pretrained=None,
@@ -308,7 +308,7 @@ model = dict(
         num_outs=5,
         relu_before_extra_convs=True),
     bbox_head=dict(
-        type='CustomFCOSMono3DHead',
+        type='PGDHead',
         num_classes=10,
         in_channels=256,
         stacked_convs=2,
@@ -317,11 +317,13 @@ model = dict(
         diff_rad_by_sin=True,
         pred_attrs=True,
         pred_velo=True,
+        pred_bbox2d=False,
+        pred_keypoints=False,
         dir_offset=0.7854,
         strides=[8, 16, 32, 64, 128],
-        group_reg_dims=(2, 1, 3, 1, 2),
+        group_reg_dims=(2, 1, 3, 1, 2, 4),
         cls_branch=(256, ),
-        reg_branch=((256, ), (256, ), (256, ), (256, ), ()),
+        reg_branch=((256, ), (256, ), (256, ), (256, ), (), (256, )),
         dir_branch=(256, ),
         attr_branch=(256, ),
         loss_cls=dict(
@@ -343,13 +345,33 @@ model = dict(
         center_sampling=True,
         conv_bias=True,
         dcn_on_last_conv=True,
+        use_depth_classifier=True,
+        depth_branch=(256, ),
+        depth_range=(0, 50),
+        depth_unit=10,
+        division='uniform',
+        depth_bins=6,
+        bbox_coder=dict(
+            type='PGDBBoxCoder',
+            code_size=9,
+            base_depths=((31.99, 21.12), (37.15, 24.63), (39.69, 23.97),
+                         (40.91, 26.34), (34.16, 20.11), (22.35, 13.7),
+                         (24.28, 16.05), (27.26, 15.5), (20.61, 13.68),
+                         (22.74, 15.01)),
+            base_dims=((4.62, 1.73, 1.96), (6.93, 2.83, 2.51),
+                       (12.56, 3.89, 2.94), (11.22, 3.5, 2.95),
+                       (6.68, 3.21, 2.85), (6.68, 3.21, 2.85),
+                       (2.11, 1.46, 0.78), (0.73, 1.77, 0.67),
+                       (0.41, 1.08, 0.41), (0.5, 0.99, 2.52))),
+        loss_depth=dict(
+            type='SmoothL1Loss', beta=0.1111111111111111, loss_weight=1.0),
         train_cfg=None,
         test_cfg=dict(
             use_rotate_nms=True,
             nms_across_levels=False,
             nms_pre=1000,
             nms_thr=0.8,
-            score_thr=0.05,
+            score_thr=0.01,
             min_bbox_size=0,
             max_per_img=200)),
     train_cfg=None,
@@ -358,12 +380,12 @@ model = dict(
         nms_across_levels=False,
         nms_pre=1000,
         nms_thr=0.8,
-        score_thr=0.05,
+        score_thr=0.01,
         min_bbox_size=0,
         max_per_img=200))
 optimizer = dict(
     type='SGD',
-    lr=0.002,
+    lr=0.004,
     momentum=0.9,
     weight_decay=0.0001,
     paramwise_cfg=dict(bias_lr_mult=2.0, bias_decay_mult=0.0))
@@ -388,33 +410,23 @@ resume_from = None
 workflow = [('train', 1)]
 version = 'v1.0-mini'
 total_epochs = 12
-attack_severity_type = 'num_steps'
 attack = dict(
-    type='PGD',
-    epsilon=5,
-    step_size=0.1,
-    num_steps=[2, 4, 6, 8, 10, 20, 30, 40, 50],
+    type='PatchAttack',
+    step_size=5,
+    dynamic_patch_size=True,
+    scale=[0.1, 0.2, 0.3, 0.4],
+    num_steps=50,
+    mono_model=True,
     img_norm=dict(
         mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False),
-    single_camera=False,
-    mono_model=True,
     loss_fn=dict(
         type='LocalizationObjective',
         l2loss=False,
         loc=True,
         vel=True,
         orie=True),
-    category='Madry',
-    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+attack_severity_type = 'scale'
 
 ```
-
-### num_steps 2
-
-Evaluating Results
-
-| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
-| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.2115    | 0.1647    | 0.9625     | 0.4838     | 0.9144     | 1.4143     | 0.3485     |
 
