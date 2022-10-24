@@ -164,7 +164,7 @@ def main():
     if transfer_attack:
         for n, p in wb_model.named_parameters():
             p.requires_grad = False
-            wb_model = MMDataParallel(wb_model, device_ids=[0])
+        wb_model = MMDataParallel(wb_model, device_ids=[0])
     else:
         wb_model = model
 
@@ -198,7 +198,6 @@ def main():
             attacker.loader = attack_loader
 
         outputs = single_gpu_attack(model, wb_model, data_loader, attacker)
-
 
         kwargs = {}
         kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, args.out, f"{attack_severity_type}_{severity_list[i]}")
