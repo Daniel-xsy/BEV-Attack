@@ -176,6 +176,8 @@ def main():
         now {type(severity_list)}"
         
     logging = Logging_str(osp.join('../log', cfg.model.type, args.out, f"{os.path.splitext(os.path.basename(args.config))[0]}.md"))
+    logging.write(f"Load model checkpoint from {args.checkpoint}")
+    logging.write(f"```")
     logging.write(f"## Model Configuration\n")
     logging.write(f"```")
     logging.write(cfg.pretty_text)

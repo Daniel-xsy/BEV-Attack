@@ -1,14 +1,10 @@
-from ensurepip import version
-
-
 _base_ = [
     '../datasets/custom_nus-3d.py',
     '../_base_/default_runtime.py'
 ]
 #
 plugin = True
-plugin_dir = ['projects/mmdet3d_plugin/',
-              'attacks/']
+plugin_dir = 'projects/mmdet3d_plugin/'
 
 # If point cloud range is changed, the models should also change their point
 # cloud range accordingly
@@ -18,7 +14,7 @@ voxel_size = [0.2, 0.2, 8]
 
 
 img_norm_cfg = dict(
-    mean=[103.530, 116.280, 123.675], std=[57.375, 57.120, 58.395], to_rgb=False)
+    mean=[103.530, 116.280, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False)
 # For nuScenes we usually do 10-class detection
 class_names = [
     'car', 'truck', 'construction_vehicle', 'bus', 'trailer', 'barrier',
@@ -32,10 +28,6 @@ input_modality = dict(
     use_map=False,
     use_external=True)
 
-_dim_ = 256
-_pos_dim_ = _dim_//2
-_ffn_dim_ = _dim_*2
-_num_levels_ = 4
 bev_h_ = 200
 bev_w_ = 200
 queue_length = 4 # each sequence contains `queue_length` frames.
@@ -44,17 +36,21 @@ model = dict(
     type='Detr3D',
     use_grid_mask=True,
     img_backbone=dict(
-        type='VoVNet',
-        spec_name='V-99-eSE',
-        norm_eval=True,
+        type='ResNet',
+        depth=101,
+        num_stages=4,
+        out_indices=(0, 1, 2, 3),
         frozen_stages=1,
-        input_ch=3,
-        out_features=['stage2', 'stage3', 'stage4', 'stage5']),
+        norm_cfg=dict(type='BN2d', requires_grad=False),
+        norm_eval=True,
+        style='caffe',
+        dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False),
+        stage_with_dcn=(False, False, True, True)),
     img_neck=dict(
         type='FPN',
-        in_channels=[256, 512, 768, 1024],
+        in_channels=[256, 512, 1024, 2048],
         out_channels=256,
-        start_level=0,
+        start_level=1,
         add_extra_convs='on_output',
         num_outs=4,
         relu_before_extra_convs=True),
@@ -66,7 +62,6 @@ model = dict(
         sync_cls_avg_factor=True,
         with_box_refine=True,
         as_two_stage=False,
-        code_weights=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.2, 0.2],
         transformer=dict(
             type='Detr3DTransformer',
             decoder=dict(
@@ -92,7 +87,7 @@ model = dict(
                     operation_order=('self_attn', 'norm', 'cross_attn', 'norm',
                                      'ffn', 'norm')))),
         bbox_coder=dict(
-            type='NMSFreeCoder',
+            type='NMSFreeCoder_Adv',
             post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0],
             pc_range=point_cloud_range,
             max_num=300,
@@ -125,7 +120,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'CustomNuScenesDataset_Adv'
-data_root = '/data1/shaoyuan/nuscenes/'
+data_root = '../nuscenes_mini/'
 file_client_args = dict(backend='disk')
 
 
@@ -228,45 +223,29 @@ log_config = dict(
 checkpoint_config = dict(interval=1)
 
 
+attack_severity_type = 'scale'
 attack = dict(
-    type='UniversalPatchAttack',
+    type='PatchAttack',
     step_size=5,
-    epoch=10,
-    loader=dict(type=dataset_type,
-             data_root=data_root,
-             ann_file=data_root + 'nuscenes_infos_temporal_train.pkl',
-             pipeline=test_pipeline,  bev_size=(bev_h_, bev_w_),
-             test_mode=False,
-             adv_mode=True,
-             classes=class_names, modality=input_modality),
-    loss_fn=dict(type='ClassficationObjective', activate=False),
-    assigner=dict(type='NuScenesAssigner', dis_thresh=4),
-    category_specify=True,
-    catagory_num=10,
-    patch_size=(15,15),
-    dynamic_patch_size=False,
-    scale=0.5,
+    dynamic_patch_size=True,
+    scale=[0.1, 0.2, 0.3, 0.4],
+    num_steps=50,
+    # patch_size=(15,15),
     img_norm=img_norm_cfg,
-)
+    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
-# attack = dict(
-#     type='PatchAttack',
-#     step_size=5,
-#     dynamic_patch_size=True,
-#     scale=0.4,
-#     num_steps=50,
-#     img_norm=img_norm_cfg,
-#     loss_fn=dict(type='ClassficationObjective', activate=False),
-#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
+# attack_severity_type = 'num_steps'
 # attack = dict(
 #     type='PGD',
 #     epsilon=5,
 #     step_size=0.1,
-#     num_steps=50,
+#     num_steps=[2,4,6,8,10,20,30,40,50],
 #     img_norm=img_norm_cfg,
-#     single_camera=True,
-#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     single_camera=False,
+#     loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+#     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
 #     category='Madry',
 #     rand_init=True,
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
