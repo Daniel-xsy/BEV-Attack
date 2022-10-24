@@ -283,8 +283,8 @@ attack = dict(
     single_camera=False,
     totensor=True,
     # loss_fn=dict(type='ClassficationObjective', activate=False),
-    loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
-    # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
     category='Madry',
     rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

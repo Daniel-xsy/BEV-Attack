@@ -3,15 +3,20 @@
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/attack.py \
 configs/attack/bevdepth-r50.py \
-/home/cihangxie/shaoyuan/BEV-Attack/models/bevdepth/bevdepth-r50.pth \
---out PGD \
+../../models/bevdepth/bevdepth-r50.pth \
+--out pgd_loc_vel_orie \
+
+# patch_loc_vel_orie
+# pgd_loc_vel_orie
+# pgd_target_cls
+# pgd
 
 # -m debugpy --listen 5678 --wait-for-client 
 
 # BEVDet
 # configs/attack/bevdet-r50.py
-# /home/cihangxie/shaoyuan/BEV-Attack/models/bevdet/bevdet-r50.pth
+# ../../models/bevdet/bevdet-r50.pth
 
 # BEVDepth
 # configs/attack/bevdepth-r50.py
-# /home/cihangxie/shaoyuan/BEV-Attack/models/bevdepth/bevdepth-r50.pth
+# ../../models/bevdepth/bevdepth-r50.pth

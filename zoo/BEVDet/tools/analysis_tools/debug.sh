@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
+CUDA_VISIBLE_DEVICES=2 \
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/analysis_tools/debug_tool.py \
-configs/attack/bevdet-r50.py \
+configs/attack/bevdepth-r50.py \
 ../../models/bevdepth/bevdepth-r50.pth \
---out attack \
+--attack \
 
 # -m debugpy --listen 5679 --wait-for-client 
 # BEVDet
