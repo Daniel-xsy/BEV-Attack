@@ -1,3 +1,4 @@
+
 Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
 ```
 ## Model Configuration
@@ -450,20 +451,36 @@ lr_config = dict(
     min_lr_ratio=0.001)
 total_epochs = 24
 runner = dict(type='EpochBasedRunner', max_epochs=24)
+attack_severity_type = 'scale'
+attack = dict(
+    type='PatchAttack',
+    step_size=5,
+    dynamic_patch_size=True,
+    scale=[0.1, 0.2, 0.3, 0.4],
+    num_steps=50,
+    img_norm=dict(
+        mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False),
+    loss_fn=dict(type='ClassficationObjective', activate=False),
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
 ```
+
+### scale 0.1
 
 Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.2790    | 0.1893    | 0.8491     | 0.4750     | 0.7365     | 0.7708     | 0.3251     |
+| 0.2248    | 0.1142    | 0.8868     | 0.4879     | 0.8198     | 0.8036     | 0.3248     |
 
+### scale 0.2
 
+Evaluating Results
 
-Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.1714    | 0.0544    | 0.8828     | 0.5169     | 0.8272     | 0.9653     | 0.3663     |Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
 ```
-
-The above results are double checked and are correct. The below results might be problematical.
 ## Model Configuration
 
 ```
@@ -531,6 +548,7 @@ test_pipeline = [
         pts_scale_ratio=1,
         flip=False,
         transforms=[
+            dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
             dict(type='PadMultiViewImage', size_divisor=32),
             dict(
                 type='DefaultFormatBundle3D',
@@ -645,6 +663,7 @@ data = dict(
                 pts_scale_ratio=1,
                 flip=False,
                 transforms=[
+                    dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
                     dict(type='PadMultiViewImage', size_divisor=32),
                     dict(
                         type='DefaultFormatBundle3D',
@@ -697,6 +716,7 @@ data = dict(
                 pts_scale_ratio=1,
                 flip=False,
                 transforms=[
+                    dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
                     dict(type='PadMultiViewImage', size_divisor=32),
                     dict(
                         type='DefaultFormatBundle3D',
@@ -747,6 +767,7 @@ evaluation = dict(
             pts_scale_ratio=1,
             flip=False,
             transforms=[
+                dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
                 dict(type='PadMultiViewImage', size_divisor=32),
                 dict(
                     type='DefaultFormatBundle3D',
@@ -910,12 +931,17 @@ lr_config = dict(
     min_lr_ratio=0.001)
 total_epochs = 24
 runner = dict(type='EpochBasedRunner', max_epochs=24)
+attack_severity_type = 'scale'
+attack = dict(
+    type='PatchAttack',
+    step_size=5,
+    dynamic_patch_size=True,
+    scale=[0.3, 0.4],
+    num_steps=50,
+    img_norm=dict(
+        mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False),
+    loss_fn=dict(type='ClassficationObjective', activate=False),
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 ```
-
-Evaluating Results
-
-| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
-| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.2978    | 0.2110    | 0.8453     | 0.4856     | 0.6748     | 0.7390     | 0.3320     |
 

@@ -4,7 +4,7 @@ PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/attack.py \
 /home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_small_adv_no_temp.py \
 ../models/bevformer/bevformer_small_epoch_24.pth \
---out pgd \
+--out patch \
 
 # patch_loc_vel_orie
 # patch

@@ -196,13 +196,13 @@ test_pipeline = [
         pts_scale_ratio=1,
         flip=False,
         transforms=[
-            # dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
+            dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
             dict(type='PadMultiViewImage', size_divisor=32),
             dict(
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='CustomCollect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img'])
+            dict(type='CustomCollect3D', keys=['img']) # 'gt_bboxes_3d', 'gt_labels_3d', 
         ])
 ]
 

@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
-CUDA_VISIBLE_DEVICES=3 \
+CUDA_VISIBLE_DEVICES=0 \
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/analysis_tools/debug_tool.py \
-projects/configs/attack/detr3d_wo_cbgs.py \
-../models/detr3d/detr3d_resnet101.pth \
+projects/configs/attack/bevformer_small_adv_no_temp.py \
+../models/bevformer/bevformer_small_epoch_24.pth \
 --attack \
+--show \
 
 # -m debugpy --listen 5679 --wait-for-client 
 # -m debugpy --listen 5679 --wait-for-client 
