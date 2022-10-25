@@ -170,7 +170,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'CustomNuScenesDataset_Adv'
-data_root = '/data1/shaoyuan/nuscenes/'
+data_root = '../nuscenes_mini/'
 file_client_args = dict(backend='disk')
 
 
@@ -275,46 +275,29 @@ checkpoint_config = dict(interval=1)
 
 attack_severity_type = 'num_steps'
 
-# attack = dict(
-#     type='UniversalPatchAttack',
-#     step_size=5,
-#     epoch=10,
-#     loader=dict(type=dataset_type,
-#              data_root=data_root,
-#              ann_file=data_root + 'nuscenes_infos_temporal_train.pkl',
-#              pipeline=test_pipeline,  bev_size=(bev_h_, bev_w_),
-#              test_mode=False,
-#              adv_mode=True,
-#              classes=class_names, modality=input_modality),
-#     loss_fn=dict(type='ClassficationObjective', activate=False),
-#     assigner=dict(type='NuScenesAssigner', dis_thresh=4),
-#     category_specify=True,
-#     catagory_num=10,
-#     patch_size=(15,15),
-#     dynamic_patch_size=False,
-#     scale=0.5,
-#     img_norm=img_norm_cfg,
-# )
-
-# attack = dict(
-#     type='PatchAttack',
-#     step_size=5,
-#     dynamic_patch_size=True,
-#     scale=0.1,
-#     num_steps=50,
-#     # patch_size=(15,15),
-#     img_norm=img_norm_cfg,
-#     loss_fn=dict(type='ClassficationObjective', activate=False),
-#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
-
+attack_severity_type = 'scale'
 attack = dict(
-    type='PGD',
-    epsilon=[5/58.395, 5/57.12, 5/57.375],
-    step_size=[0.1/58.395, 0.1/57.12, 0.1/57.375],
-    num_steps=[1,2,3,4,5,6,7,8,9,10,20,30,40,50],
+    type='PatchAttack',
+    step_size=[5/58.395, 5/57.12, 5/57.375],
+    dynamic_patch_size=True,
+    scale=[0.1, 0.2, 0.3, 0.4],
+    num_steps=50,
+    # patch_size=(15,15),
     img_norm=img_norm_cfg,
-    single_camera=False,
-    loss_fn=dict(type='ClassficationObjective', activate=False),
-    category='Madry',
-    rand_init=True,
+    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    # loss_fn=dict(type='ClassficationObjective', activate=False),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+# attack = dict(
+#     type='PGD',
+#     epsilon=[5/58.395, 5/57.12, 5/57.375],
+#     step_size=[0.1/58.395, 0.1/57.12, 0.1/57.375],
+#     num_steps=[2,4,6,8,10,20,30,40,50],
+#     img_norm=img_norm_cfg,
+#     single_camera=False,
+#     # loss_fn=dict(type='ClassficationObjective', activate=False),
+#     # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+#     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     category='Madry',
+#     rand_init=True,
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

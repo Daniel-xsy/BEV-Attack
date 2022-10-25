@@ -2,9 +2,9 @@
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/attack.py \
-configs/attack/bevdepth-r50.py \
-../../models/bevdepth/bevdepth-r50.pth \
---out pgd_loc_vel_orie \
+configs/attack/bevdet-r50.py \
+../../models/bevdet/bevdet-r50.pth \
+--out patch_loc_vel_orie \
 
 # patch_loc_vel_orie
 # pgd_loc_vel_orie

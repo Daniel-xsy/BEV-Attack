@@ -6,6 +6,7 @@ python ./tools/analysis_tools/debug_tool.py \
 configs/attack/bevdepth-r50.py \
 ../../models/bevdepth/bevdepth-r50.pth \
 --attack \
+--show \
 
 # -m debugpy --listen 5679 --wait-for-client 
 # BEVDet

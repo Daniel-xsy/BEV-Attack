@@ -364,7 +364,9 @@ class RandomScaleImageMultiViewImage(object):
         """
         np.random.shuffle(self.scales)
         rand_scale = self.scales[0]
-        img_shape = results['img_shape'][0]
+        # img_shape = results['img_shape'][0]
+        # bug fixed in the original code
+        img_shape = results['img_shape']
         y_size = int(img_shape[0] * rand_scale)
         x_size = int(img_shape[1] * rand_scale) 
         scale_factor = np.eye(4)

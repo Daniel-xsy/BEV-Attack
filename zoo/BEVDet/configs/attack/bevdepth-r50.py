@@ -273,30 +273,31 @@ runner = dict(type='EpochBasedRunner', max_epochs=24)
 img_norm_cfg = dict(
     mean=[[0.485, 0.456, 0.406]], std=[0.229, 0.224, 0.225], to_rgb=False)
 
-attack_severity_type='num_steps'
-attack = dict(
-    type='PGD',
-    epsilon=[5/255/0.229, 5/255/0.224, 5/255/0.225],
-    step_size=[0.1/255/0.229, 0.1/255/0.224, 0.1/255/0.225],
-    num_steps=[2,4,6,8,10,20,30,40,50],
-    img_norm=img_norm_cfg,
-    single_camera=False,
-    totensor=True,
-    # loss_fn=dict(type='ClassficationObjective', activate=False),
-    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
-    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
-    category='Madry',
-    rand_init=True,
-    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
-
-# attack_severity_type='scale'
+# attack_severity_type='num_steps'
 # attack = dict(
-#     type='PatchAttack',
-#     step_size=5,
-#     dynamic_patch_size=True,
-#     scale=[0.1, 0.2, 0.3, 0.4],
-#     num_steps=50,
-#     totensor=True,
+#     type='PGD',
+#     epsilon=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+#     step_size=[0.1/255/0.229, 0.1/255/0.224, 0.1/255/0.225],
+#     num_steps=[2,4,6,8,10,20,30,40,50],
 #     img_norm=img_norm_cfg,
-#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     single_camera=False,
+#     totensor=True,
+#     # loss_fn=dict(type='ClassficationObjective', activate=False),
+#     # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+#     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     category='Madry',
+#     rand_init=True,
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+attack_severity_type='scale'
+attack = dict(
+    type='PatchAttack',
+    step_size=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+    dynamic_patch_size=True,
+    scale=[0.1, 0.2, 0.3, 0.4],
+    num_steps=50,
+    totensor=True,
+    img_norm=img_norm_cfg,
+    # loss_fn=dict(type='ClassficationObjective', activate=False),
+    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))

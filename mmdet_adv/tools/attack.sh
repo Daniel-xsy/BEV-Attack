@@ -2,14 +2,16 @@
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/attack.py \
-projects/configs/attack/detr3d_wo_cbgs.py \
-../models/detr3d/detr3d_resnet101.pth \
---out patch_loc_vel_orie \
+/home/cihangxie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_small_adv_no_temp.py \
+../models/bevformer/bevformer_small_epoch_24.pth \
+--out pgd \
 
 # patch_loc_vel_orie
+# patch
 # pgd_loc_vel_orie
 # pgd_target_cls
 # pgd
+
 
 # -m debugpy --listen 5679 --wait-for-client 
 # BEVDepth 
@@ -29,7 +31,7 @@ projects/configs/attack/detr3d_wo_cbgs.py \
 # checkpoint_path =  '../models/bevformer/bevformer_small_epoch_24.pth'
 
 # BEVFormer tiny
-# config = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/bevformer_tiny.py'
+# config = 'projects/configs/attack/bevformer_tiny.py'
 # checkpoint_path = '../models/bevformer/bevformer_tiny_epoch_24.pth'
 
 # DETR3D
