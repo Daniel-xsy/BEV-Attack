@@ -236,6 +236,19 @@ attack = dict(
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 
+attack_severity_type = 'scale'
+attack = dict(
+    type='PatchAttack',
+    step_size=5,
+    dynamic_patch_size=True,
+    scale=[0.1, 0.2, 0.3, 0.4],
+    num_steps=50,
+    # patch_size=(15,15),
+    img_norm=img_norm_cfg,
+    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+
 # attack_severity_type = 'num_steps'
 # attack = dict(
 #     type='PGD',
@@ -246,6 +259,7 @@ attack = dict(
 #     single_camera=False,
 #     loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
 #     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     # loss_fn=dict(type='ClassficationObjective', activate=False),
 #     category='Madry',
 #     rand_init=True,
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
