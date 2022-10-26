@@ -1,5 +1,5 @@
 Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
-
+```
 ## Model Configuration
 
 ```
@@ -67,7 +67,6 @@ test_pipeline = [
         pts_scale_ratio=1,
         flip=False,
         transforms=[
-            dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
             dict(type='PadMultiViewImage', size_divisor=32),
             dict(
                 type='DefaultFormatBundle3D',
@@ -182,7 +181,6 @@ data = dict(
                 pts_scale_ratio=1,
                 flip=False,
                 transforms=[
-                    dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
                     dict(type='PadMultiViewImage', size_divisor=32),
                     dict(
                         type='DefaultFormatBundle3D',
@@ -235,7 +233,6 @@ data = dict(
                 pts_scale_ratio=1,
                 flip=False,
                 transforms=[
-                    dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
                     dict(type='PadMultiViewImage', size_divisor=32),
                     dict(
                         type='DefaultFormatBundle3D',
@@ -286,7 +283,6 @@ evaluation = dict(
             pts_scale_ratio=1,
             flip=False,
             transforms=[
-                dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
                 dict(type='PadMultiViewImage', size_divisor=32),
                 dict(
                     type='DefaultFormatBundle3D',
@@ -327,7 +323,7 @@ queue_length = 3
 model = dict(
     type='BEVFormer',
     use_grid_mask=True,
-    video_test_mode=False,
+    video_test_mode=True,
     img_backbone=dict(
         type='ResNet',
         depth=101,
@@ -450,20 +446,24 @@ lr_config = dict(
     min_lr_ratio=0.001)
 total_epochs = 24
 runner = dict(type='EpochBasedRunner', max_epochs=24)
+attack_severity_type = 'num_steps'
+attack = dict(
+    type='PGD',
+    epsilon=5,
+    step_size=0.1,
+    num_steps=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50],
+    img_norm=dict(
+        mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False),
+    single_camera=False,
+    loss_fn=dict(type='ClassficationObjective', activate=False),
+    category='Madry',
+    rand_init=True,
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
 ```
-
-Evaluating Results
-
-| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
-| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.2790    | 0.1893    | 0.8491     | 0.4750     | 0.7365     | 0.7708     | 0.3251     |
-
-
 
 Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
 ```
-
-The above results are double checked and are correct. The below results might be problematical.
 ## Model Configuration
 
 ```
@@ -787,7 +787,7 @@ queue_length = 3
 model = dict(
     type='BEVFormer',
     use_grid_mask=True,
-    video_test_mode=False,
+    video_test_mode=True,
     img_backbone=dict(
         type='ResNet',
         depth=101,
@@ -910,12 +910,83 @@ lr_config = dict(
     min_lr_ratio=0.001)
 total_epochs = 24
 runner = dict(type='EpochBasedRunner', max_epochs=24)
+attack_severity_type = 'num_steps'
+attack = dict(
+    type='PGD',
+    epsilon=5,
+    step_size=0.1,
+    num_steps=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50],
+    img_norm=dict(
+        mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False),
+    single_camera=False,
+    loss_fn=dict(type='ClassficationObjective', activate=False),
+    category='Madry',
+    rand_init=True,
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 ```
+
+### num_steps 1
 
 Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.2978    | 0.2110    | 0.8453     | 0.4856     | 0.6748     | 0.7390     | 0.3320     |
+| 0.2869    | 0.2455    | 0.7938     | 0.4808     | 0.6979     | 1.0058     | 0.3857     |
+
+### num_steps 2
+
+Evaluating Results
+
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.2497    | 0.1835    | 0.7943     | 0.4816     | 0.7147     | 1.2978     | 0.4298     |
+
+### num_steps 3
+
+Evaluating Results
+
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.2272    | 0.1470    | 0.8200     | 0.4863     | 0.7303     | 1.1464     | 0.4270     |
+
+### num_steps 4
+
+Evaluating Results
+
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.2063    | 0.1262    | 0.8927     | 0.4914     | 0.7737     | 1.1605     | 0.4101     |
+
+### num_steps 5
+
+Evaluating Results
+
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.1760    | 0.1030    | 0.8945     | 0.5090     | 0.9079     | 1.2982     | 0.4441     |
+
+### num_steps 6
+
+Evaluating Results
+
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.1752    | 0.0813    | 0.8855     | 0.4995     | 0.8562     | 1.0384     | 0.4133     |
+
+### num_steps 7
+
+Evaluating Results
+
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.1536    | 0.0556    | 0.8827     | 0.5031     | 0.9417     | 1.1679     | 0.4145     |
+
+### num_steps 8
+
+Evaluating Results
+
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.1236    | 0.0421    | 0.9026     | 0.6343     | 0.8464     | 1.1267     | 0.5913     |
 
