@@ -67,6 +67,7 @@ test_pipeline = [
         pts_scale_ratio=1,
         flip=False,
         transforms=[
+            dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
             dict(type='PadMultiViewImage', size_divisor=32),
             dict(
                 type='DefaultFormatBundle3D',
@@ -181,6 +182,7 @@ data = dict(
                 pts_scale_ratio=1,
                 flip=False,
                 transforms=[
+                    dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
                     dict(type='PadMultiViewImage', size_divisor=32),
                     dict(
                         type='DefaultFormatBundle3D',
@@ -233,6 +235,7 @@ data = dict(
                 pts_scale_ratio=1,
                 flip=False,
                 transforms=[
+                    dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
                     dict(type='PadMultiViewImage', size_divisor=32),
                     dict(
                         type='DefaultFormatBundle3D',
@@ -283,6 +286,7 @@ evaluation = dict(
             pts_scale_ratio=1,
             flip=False,
             transforms=[
+                dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
                 dict(type='PadMultiViewImage', size_divisor=32),
                 dict(
                     type='DefaultFormatBundle3D',
@@ -464,4 +468,36 @@ attack = dict(
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 ```
+
+### scale 0.1
+
+Evaluating Results
+
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.2342    | 0.1822    | 0.8465     | 0.4918     | 0.8428     | 1.2016     | 0.3881     |
+
+### scale 0.2
+
+Evaluating Results
+
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.1905    | 0.1389    | 0.8720     | 0.5336     | 0.9330     | 1.8346     | 0.4504     |
+
+### scale 0.3
+
+Evaluating Results
+
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.1461    | 0.0794    | 0.8934     | 0.5634     | 1.0955     | 2.5064     | 0.4793     |
+
+### scale 0.4
+
+Evaluating Results
+
+| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
+| ------- | ------- | -------- | -------- | -------- | -------- | -------- |
+| 0.1094    | 0.0318    | 0.9816     | 0.5852     | 1.3420     | 3.7509     | 0.4981     |
 

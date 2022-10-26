@@ -278,12 +278,12 @@ attack = dict(
     type='PatchAttack',
     step_size=5,
     dynamic_patch_size=True,
-    scale=[0.3, 0.4], # 0.1, 0.2, 
+    scale=[0.1, 0.2, 0.3, 0.4], # 
     num_steps=50,
     # patch_size=(15,15),
     img_norm=img_norm_cfg,
-    # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
-    loss_fn=dict(type='ClassficationObjective', activate=False),
+    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    # loss_fn=dict(type='ClassficationObjective', activate=False),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 # attack_severity_type = 'num_steps'
