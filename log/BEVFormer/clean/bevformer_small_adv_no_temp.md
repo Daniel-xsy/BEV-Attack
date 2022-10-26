@@ -1,5 +1,5 @@
 Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
-```
+
 ## Model Configuration
 
 ```
@@ -459,7 +459,6 @@ Evaluating Results
 | 0.2790    | 0.1893    | 0.8491     | 0.4750     | 0.7365     | 0.7708     | 0.3251     |
 
 Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
-```
 ## Model Configuration
 
 ```

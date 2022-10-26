@@ -3,8 +3,8 @@
 CUDA_VISIBLE_DEVICES=3 \
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/analysis_tools/debug_tool.py \
-projects/configs/attack/detr3d_wo_cbgs.py \
-../models/detr3d/detr3d_resnet101.pth \
+/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/detr3d_wo_cbgs.py \
+/home/cixie/shaoyuan/BEV-Attack/models/detr3d/detr3d_resnet101.pth \
 --attack \
 
 # -m debugpy --listen 5679 --wait-for-client 

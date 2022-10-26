@@ -245,7 +245,8 @@ attack = dict(
     num_steps=50,
     # patch_size=(15,15),
     img_norm=img_norm_cfg,
-    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    loss_fn=dict(type='ClassficationObjective', activate=False),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 
@@ -254,11 +255,11 @@ attack = dict(
 #     type='PGD',
 #     epsilon=5,
 #     step_size=0.1,
-#     num_steps=[2,4,6,8,10,20,30,40,50],
+#     num_steps=[30,40,50], # 2,4,6,8,10,20,30,40,
 #     img_norm=img_norm_cfg,
 #     single_camera=False,
-#     loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
-#     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+#     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
 #     # loss_fn=dict(type='ClassficationObjective', activate=False),
 #     category='Madry',
 #     rand_init=True,
