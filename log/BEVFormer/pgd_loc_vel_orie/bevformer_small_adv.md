@@ -1,5 +1,5 @@
 Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
-```
+
 ## Model Configuration
 
 ```

@@ -1,6 +1,6 @@
 
 Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
-```
+
 ## Model Configuration
 
 ```
@@ -479,8 +479,10 @@ Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.1714    | 0.0544    | 0.8828     | 0.5169     | 0.8272     | 0.9653     | 0.3663     |Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
-```
+| 0.1714    | 0.0544    | 0.8828     | 0.5169     | 0.8272     | 0.9653     | 0.3663     |
+
+Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
+
 ## Model Configuration
 
 ```

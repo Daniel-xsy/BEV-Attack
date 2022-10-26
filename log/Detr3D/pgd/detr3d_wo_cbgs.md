@@ -527,7 +527,7 @@ Evaluating Results
 
 
 Load model checkpoint from /home/cixie/shaoyuan/BEV-Attack/models/detr3d/detr3d_resnet101.pth
-```
+
 ## Model Configuration
 
 ```
