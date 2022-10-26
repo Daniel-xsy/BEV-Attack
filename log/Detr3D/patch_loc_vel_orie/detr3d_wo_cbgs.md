@@ -1,5 +1,5 @@
 Load model checkpoint from ../models/detr3d/detr3d_resnet101.pth
-```
+
 ## Model Configuration
 
 ```

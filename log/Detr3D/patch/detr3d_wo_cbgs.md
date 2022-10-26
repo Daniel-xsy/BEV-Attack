@@ -1,4 +1,4 @@
-Load model checkpoint from ../models/bevformer/bevformer_small_epoch_24.pth
+Load model checkpoint from /home/cixie/shaoyuan/BEV-Attack/models/detr3d/detr3d_resnet101.pth
 
 ## Model Configuration
 
@@ -39,7 +39,6 @@ train_pipeline = [
         mean=[103.53, 116.28, 123.675],
         std=[1.0, 1.0, 1.0],
         to_rgb=False),
-    dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
     dict(type='PadMultiViewImage', size_divisor=32),
     dict(
         type='DefaultFormatBundle3D',
@@ -61,14 +60,13 @@ test_pipeline = [
         mean=[103.53, 116.28, 123.675],
         std=[1.0, 1.0, 1.0],
         to_rgb=False),
+    dict(type='PadMultiViewImage', size_divisor=32),
     dict(
         type='MultiScaleFlipAug3D',
         img_scale=(1600, 900),
         pts_scale_ratio=1,
         flip=False,
         transforms=[
-            dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
-            dict(type='PadMultiViewImage', size_divisor=32),
             dict(
                 type='DefaultFormatBundle3D',
                 class_names=[
@@ -104,11 +102,11 @@ eval_pipeline = [
 ]
 data = dict(
     samples_per_gpu=1,
-    workers_per_gpu=8,
+    workers_per_gpu=4,
     train=dict(
         type='CustomNuScenesDataset_Adv',
         data_root='../nuscenes_mini/',
-        ann_file='../nuscenes_mini/nuscenes_infos_temporal_train.pkl',
+        ann_file='../nuscenes_mini/nuscenes_infos_temporal_val.pkl',
         pipeline=[
             dict(type='LoadMultiViewImageFromFiles', to_float32=True),
             dict(type='PhotoMetricDistortionMultiViewImage'),
@@ -132,7 +130,6 @@ data = dict(
                 mean=[103.53, 116.28, 123.675],
                 std=[1.0, 1.0, 1.0],
                 to_rgb=False),
-            dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
             dict(type='PadMultiViewImage', size_divisor=32),
             dict(
                 type='DefaultFormatBundle3D',
@@ -159,8 +156,8 @@ data = dict(
         box_type_3d='LiDAR',
         adv_mode=False,
         use_valid_flag=True,
-        bev_size=(150, 150),
-        queue_length=3),
+        bev_size=(200, 200),
+        queue_length=4),
     val=dict(
         type='CustomNuScenesDataset_Adv',
         ann_file='../nuscenes_mini/nuscenes_infos_temporal_val.pkl',
@@ -176,14 +173,13 @@ data = dict(
                 mean=[103.53, 116.28, 123.675],
                 std=[1.0, 1.0, 1.0],
                 to_rgb=False),
+            dict(type='PadMultiViewImage', size_divisor=32),
             dict(
                 type='MultiScaleFlipAug3D',
                 img_scale=(1600, 900),
                 pts_scale_ratio=1,
                 flip=False,
                 transforms=[
-                    dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
-                    dict(type='PadMultiViewImage', size_divisor=32),
                     dict(
                         type='DefaultFormatBundle3D',
                         class_names=[
@@ -210,9 +206,8 @@ data = dict(
         test_mode=False,
         box_type_3d='LiDAR',
         data_root='../nuscenes_mini/',
-        bev_size=(150, 150),
-        adv_mode=True,
-        samples_per_gpu=1),
+        bev_size=(200, 200),
+        adv_mode=True),
     test=dict(
         type='CustomNuScenesDataset_Adv',
         data_root='../nuscenes_mini/',
@@ -229,14 +224,13 @@ data = dict(
                 mean=[103.53, 116.28, 123.675],
                 std=[1.0, 1.0, 1.0],
                 to_rgb=False),
+            dict(type='PadMultiViewImage', size_divisor=32),
             dict(
                 type='MultiScaleFlipAug3D',
                 img_scale=(1600, 900),
                 pts_scale_ratio=1,
                 flip=False,
                 transforms=[
-                    dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
-                    dict(type='PadMultiViewImage', size_divisor=32),
                     dict(
                         type='DefaultFormatBundle3D',
                         class_names=[
@@ -262,7 +256,7 @@ data = dict(
             use_external=True),
         test_mode=True,
         box_type_3d='LiDAR',
-        bev_size=(150, 150),
+        bev_size=(200, 200),
         adv_mode=True),
     shuffler_sampler=dict(type='DistributedGroupSampler'),
     nonshuffler_sampler=dict(type='DistributedSampler'))
@@ -280,14 +274,13 @@ evaluation = dict(
             mean=[103.53, 116.28, 123.675],
             std=[1.0, 1.0, 1.0],
             to_rgb=False),
+        dict(type='PadMultiViewImage', size_divisor=32),
         dict(
             type='MultiScaleFlipAug3D',
             img_scale=(1600, 900),
             pts_scale_ratio=1,
             flip=False,
             transforms=[
-                dict(type='RandomScaleImageMultiViewImage', scales=[0.8]),
-                dict(type='PadMultiViewImage', size_divisor=32),
                 dict(
                     type='DefaultFormatBundle3D',
                     class_names=[
@@ -317,41 +310,33 @@ plugin_dir = ['projects/mmdet3d_plugin/']
 voxel_size = [0.2, 0.2, 8]
 img_norm_cfg = dict(
     mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False)
-_dim_ = 256
-_pos_dim_ = 128
-_ffn_dim_ = 512
-_num_levels_ = 1
-bev_h_ = 150
-bev_w_ = 150
-queue_length = 3
+bev_h_ = 200
+bev_w_ = 200
+queue_length = 4
 model = dict(
-    type='BEVFormer',
+    type='Detr3D',
     use_grid_mask=True,
-    video_test_mode=False,
     img_backbone=dict(
         type='ResNet',
         depth=101,
         num_stages=4,
-        out_indices=(3, ),
+        out_indices=(0, 1, 2, 3),
         frozen_stages=1,
         norm_cfg=dict(type='BN2d', requires_grad=False),
         norm_eval=True,
         style='caffe',
-        with_cp=True,
         dcn=dict(type='DCNv2', deform_groups=1),
         stage_with_dcn=(False, False, True, True)),
     img_neck=dict(
         type='FPN',
-        in_channels=[2048],
+        in_channels=[256, 512, 1024, 2048],
         out_channels=256,
-        start_level=0,
+        start_level=1,
         add_extra_convs='on_output',
-        num_outs=1,
+        num_outs=4,
         relu_before_extra_convs=True),
     pts_bbox_head=dict(
-        type='BEVFormerHead',
-        bev_h=150,
-        bev_w=150,
+        type='Detr3DHead',
         num_query=900,
         num_classes=10,
         in_channels=256,
@@ -359,40 +344,9 @@ model = dict(
         with_box_refine=True,
         as_two_stage=False,
         transformer=dict(
-            type='PerceptionTransformer',
-            rotate_prev_bev=True,
-            use_shift=True,
-            use_can_bus=True,
-            embed_dims=256,
-            encoder=dict(
-                type='BEVFormerEncoder',
-                num_layers=3,
-                pc_range=[-51.2, -51.2, -5.0, 51.2, 51.2, 3.0],
-                num_points_in_pillar=4,
-                return_intermediate=False,
-                transformerlayers=dict(
-                    type='BEVFormerLayer',
-                    attn_cfgs=[
-                        dict(
-                            type='TemporalSelfAttention',
-                            embed_dims=256,
-                            num_levels=1),
-                        dict(
-                            type='SpatialCrossAttention',
-                            pc_range=[-51.2, -51.2, -5.0, 51.2, 51.2, 3.0],
-                            deformable_attention=dict(
-                                type='MSDeformableAttention3D',
-                                embed_dims=256,
-                                num_points=8,
-                                num_levels=1),
-                            embed_dims=256)
-                    ],
-                    feedforward_channels=512,
-                    ffn_dropout=0.1,
-                    operation_order=('self_attn', 'norm', 'cross_attn', 'norm',
-                                     'ffn', 'norm'))),
+            type='Detr3DTransformer',
             decoder=dict(
-                type='DetectionTransformerDecoder',
+                type='Detr3DTransformerDecoder',
                 num_layers=6,
                 return_intermediate=True,
                 transformerlayers=dict(
@@ -404,9 +358,10 @@ model = dict(
                             num_heads=8,
                             dropout=0.1),
                         dict(
-                            type='CustomMSDeformableAttention',
-                            embed_dims=256,
-                            num_levels=1)
+                            type='Detr3DCrossAtten',
+                            pc_range=[-51.2, -51.2, -5.0, 51.2, 51.2, 3.0],
+                            num_points=1,
+                            embed_dims=256)
                     ],
                     feedforward_channels=512,
                     ffn_dropout=0.1,
@@ -420,10 +375,10 @@ model = dict(
             voxel_size=[0.2, 0.2, 8],
             num_classes=10),
         positional_encoding=dict(
-            type='LearnedPositionalEncoding',
+            type='SinePositionalEncoding',
             num_feats=128,
-            row_num_embed=150,
-            col_num_embed=150),
+            normalize=True,
+            offset=-0.5),
         loss_cls=dict(
             type='FocalLoss',
             use_sigmoid=True,
@@ -459,12 +414,7 @@ attack = dict(
     num_steps=50,
     img_norm=dict(
         mean=[103.53, 116.28, 123.675], std=[1.0, 1.0, 1.0], to_rgb=False),
-    loss_fn=dict(
-        type='LocalizationObjective',
-        l2loss=False,
-        loc=True,
-        vel=True,
-        orie=True),
+    loss_fn=dict(type='ClassficationObjective', activate=False),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 ```
@@ -475,8 +425,7 @@ Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.2342    | 0.1822    | 0.8465     | 0.4918     | 0.8428     | 1.2016     | 0.3881     |
-| 0.2210    | 0.1794    | 0.9158     | 0.5028     | 0.8702     | 1.2030     | 0.3982     |
+| 0.3072    | 0.2059    | 0.7758     | 0.4722     | 0.7046     | 0.6967     | 0.3079     |
 
 ### scale 0.2
 
@@ -484,8 +433,7 @@ Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.1905    | 0.1389    | 0.8720     | 0.5336     | 0.9330     | 1.8346     | 0.4504     |
-| 0.1618    | 0.1128    | 0.9339     | 0.5416     | 1.0902     | 2.2659     | 0.4706     |
+| 0.2236    | 0.1034    | 0.8132     | 0.4787     | 0.9097     | 0.7531     | 0.3265     |
 
 ### scale 0.3
 
@@ -493,8 +441,7 @@ Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.1461    | 0.0794    | 0.8934     | 0.5634     | 1.0955     | 2.5064     | 0.4793     |
-| 0.1237    | 0.0620    | 0.9851     | 0.5641     | 1.2558     | 3.3324     | 0.5240     |
+| 0.1309    | 0.0237    | 0.8894     | 0.5652     | 0.8693     | 1.0788     | 0.4859     |
 
 ### scale 0.4
 
@@ -502,6 +449,5 @@ Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.1094    | 0.0318    | 0.9816     | 0.5852     | 1.3420     | 3.7509     | 0.4981     |
-| 0.1018    | 0.0259    | 1.0323     | 0.6048     | 1.4538     | 5.2342     | 0.5064     |
+| 0.0984    | 0.0007    | 0.9651     | 0.6718     | 0.9772     | 0.7856     | 0.6198     |
 
