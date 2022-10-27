@@ -46,6 +46,7 @@ def parse_args():
         description='MMDet attack a model')
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
+    parser.add_argument('--wb_checkpoint', help='white box checkpoint for transfer black box attack')
     parser.add_argument('--out', help='output result file in pickle format')
     args = parser.parse_args()
 
@@ -80,6 +81,12 @@ def main():
                         _module_path = _module_path + '.' + m
                     print(_module_path)
                     plg_lib = importlib.import_module(_module_path)
+
+    transfer_attack = False
+    if args.wb_checkpoint is not None or cfg.get('wb_model', None):
+        assert cfg.get('wb_model', None), "When activate black box attack, should specify wb_model in config file"
+        assert args.wb_checkpoint is not None, "When activate black box attack, should specify wb_model checkpoint in arg"
+        transfer_attack = True
 
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
@@ -125,10 +132,16 @@ def main():
     # build the model and load checkpoint
     cfg.model.train_cfg = None
     model = build_model(cfg.model, test_cfg=cfg.get('test_cfg'))
+    if transfer_attack:
+        wb_model = build_model(cfg.wb_model, test_cfg=cfg.get('test_cfg'))
+
     fp16_cfg = cfg.get('fp16', None)
     if fp16_cfg is not None:
+        assert False, "Not support float16 model"
         wrap_fp16_model(model)
     checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
+    if transfer_attack:
+        wb_checkpoint = load_checkpoint(wb_model, args.wb_checkpoint, map_location='cpu')
 
     # old versions did not save class info in checkpoints, this walkaround is
     # for backward compatibility
@@ -143,9 +156,17 @@ def main():
         # segmentation dataset has `PALETTE` attribute
         model.PALETTE = dataset.PALETTE
 
+    # Fix parameters
     for n, p in model.named_parameters():
         p.requires_grad = False
     model = MMDataParallel(model, device_ids=[0])
+
+    if transfer_attack:
+        for n, p in wb_model.named_parameters():
+            p.requires_grad = False
+        wb_model = MMDataParallel(wb_model, device_ids=[0])
+    else:
+        wb_model = model
 
     attack_severity_type = cfg.attack_severity_type
     assert attack_severity_type in list(cfg.attack.keys()), f"Attack severity type {attack_severity_type} \
@@ -155,6 +176,8 @@ def main():
         now {type(severity_list)}"
         
     logging = Logging_str(osp.join('../log', cfg.model.type, args.out, f"{os.path.splitext(os.path.basename(args.config))[0]}.md"))
+    logging.write(f"Load model checkpoint from {args.checkpoint}")
+
     logging.write(f"## Model Configuration\n")
     logging.write(f"```")
     logging.write(cfg.pretty_text)
@@ -176,8 +199,7 @@ def main():
             )
             attacker.loader = attack_loader
 
-        outputs = single_gpu_attack(model, data_loader, attacker)
-
+        outputs = single_gpu_attack(model, wb_model, data_loader, attacker)
 
         kwargs = {}
         kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, args.out, f"{attack_severity_type}_{severity_list[i]}")

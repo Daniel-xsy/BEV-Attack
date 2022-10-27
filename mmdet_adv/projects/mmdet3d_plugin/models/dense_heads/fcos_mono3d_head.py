@@ -640,7 +640,11 @@ class CustomFCOSMono3DHead(AnchorFreeMono3DHead):
             if rescale:
                 bbox_pred[:, :2] /= bbox_pred[:, :2].new_tensor(scale_factor)
             pred_center2d = bbox_pred[:, :3].clone()
-            bbox_pred[:, :3] = self.pts2Dto3D(bbox_pred[:, :3], view)
+            
+            # bbox_pred[:, :3] = self.pts2Dto3D(bbox_pred[:, :3], view)
+            # use .clone() to deal with in-place operation when 
+            # compute gradient in attack loop
+            bbox_pred[:, :3] = self.pts2Dto3D(bbox_pred[:, :3].clone(), view)
             mlvl_centers2d.append(pred_center2d)
             mlvl_bboxes.append(bbox_pred)
             mlvl_scores.append(scores)

@@ -40,6 +40,7 @@ class ClassficationObjective(nn.Module):
 class TargetedClassificationObjective(nn.Module):
 
     # Fix targeted attack for fair comparasion
+    # last dimension only used in FCOS3D for background
     TARGETS = torch.tensor((4, 6, 0, 7, 8, 6, 2, 0, 1, 2))
 
     def __init__(self, num_cls=10, random=True, thresh=0.1):
@@ -100,8 +101,8 @@ class TargetedClassificationObjective(nn.Module):
         if self.random:
             target_label = self._map(gt_label)
 
-            target_label = target_label.unsqueeze(dim=0)
-            gt_label = gt_label.unsqueeze(dim=0)
+            target_label = target_label.view(1, -1)
+            gt_label = gt_label.view(1, -1)
 
             target_score = torch.gather(pred_logits, dim=-1, index=target_label)
             correct_score = torch.gather(pred_logits, dim=-1, index=gt_label)

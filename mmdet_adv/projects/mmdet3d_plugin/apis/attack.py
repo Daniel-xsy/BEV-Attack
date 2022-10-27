@@ -6,6 +6,7 @@ from os import path as osp
 
 
 def single_gpu_attack(model,
+                      wb_model,
                       data_loader,
                       attacker):
     """Test model with single gpu.
@@ -16,6 +17,7 @@ def single_gpu_attack(model,
 
     Args:
         model (nn.Module): Model to be tested.
+        wb_model (nn.Module): White box model to be attacked
         data_loader (nn.Dataloader): Pytorch data loader.
         show (bool): Whether to save viualization results.
             Default: True.
@@ -26,6 +28,7 @@ def single_gpu_attack(model,
         list[dict]: The prediction results.
     """
     model.eval()
+    wb_model.eval()
     results = []
     dataset = data_loader.dataset
 
@@ -36,7 +39,7 @@ def single_gpu_attack(model,
     prog_bar = mmcv.ProgressBar(len(dataset))
     for i, data in enumerate(data_loader):
 
-        inputs = attacker.run(model, **data)    
+        inputs = attacker.run(wb_model, **data)    
         # inputs = {'img': data['img'], 'img_metas': data['img_metas']}   
         with torch.no_grad():
             result = model(return_loss=False, rescale=True, **inputs)

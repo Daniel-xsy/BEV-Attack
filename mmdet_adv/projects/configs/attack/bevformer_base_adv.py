@@ -275,7 +275,6 @@ checkpoint_config = dict(interval=1)
 #     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
-
 attack_severity_type = 'num_steps'
 attack = dict(
     type='PGD',

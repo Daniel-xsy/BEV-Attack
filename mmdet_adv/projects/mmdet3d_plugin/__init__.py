@@ -16,3 +16,4 @@ from .models.utils.dgcnn_attn import DGCNNAttn
 from .models.utils.detr3d_transformer import Detr3DTransformer, Detr3DTransformerDecoder, Detr3DCrossAtten
 from .apis import *
 from .bevformer import *
+from .attacks import *
