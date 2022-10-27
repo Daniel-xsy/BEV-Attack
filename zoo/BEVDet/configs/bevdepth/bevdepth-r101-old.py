@@ -41,16 +41,17 @@ numC_Trans=64
 model = dict(
     type='BEVDepth',
     img_backbone=dict(
-        pretrained='torchvision://resnet101',
+        pretrained='open-mmlab://detectron2/resnet101_caffe',
         type='ResNet',
         depth=101,
         num_stages=4,
         out_indices=(2, 3),
-        frozen_stages=-1,
-        norm_cfg=dict(type='BN', requires_grad=True),
-        norm_eval=False,
-        with_cp=True,
-        style='pytorch'),
+        frozen_stages=1,
+        norm_cfg=dict(type='BN2d', requires_grad=False),
+        norm_eval=True,
+        style='caffe',
+        dcn=dict(type='DCNv2', deform_groups=1, fallback_on_stride=False),
+        stage_with_dcn=(False, False, True, True),),
     img_neck=dict(
         type='FPNForBEVDet',
         in_channels=[1024, 2048],
@@ -63,7 +64,6 @@ model = dict(
                               grid_config=grid_config,
                               data_config=data_config,
                               numC_Trans=numC_Trans,
-                              use_bev_pool=False,
                               extra_depth_net=dict(type='ResNetForBEVDet',
                                                    numC_input=256,
                                                    num_layer=[3,],
@@ -138,7 +138,7 @@ model = dict(
 
 # Data
 dataset_type = 'NuScenesDataset'
-data_root = '../../nuscenes/'
+data_root = '../../nuscenes_mini/'
 file_client_args = dict(backend='disk')
 
 
@@ -227,7 +227,7 @@ input_modality = dict(
 
 data = dict(
     samples_per_gpu=8,
-    workers_per_gpu=4,
+    workers_per_gpu=8,
     train=dict(
         type='CBGSDataset',
         dataset=dict(
