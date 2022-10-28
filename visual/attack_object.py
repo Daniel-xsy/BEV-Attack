@@ -25,19 +25,33 @@ PARAMETERS = dict(
 
 COLORS = ['#4169E1', '#0000FF', '#9932CC', '#800080', '#F08080', '#B22222', '#FFE4B5', '#FFA500', '#00FF00', '#2E8B57', '#FFFF00', '#FFD700']
 MODELS = [
-    # 'BEVFormer_Tiny',
-    # 'BEVFormer_Tiny_Temp',
-    # 'BEVFormer_Small',
-    # 'BEVFormer_Small_Temp',
+    'BEVFormer_Tiny',
+    'BEVFormer_Tiny_Temp',
+    'BEVFormer_Small',
+    'BEVFormer_Small_Temp',
     'BEVFormer_Base',
-    # 'BEVFormer_Base_Temp',
-    # 'DETR3D_CBGS',
+    'BEVFormer_Base_Temp',
+    'DETR3D_CBGS',
     'DETR3D',
     'FCOS3D',
     'PGD',
     'BEVDepth_R50',
     'BEVDet_R50',
 ]
+VAL_MAP = dict(
+    BEVFormer_Tiny = 0,
+    BEVFormer_Tiny_Temp = 0.2524,
+    BEVFormer_Small = 0,
+    BEVFormer_Small_Temp = 0.3699,
+    BEVFormer_Base = 0,
+    BEVFormer_Base_Temp = 0.4167,
+    DETR3D_CBGS = 0.3494,
+    DETR3D = 0,
+    FCOS3D = 0.3214,
+    PGD = 0.3360,
+    BEVDepth_R50 = 0.3327,
+    BEVDet_R50 = 0.2987
+)
 
 
 pgd_attack_untarget = dict(
@@ -56,6 +70,15 @@ pgd_attack_untarget = dict(
     BEVDepth_R50 = [0.3248,0.2126,0.1655,0.1328,0.0992,0.0733,0.0680,0.0496,0.0415,0.0310,0.0275,0.0041,0.0003,0.0000,0.0000], # rebenchmark this part
     BEVDet_R50 = [0.2831,0.1551,0.1170,0.0728,0.0540,0.0405,0.0384,0.0199,0.0161,0.0064,0.0080,0.0000,0.0000,0.0000,0.0000]
     )
+
+
+pgd_transfer = dict(
+    metric = 'max_steps',
+    max_steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50],
+    BEVFormer_DETR3D = [0.3112],
+    DETR3D_BEVFormer = []
+)
+
 
 pgd_attack_target = dict(
     metric = 'max_steps',
@@ -232,7 +255,7 @@ def parse_data(results, relative=False):
     return xs, ys, labels
 
 
-def collect_clean_accuracy(results_dict):
+def collect_clean_accuracy(results_dict, val=False):
     assert isinstance(results_dict, dict)
 
     # models = list(results_dict.keys())
@@ -242,7 +265,12 @@ def collect_clean_accuracy(results_dict):
     for model in models:
         if model == 'metric' or model == results_dict['metric']:
             continue
-        acc = results_dict[model][0]
+        if not val:
+            # map on mini datasets
+            acc = results_dict[model][0]
+        else:
+            # map on validation datasets
+            acc = VAL_MAP[model]
         acc_all.append(acc)
         model_names.append(model)
     
@@ -258,7 +286,7 @@ def collect_model_size():
     return size_all, models
 
 
-def collect_robustness_acc(results_dicts, param=False):
+def collect_robustness_acc(results_dicts, param=False, val=False):
     """Calculate average adversarial robustness v.s. clean accuracy
     """
     assert isinstance(results_dicts, List)
@@ -281,9 +309,9 @@ def collect_robustness_acc(results_dicts, param=False):
 
 
 if __name__ == '__main__':
-    # xs, ys, labels = parse_data(dynamic_patch_untarget_attack, relative=True)
-    # multi_plot_api(xs, ys, labels, 'scale', 'mAP', 'visual/bev/rel_dynamic_patch_untarget_attack.png')
+    xs, ys, labels = parse_data(pgd_attack_untarget, relative=True)
+    multi_plot_api(xs, ys, labels, 'max steps', 'mAP', 'visual/depth_estimation/pgd_attack_untarget.png')
 
     # pgd_attack_untarget, pgd_attack_target, pgd_attack_local, dynamic_patch_untarget_attack
-    clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_untarget, pgd_attack_target, pgd_attack_local, dynamic_patch_untarget_attack], param=False)
-    plot_scatter_api(clean_accs, adver_accs, model_names, 'Clean mAP', 'Adv mAP', PARAMETERS, 'visual/overall/average.png')
+    # clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_untarget, pgd_attack_target, pgd_attack_local, dynamic_patch_untarget_attack], param=True)
+    # plot_scatter_api(clean_accs, adver_accs, model_names, 'Model Size', 'Adv mAP', PARAMETERS, 'visual/overall/average.png')
