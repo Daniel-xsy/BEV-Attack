@@ -1,6 +1,6 @@
 _base_ = [
-    '../../../mmdetection3d/configs/_base_/datasets/nus-3d.py',
-    '../../../mmdetection3d/configs/_base_/default_runtime.py'
+    '../_base_/datasets/nus-3d-adv.py',
+    '../_base_/default_runtime.py'
 ]
 backbone_norm_cfg = dict(type='LN', requires_grad=True)
 plugin=True
@@ -112,8 +112,8 @@ model = dict(
             iou_cost=dict(type='IoUCost', weight=0.0), # Fake cost. This is just to make it compatible with DETR head. 
             pc_range=point_cloud_range))))
 
-dataset_type = 'CustomNuScenesDataset'
-data_root = '/data/Dataset/nuScenes/'
+dataset_type = 'PETRCustomNuScenesDataset'
+data_root = '../nuscenes'
 
 file_client_args = dict(backend='disk')
 db_sampler = dict()
@@ -146,6 +146,7 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
+    # dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
     dict(type='ResizeCropFlipImage', data_aug_conf = ida_aug_conf, training=False),
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
     dict(type='PadMultiViewImage', size_divisor=32),
@@ -159,13 +160,13 @@ test_pipeline = [
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='Collect3D', keys=['img'])
+            dict(type='Collect3D', keys=['img']) # 'gt_bboxes_3d', 'gt_labels_3d', 
         ])
 ]
 
 data = dict(
     samples_per_gpu=1,
-    workers_per_gpu=4,
+    workers_per_gpu=8,
     train=dict(
         type=dataset_type,
         data_root=data_root,
@@ -178,8 +179,9 @@ data = dict(
         # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
         # and box_type_3d='Depth' in sunrgbd and scannet dataset.
         box_type_3d='LiDAR'),
-    val=dict(type=dataset_type, pipeline=test_pipeline, classes=class_names, modality=input_modality),
-    test=dict(type=dataset_type, pipeline=test_pipeline, classes=class_names, modality=input_modality))
+    val=dict(type=dataset_type, pipeline=test_pipeline, filter_empty_gt=False, classes=class_names, modality=input_modality),
+    test=dict(type=dataset_type, pipeline=test_pipeline, filter_empty_gt=False, classes=class_names, modality=input_modality),
+    nonshuffler_sampler=dict(type='DistributedSampler'))
 
 optimizer = dict(
     type='AdamW', 

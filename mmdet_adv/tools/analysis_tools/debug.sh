@@ -3,12 +3,10 @@
 CUDA_VISIBLE_DEVICES=0 \
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/analysis_tools/debug_tool.py \
-projects/configs/attack/bevformer_small_adv_no_temp.py \
-../models/bevformer/bevformer_small_epoch_24.pth \
---attack \
+projects/configs/attack/petr_r50dcn_gridmask_p4.py \
+../models/petr/petr-r50-p4-1408x512.pth \
 --show \
 
-# -m debugpy --listen 5679 --wait-for-client 
 # -m debugpy --listen 5679 --wait-for-client 
 
 # BEVDepth 
@@ -42,3 +40,7 @@ projects/configs/attack/bevformer_small_adv_no_temp.py \
 # PGD
 # config = 'projects/configs/attack/pgd_r101_caffe_fpn_gn-head_2x16_1x_nus-mono3d.py'
 # checkpoint_path = '../models/pgd/pgd_r101_caffe_fpn_gn-head_2x16_2x_nus-mono3d_finetune_20211114_162135-5ec7c1cd.pth'
+
+# PETR
+# config = 'projects/configs/attack/petr_r50dcn_gridmask_p4.py'
+# checkpoint_path = '../models/petr/petr-r50-p4-1408x512.pth'

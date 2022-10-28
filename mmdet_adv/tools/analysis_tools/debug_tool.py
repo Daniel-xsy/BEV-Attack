@@ -4,10 +4,6 @@
 #  Modified by Shaoyuan Xie
 #  Used to visualize adversarial examples
 # ---------------------------------------------
-import sys
-## an ugly workaround to add path
-## TODO: reorganize the code structure
-sys.path.append('/home/cixie/shaoyuan/BEV-Attack/mmdet_adv')
 
 import os
 import time
