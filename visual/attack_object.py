@@ -6,8 +6,8 @@ import os
 
 nan = np.infty
 CLASSES = ['car', 'bus', 'truck', 'trailer', 'construction_vehicle', 'pedestrian', 'motorcycle', 'bicycle', 'traffic_cone', 'barrier']
-CLASSES_METRIC = ['AP', 'trans_err', 'scale_err', 'orient_err', 'vel_err', 'attr_err']
-METRICS = ['mATE', 'mASE', 'mAOE', 'mAVE', 'mAAE']
+CLASSES_severity = ['AP', 'trans_err', 'scale_err', 'orient_err', 'vel_err', 'attr_err']
+severityS = ['mATE', 'mASE', 'mAOE', 'mAVE', 'mAAE']
 PARAMETERS = dict(
     BEVFormer_Tiny = 33.6,
     BEVFormer_Tiny_Temp = 33.6,
@@ -45,12 +45,12 @@ COLORS = dict(
     BEVFormer_Small_Temp = '#800080', 
     BEVFormer_Base = '#F08080', 
     BEVFormer_Base_Temp = '#B22222', 
-    DETR3D_CBGS = '#FFE4B5', 
-    DETR3D = '#FFA500', 
-    FCOS3D = '#00FF00', 
-    PGD = '#2E8B57', 
-    BEVDepth_R50 = '#FFFF00', 
-    BEVDet_R50 = '#FFD700')
+    DETR3D_CBGS = '#A9A9A9', 
+    DETR3D = '#696969', 
+    FCOS3D = '#32CD32', 
+    PGD = '#006400', 
+    BEVDepth_R50 = '#C0C000', 
+    BEVDet_R50 = '#DAA520')
 
 MODELS = [
     # 'BEVFormer_Tiny',
@@ -80,10 +80,24 @@ VAL_MAP = dict(
     BEVDepth_R50 = 0.3327,
     BEVDet_R50 = 0.2987
 )
+VAL_NDS = dict(
+    BEVFormer_Tiny = 0.2548,
+    BEVFormer_Tiny_Temp = 0.3542,
+    BEVFormer_Small = 0.2623,
+    BEVFormer_Small_Temp = 0.4786,
+    BEVFormer_Base = 0.4128,
+    BEVFormer_Base_Temp = 0.5176,
+    DETR3D_CBGS = 0.4342,
+    DETR3D = 0,             # benchmark this part
+    FCOS3D = 0.3949,
+    PGD = 0.4089,
+    BEVDepth_R50 = 0.4057,
+    BEVDet_R50 = 0.3770
+)
 
 
 pgd_attack_untarget = dict(
-    metric = 'max_steps',
+    severity = 'max_steps',
     max_steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50],
     BEVFormer_Tiny = dict(
         NDS = [0.2316,0.2024,0.1833,0.1760,0.1500,0.1208,0.1079,0.1014,0.0850,0.0954,0.0884,0.0498,0.0001,0.0000,0.0000],
@@ -100,7 +114,7 @@ pgd_attack_untarget = dict(
         mAP = [0.1893,0.1468,0.1155,0.0852,0.0694,0.0569,0.0414,0.0376,0.0338,0.0312,0.0186,0.0029,0.0006,0.0031,0.0001],
     ),
 
-    BEVFormer_Small_Temp = dict(
+    BEVFormer_Small_Temp = dict(                                                                                    # rebencher the whole results
         NDS = [0.3990,0.2869,0.2497,0.2272,0.2063,0.1760,0.1752,0.1536,0.1236,0.1460,0.1372,0.0979,0.0362,0.0,0.0], # remanchmark the last two
         mAP = [0.3546,0.2455,0.1835,0.1470,0.1262,0.1030,0.0813,0.0556,0.0421,0.0381,0.0375,0.0107,0.0005,0.0,0.0], # remanchmark the last two
     ),
@@ -117,7 +131,7 @@ pgd_attack_untarget = dict(
 
     DETR3D_CBGS = dict(
         NDS = [0.3899,0.3660,0.3498,0.3409,0.3244,0.3151,0.3024,0.2981,0.2801,0.2895,0.2770,0.2257,0.1903,0.1901,0.1385],
-        mAP = [0.3219,0.2756,0.2456,0.2283,0.2077,0.1932,0.1745,0.1705,0.1538,0.1551,0.1530,0.1017,0.0753,0.0559,0.0448], # double check this results
+        mAP = [0.3219,0.2756,0.2456,0.2283,0.2077,0.1932,0.1745,0.1705,0.1538,0.1551,0.1530,0.1017,0.0753,0.0559,0.0448],
     ),
 
     DETR3D = dict(
@@ -137,7 +151,7 @@ pgd_attack_untarget = dict(
 
     BEVDepth_R50 = dict(
         NDS = [0.3759,0.2857,0.2459,0.2244,0.1945,0.1821,0.1544,0.1297,0.1434,0.1157,0.1063,0.0600,0.0276,0.0052,0.0000],
-        mAP = [0.3248,0.2126,0.1655,0.1328,0.0992,0.0733,0.0680,0.0496,0.0415,0.0310,0.0275,0.0041,0.0003,0.0000,0.0000], # rebenchmark this part
+        mAP = [0.3248,0.2126,0.1655,0.1328,0.0992,0.0733,0.0680,0.0496,0.0415,0.0310,0.0275,0.0041,0.0003,0.0000,0.0000],
     ), 
 
     BEVDet_R50 = dict(
@@ -149,7 +163,7 @@ pgd_attack_untarget = dict(
 
 # rebenchmark
 pgd_attack_target = dict(
-    metric = 'max_steps',
+    severity = 'max_steps',
     max_steps = [0, 2, 4, 6, 8, 10, 20, 30, 40, 50],
     BEVFormer_Tiny = dict(
         mAP = [0.2015,0.1603,0.1333,0.1176,0.0979,0.0920,0.0396,0.0168,0.0132,0.0107],
@@ -191,7 +205,7 @@ pgd_attack_target = dict(
 
 
 pgd_attack_local = dict(
-    metric = 'max_steps',
+    severity = 'max_steps',
     max_steps = [0, 2, 4, 6, 8, 10, 20, 30, 40, 50],
     BEVFormer_Tiny = dict(
         NDS = [0.2316,0.1954,0.1668,0.1554,0.1405,0.1292,0.0982,0.0336,0.0230,0.0194],
@@ -244,7 +258,7 @@ pgd_attack_local = dict(
     )
 
 dynamic_patch_untarget_attack = dict(
-    metric = 'scale',
+    severity = 'scale',
     scale = [0, 0.1, 0.2, 0.3, 0.4],
     BEVFormer_Tiny = dict(
         NDS = [0.2316,0.1838,0.1375,0.1014,0.0588],
@@ -275,7 +289,7 @@ dynamic_patch_untarget_attack = dict(
         mAP = [0.3219,0.2376,0.1551,0.0893,0.0218], 
     ),
     DETR3D = dict(
-        NDS = [0.3743],
+        NDS = [0.3743,0.3072,0.2236,0.1309,0.0984],
         mAP = [0.3112,0.2059,0.1034,0.0237,0.0007],
     ),
     FCOS3D = dict(
@@ -299,7 +313,7 @@ dynamic_patch_untarget_attack = dict(
 
 
 dynamic_patch_loc_attack = dict(
-    metric = 'scale',
+    severity = 'scale',
     scale = [0, 0.1, 0.2, 0.3, 0.4],
     BEVFormer_Tiny = dict(
         NDS = [0.2316,0.1874,0.1589,0.1346,0.1021],
@@ -318,8 +332,8 @@ dynamic_patch_loc_attack = dict(
         mAP = [0.3546,0.2356,0.1493,0.1109,0.0592],
     ),
     BEVFormer_Base = dict(
-        NDS = [0.3563, ],       # benchmark this part
-        mAP = [0.3185],
+        NDS = [0.3563,0.2830,0.2144,0.1490,0.1175],
+        mAP = [0.3185,0.2622,0.1955,0.1012,0.0649],
     ),
     BEVFormer_Base_Temp = dict(
         NDS = [0.4254,0.2830,0.2144,0.1490,0.1175],
@@ -330,8 +344,8 @@ dynamic_patch_loc_attack = dict(
         mAP = [0.3219,0.2823,0.2223,0.1425,0.0825], 
     ),
     DETR3D = dict(
-        NDS = [0.3743],
-        mAP = [0.3112,0.2705], # rebenchmark
+        NDS = [0.3743,0.2959,0.2248,0.1704,0.1209],
+        mAP = [0.3112,0.2707,0.2027,0.1323,0.0596],
     ),
     FCOS3D = dict(
         NDS = [0.3309,0.2110,0.1494,0.0985,0.0596],
@@ -351,7 +365,7 @@ dynamic_patch_loc_attack = dict(
     )
 )
 
-def collect_data(data, metric, catagory):
+def collect_data(data, severity, catagory):
 
     results = []
 
@@ -361,14 +375,14 @@ def collect_data(data, metric, catagory):
         result['patch_scale'] = data_['patch_scale']
         result['step_size'] = data_['step_size']
         result['max_steps'] = data_['max_steps']
-        result[f'{catagory}_{metric}'] = 0
+        result[f'{catagory}_{severity}'] = 0
         num = 0
         for key in data_.keys():
-            if metric in key and catagory in key:
-                result[f'{catagory}_{metric}'] += data_[key]
+            if severity in key and catagory in key:
+                result[f'{catagory}_{severity}'] += data_[key]
                 num = num + 1
         # calculate average ap under different threshold
-        result[f'{catagory}_{metric}'] /= num
+        result[f'{catagory}_{severity}'] /= num
         results.append(result)
 
     return results
@@ -384,18 +398,18 @@ def plot_api(x, y, xtitle, ytitle, out_path):
 
 
 def visualize_object(data):
-    """Visualize metric of different object according to experiment settings (e.x. patch_size, step_size, etc.)
+    """Visualize severity of different object according to experiment settings (e.x. patch_size, step_size, etc.)
     Args:
         data (list): each element is a dict output by the model
     """
     for class_ in CLASSES:
-        for metric_ in CLASSES_METRIC:
-            if metric_ == 'AP':
-                result = collect_data(data, metric_, class_)
+        for severity_ in CLASSES_severity:
+            if severity_ == 'AP':
+                result = collect_data(data, severity_, class_)
                 result.sort(key=lambda k: k['patch_scale'])
                 x = [exp['patch_scale'] for exp in result]
-                y = [exp[f'{class_}_{metric_}'] for exp in result]
-                plot_api(x, y, 'patch_scale', f'{class_}_{metric_}', out_path=os.path.join('visual', 'patch_scale', f'ap_{class_}.pdf'))
+                y = [exp[f'{class_}_{severity_}'] for exp in result]
+                plot_api(x, y, 'patch_scale', f'{class_}_{severity_}', out_path=os.path.join('visual', 'patch_scale', f'ap_{class_}.pdf'))
             
 
 def multi_plot_api(xs, ys, labels, xtitle, ytitle, out_path):
@@ -404,13 +418,14 @@ def multi_plot_api(xs, ys, labels, xtitle, ytitle, out_path):
     assert isinstance(labels, list or tuple)
     assert len(xs) == len(ys) and len(xs) == len(labels)
 
+    plt.figure(figsize=(10, 6))
     ax = plt.axes()
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     for i in range(len(xs)):
         label_ = labels[i].replace('_', '-')
         assert len(xs[i]) == len(ys[i]), f"x doesn't match y in {label_}"
-        ax.plot(xs[i], ys[i], f'{MARKER[labels[i]]}-', c=COLORS[labels[i]], label=label_, markersize=8)
+        ax.plot(xs[i], ys[i], f'{MARKER[labels[i]]}-', c=COLORS[labels[i]], label=label_, markersize=3)
     plt.xlabel(xtitle)
     plt.ylabel(ytitle)
     plt.legend()
@@ -439,7 +454,7 @@ def plot_scatter_api(xs, ys, labels, xtitle, ytitle, parameters, out_path):
     plt.cla()
 
 
-def parse_data(results, relative=False):
+def parse_data(results, relative=False, metric='mAP'):
     """
     Args:
         results (dict)
@@ -452,10 +467,10 @@ def parse_data(results, relative=False):
     ys = []
     labels = []
     for key in keys:
-        if key == 'metric' or key == results['metric']:
+        if key == 'severity' or key == results['severity']:
             continue
-        x = results[results['metric']]
-        y = results[key]
+        x = results[results['severity']]
+        y = results[key][metric]
         if relative:
             y = [y[i] / y[0] for i in range(len(y))]
         xs.append(x)
@@ -465,7 +480,7 @@ def parse_data(results, relative=False):
     return xs, ys, labels
 
 
-def collect_clean_accuracy(results_dict, val=False):
+def collect_clean_accuracy(results_dict, val=False, metric='mAP'):
     assert isinstance(results_dict, dict)
 
     # models = list(results_dict.keys())
@@ -473,14 +488,18 @@ def collect_clean_accuracy(results_dict, val=False):
     acc_all = []
     model_names = []
     for model in models:
-        if model == 'metric' or model == results_dict['metric']:
+        if model == 'severity' or model == results_dict['severity']:
             continue
         if not val:
             # map on mini datasets
-            acc = results_dict[model][0]
+            acc = results_dict[model][metric][0]
         else:
-            # map on validation datasets
-            acc = VAL_MAP[model]
+            if metric == 'mAP':
+                # map on validation datasets
+                acc = VAL_MAP[model]
+            elif metric == 'NDS':
+                acc = VAL_NDS[model]
+                
         acc_all.append(acc)
         model_names.append(model)
     
@@ -496,7 +515,7 @@ def collect_model_size():
     return size_all, models
 
 
-def collect_robustness_acc(results_dicts, param=False, val=False, range=-1):
+def collect_robustness_acc(results_dicts, param=False, val=False, metric='mAP', range=-1):
     """Calculate average adversarial robustness v.s. clean accuracy
     """
     assert isinstance(results_dicts, List)
@@ -505,16 +524,13 @@ def collect_robustness_acc(results_dicts, param=False, val=False, range=-1):
     if param:
         clean_accs, model_names = collect_model_size()
     else:
-        clean_accs, model_names = collect_clean_accuracy(results_dicts[0])
-
-    if val:
-        clean_accs = [VAL_MAP[model] for model in model_names]
+        clean_accs, model_names = collect_clean_accuracy(results_dicts[0], val, metric)
 
     adver_accs = []
     for model_name in model_names:
         adver_acc = []
         for results_dict in results_dicts:
-            adver_acc.extend(results_dict[model_name][1: range])
+            adver_acc.extend(results_dict[model_name][metric][1: range])
         adver_acc = np.mean(np.array(adver_acc))
         adver_accs.append(adver_acc)
 
@@ -522,11 +538,12 @@ def collect_robustness_acc(results_dicts, param=False, val=False, range=-1):
 
 
 if __name__ == '__main__':
-    xs, ys, labels = parse_data(dynamic_patch_untarget_attack, relative=False)
-    multi_plot_api(xs, ys, labels, 'attack iterations', 'mAP', 'visual/test.png')
+    metric = 'mAP'
+    xs, ys, labels = parse_data(pgd_attack_untarget, relative=False, metric=metric)
+    multi_plot_api(xs, ys, labels, 'attack iterations', metric, 'visual/test.png') # figure/pgd_attack_untarget.pdf
 
     # pgd_attack_untarget, pgd_attack_target, pgd_attack_local, dynamic_patch_untarget_attack
-    # clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_local], param=False, val=False, range=-1)
+    # clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_local], param=False, val=True, metric='mAP', range=-1)
     # for i in range(len(model_names)):
     #     print(f'{model_names[i]}  clean_acc: {clean_accs[i]}  adver_accs: {adver_accs[i]}')
     # plot_scatter_api(clean_accs, adver_accs, model_names, 'mAP', 'Adversarial mAP', PARAMETERS, 'visual/test.png') # visual/test.png
