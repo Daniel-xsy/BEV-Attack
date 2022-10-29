@@ -1,6 +1,7 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
 _base_ = ['../_base_/datasets/nus-3d-adv.py',
+          '../_base_/schedules/cyclic_20e.py',
           '../_base_/default_runtime.py']
 # Global
 # If point cloud range is changed, the models should also change their point
@@ -41,23 +42,35 @@ numC_Trans=64
 model = dict(
     type='BEVDet_Adv',
     img_backbone=dict(
-        pretrained='torchvision://resnet50',
-        type='ResNet',
-        depth=50,
-        num_stages=4,
-        out_indices=(2, 3),
-        frozen_stages=-1,
-        norm_cfg=dict(type='BN', requires_grad=True),
-        norm_eval=False,
-        with_cp=True,
-        style='pytorch'),
+        type='SwinTransformer',
+        pretrained='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth',
+        pretrain_img_size=224,
+        embed_dims=96,
+        patch_size=4,
+        window_size=7,
+        mlp_ratio=4,
+        depths=[2, 2, 6, 2],
+        num_heads=[3, 6, 12, 24],
+        strides=(4, 2, 2, 2),
+        out_indices=(2, 3,),
+        qkv_bias=True,
+        qk_scale=None,
+        patch_norm=True,
+        drop_rate=0.,
+        attn_drop_rate=0.,
+        drop_path_rate=0.0,
+        use_abs_pos_embed=False,
+        act_cfg=dict(type='GELU'),
+        norm_cfg=dict(type='LN', requires_grad=True),
+        pretrain_style='official',
+        output_missing_index_as_none=False),
     img_neck=dict(
-        type='FPNForBEVDet',
-        in_channels=[1024, 2048],
+        type='FPN_LSS',
+        in_channels=384+768,
         out_channels=512,
-        num_outs=1,
-        start_level=0,
-        out_ids=[0]),
+        extra_upsample=None,
+        input_feature_index=(0,1),
+        scale_factor=2),
     img_view_transformer=dict(type='ViewTransformerLiftSplatShoot',
                               grid_config=grid_config,
                               data_config=data_config,
@@ -241,15 +254,15 @@ data = dict(
              img_info_prototype='bevdet'))
 
 # Optimizer
-optimizer = dict(type='AdamW', lr=2e-4, weight_decay=0.01)
-optimizer_config = dict(grad_clip=None)
 lr_config = dict(
-    policy='step',
-    warmup='linear',
-    warmup_iters=500,
-    warmup_ratio=0.001,
-    step=[16, 22])
-runner = dict(type='EpochBasedRunner', max_epochs=24)
+    policy='cyclic',
+    target_ratio=(5, 1e-4),
+    cyclic_times=1,
+    step_ratio_up=0.4,
+)
+
+optimizer = dict(type='AdamW', lr=2e-4, weight_decay=0.01)
+evaluation = dict(interval=20, pipeline=eval_pipeline)
 
 img_norm_cfg = dict(
     mean=[[0.485, 0.456, 0.406]], std=[0.229, 0.224, 0.225], to_rgb=False)
