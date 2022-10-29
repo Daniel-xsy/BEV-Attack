@@ -16,3 +16,6 @@ test
 # symlink
 nuscenes
 nuscenes_mini
+
+# visual results
+visual

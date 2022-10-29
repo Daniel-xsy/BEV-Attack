@@ -13,8 +13,8 @@ class_names = [
 ]
 
 data_config={
-    'cams': ['CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT',
-             'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT'],
+    'cams': ['CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT', 
+             'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'],
     'Ncams': 6,
     'input_size': (256, 704),
     'src_size': (900, 1600),
@@ -275,7 +275,7 @@ attack = dict(
     type='PatchAttack',
     step_size=[5/255/0.229, 5/255/0.224, 5/255/0.225],
     dynamic_patch_size=True,
-    scale=[0.2, 0.3, 0.4], # 0.1
+    scale=[0.1, 0.2, 0.3, 0.4],
     num_steps=50,
     totensor=True,
     img_norm=img_norm_cfg,

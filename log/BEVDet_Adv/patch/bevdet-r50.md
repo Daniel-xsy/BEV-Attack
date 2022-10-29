@@ -22,8 +22,8 @@ train_pipeline = [
         is_train=True,
         data_config=dict(
             cams=[
-                'CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT',
-                'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT'
+                'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT', 'CAM_BACK',
+                'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'
             ],
             Ncams=6,
             input_size=(256, 704),
@@ -83,8 +83,8 @@ test_pipeline = [
         type='LoadMultiViewImageFromFiles_BEVDet',
         data_config=dict(
             cams=[
-                'CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT',
-                'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT'
+                'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT', 'CAM_BACK',
+                'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'
             ],
             Ncams=6,
             input_size=(256, 704),
@@ -125,8 +125,8 @@ eval_pipeline = [
         type='LoadMultiViewImageFromFiles_BEVDet',
         data_config=dict(
             cams=[
-                'CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT',
-                'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT'
+                'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT', 'CAM_BACK',
+                'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'
             ],
             Ncams=6,
             input_size=(256, 704),
@@ -220,8 +220,8 @@ data = dict(
                     is_train=True,
                     data_config=dict(
                         cams=[
-                            'CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT',
-                            'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT'
+                            'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT',
+                            'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'
                         ],
                         Ncams=6,
                         input_size=(256, 704),
@@ -307,8 +307,8 @@ data = dict(
                 type='LoadMultiViewImageFromFiles_BEVDet',
                 data_config=dict(
                     cams=[
-                        'CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT',
-                        'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT'
+                        'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT',
+                        'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'
                     ],
                     Ncams=6,
                     input_size=(256, 704),
@@ -370,8 +370,8 @@ data = dict(
                 type='LoadMultiViewImageFromFiles_BEVDet',
                 data_config=dict(
                     cams=[
-                        'CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT',
-                        'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT'
+                        'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT',
+                        'CAM_BACK', 'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'
                     ],
                     Ncams=6,
                     input_size=(256, 704),
@@ -460,8 +460,8 @@ resume_from = None
 workflow = [('train', 1)]
 data_config = dict(
     cams=[
-        'CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_BACK_LEFT',
-        'CAM_BACK', 'CAM_BACK_RIGHT'
+        'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT', 'CAM_BACK',
+        'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'
     ],
     Ncams=6,
     input_size=(256, 704),
@@ -507,8 +507,8 @@ model = dict(
             dbound=[1.0, 60.0, 1.0]),
         data_config=dict(
             cams=[
-                'CAM_FRONT_LEFT', 'CAM_FRONT', 'CAM_FRONT_RIGHT',
-                'CAM_BACK_LEFT', 'CAM_BACK', 'CAM_BACK_RIGHT'
+                'CAM_FRONT', 'CAM_FRONT_RIGHT', 'CAM_FRONT_LEFT', 'CAM_BACK',
+                'CAM_BACK_LEFT', 'CAM_BACK_RIGHT'
             ],
             Ncams=6,
             input_size=(256, 704),
@@ -634,7 +634,7 @@ Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.2599    | 0.1728    | 0.7854     | 0.4724     | 0.8368     | 0.8087     | 0.3618     |
+| 0.2308    | 0.1285    | 0.7985     | 0.4743     | 0.9225     | 0.7800     | 0.3591     |
 
 ### scale 0.2
 
@@ -642,7 +642,7 @@ Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.2023    | 0.0773    | 0.8523     | 0.4812     | 0.8701     | 0.8078     | 0.3523     |
+| 0.1422    | 0.0296    | 0.8387     | 0.5526     | 0.8184     | 1.0487     | 0.5164     |
 
 ### scale 0.3
 
@@ -650,7 +650,7 @@ Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.1567    | 0.0433    | 0.8761     | 0.5513     | 0.9460     | 0.8276     | 0.4481     |
+| 0.0580    | 0.0005    | 0.9799     | 0.7795     | 0.8707     | 1.0725     | 0.7920     |
 
 ### scale 0.4
 
@@ -658,5 +658,5 @@ Evaluating Results
 
 | **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |
 | ------- | ------- | -------- | -------- | -------- | -------- | -------- |
-| 0.1427    | 0.0179    | 0.8663     | 0.5498     | 0.9153     | 0.8773     | 0.4535     |
+| 0.0096    | 0.0000    | 0.9502     | 0.9541     | 1.0000     | 1.0000     | 1.0000     |
 

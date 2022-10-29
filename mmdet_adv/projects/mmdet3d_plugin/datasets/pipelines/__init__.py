@@ -2,10 +2,12 @@ from .transform_3d import (
     PadMultiViewImage, NormalizeMultiviewImage, 
     PhotoMetricDistortionMultiViewImage, CropMultiViewImage,
     RandomScaleImageMultiViewImage,
-    HorizontalRandomFlipMultiViewImage)
+    HorizontalRandomFlipMultiViewImage,
+    ResizeCropFlipImage)
 
 __all__ = [
     'PadMultiViewImage', 'NormalizeMultiviewImage', 
     'PhotoMetricDistortionMultiViewImage', 'CropMultiViewImage',
-    'RandomScaleImageMultiViewImage', 'HorizontalRandomFlipMultiViewImage'
+    'RandomScaleImageMultiViewImage', 'HorizontalRandomFlipMultiViewImage',
+    'ResizeCropFlipImage'
 ]

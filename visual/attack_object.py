@@ -1,24 +1,151 @@
+from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 
 nan = np.infty
-
-results = [
-# {'patch_size': 15, 'step_size': 5, 'max_steps': 50, 'pts_bbox_NuScenes/car_AP_dist_0.5': 0.1527, 'pts_bbox_NuScenes/car_AP_dist_1.0': 0.4052, 'pts_bbox_NuScenes/car_AP_dist_2.0': 0.6308, 'pts_bbox_NuScenes/car_AP_dist_4.0': 0.736, 'pts_bbox_NuScenes/car_trans_err': 0.5529, 'pts_bbox_NuScenes/car_scale_err': 0.1635, 'pts_bbox_NuScenes/car_orient_err': 0.202, 'pts_bbox_NuScenes/car_vel_err': 0.2125, 'pts_bbox_NuScenes/car_attr_err': 0.0783, 'pts_bbox_NuScenes/mATE': 0.7736, 'pts_bbox_NuScenes/mASE': 0.4642, 'pts_bbox_NuScenes/mAOE': 0.6622, 'pts_bbox_NuScenes/mAVE': 0.7642, 'pts_bbox_NuScenes/mAAE': 0.3103, 'pts_bbox_NuScenes/truck_AP_dist_0.5': 0.0576, 'pts_bbox_NuScenes/truck_AP_dist_1.0': 0.1629, 'pts_bbox_NuScenes/truck_AP_dist_2.0': 0.3718, 'pts_bbox_NuScenes/truck_AP_dist_4.0': 0.4387, 'pts_bbox_NuScenes/truck_trans_err': 0.6713, 'pts_bbox_NuScenes/truck_scale_err': 0.1852, 'pts_bbox_NuScenes/truck_orient_err': 0.0971, 'pts_bbox_NuScenes/truck_vel_err': 0.0928, 'pts_bbox_NuScenes/truck_attr_err': 0.0053, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_trans_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_scale_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_orient_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_vel_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_attr_err': 1.0, 'pts_bbox_NuScenes/bus_AP_dist_0.5': 0.0039, 'pts_bbox_NuScenes/bus_AP_dist_1.0': 0.157, 'pts_bbox_NuScenes/bus_AP_dist_2.0': 0.6705, 'pts_bbox_NuScenes/bus_AP_dist_4.0': 0.7561, 'pts_bbox_NuScenes/bus_trans_err': 0.9653, 'pts_bbox_NuScenes/bus_scale_err': 0.1222, 'pts_bbox_NuScenes/bus_orient_err': 0.2624, 'pts_bbox_NuScenes/bus_vel_err': 1.9992, 'pts_bbox_NuScenes/bus_attr_err': 0.0605, 'pts_bbox_NuScenes/trailer_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/trailer_trans_err': 1.0, 'pts_bbox_NuScenes/trailer_scale_err': 1.0, 'pts_bbox_NuScenes/trailer_orient_err': 1.0, 'pts_bbox_NuScenes/trailer_vel_err': 1.0, 'pts_bbox_NuScenes/trailer_attr_err': 1.0, 'pts_bbox_NuScenes/barrier_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/barrier_trans_err': 1.0, 'pts_bbox_NuScenes/barrier_scale_err': 1.0, 'pts_bbox_NuScenes/barrier_orient_err': 1.0, 'pts_bbox_NuScenes/barrier_vel_err': nan, 'pts_bbox_NuScenes/barrier_attr_err': nan, 'pts_bbox_NuScenes/motorcycle_AP_dist_0.5': 0.0053, 'pts_bbox_NuScenes/motorcycle_AP_dist_1.0': 0.0539, 'pts_bbox_NuScenes/motorcycle_AP_dist_2.0': 0.1109, 'pts_bbox_NuScenes/motorcycle_AP_dist_4.0': 0.141, 'pts_bbox_NuScenes/motorcycle_trans_err': 0.6985, 'pts_bbox_NuScenes/motorcycle_scale_err': 0.2992, 'pts_bbox_NuScenes/motorcycle_orient_err': 0.9375, 'pts_bbox_NuScenes/motorcycle_vel_err': 0.092, 'pts_bbox_NuScenes/motorcycle_attr_err': 0.0441, 'pts_bbox_NuScenes/bicycle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/bicycle_AP_dist_1.0': 0.0113, 'pts_bbox_NuScenes/bicycle_AP_dist_2.0': 0.0374, 'pts_bbox_NuScenes/bicycle_AP_dist_4.0': 0.0374, 'pts_bbox_NuScenes/bicycle_trans_err': 0.771, 'pts_bbox_NuScenes/bicycle_scale_err': 0.2586, 'pts_bbox_NuScenes/bicycle_orient_err': 0.9353, 'pts_bbox_NuScenes/bicycle_vel_err': 1.2877, 'pts_bbox_NuScenes/bicycle_attr_err': 0.0589, 'pts_bbox_NuScenes/pedestrian_AP_dist_0.5': 0.0551, 'pts_bbox_NuScenes/pedestrian_AP_dist_1.0': 0.2255, 'pts_bbox_NuScenes/pedestrian_AP_dist_2.0': 0.3909, 'pts_bbox_NuScenes/pedestrian_AP_dist_4.0': 0.4631, 'pts_bbox_NuScenes/pedestrian_trans_err': 0.6781, 'pts_bbox_NuScenes/pedestrian_scale_err': 0.2573, 'pts_bbox_NuScenes/pedestrian_orient_err': 0.5255, 'pts_bbox_NuScenes/pedestrian_vel_err': 0.4297, 'pts_bbox_NuScenes/pedestrian_attr_err': 0.2353, 'pts_bbox_NuScenes/traffic_cone_AP_dist_0.5': 0.2738, 'pts_bbox_NuScenes/traffic_cone_AP_dist_1.0': 0.407, 'pts_bbox_NuScenes/traffic_cone_AP_dist_2.0': 0.4844, 'pts_bbox_NuScenes/traffic_cone_AP_dist_4.0': 0.51, 'pts_bbox_NuScenes/traffic_cone_trans_err': 0.3986, 'pts_bbox_NuScenes/traffic_cone_scale_err': 0.3559, 'pts_bbox_NuScenes/traffic_cone_orient_err': nan, 'pts_bbox_NuScenes/traffic_cone_vel_err': nan, 'pts_bbox_NuScenes/traffic_cone_attr_err': nan, 'pts_bbox_NuScenes/NDS': 0.29942647233772923, 'pts_bbox_NuScenes/mAP': 0.1937512399635759},
-# {'patch_size': 25, 'step_size': 5, 'max_steps': 50, 'pts_bbox_NuScenes/car_AP_dist_0.5': 0.1277, 'pts_bbox_NuScenes/car_AP_dist_1.0': 0.3181, 'pts_bbox_NuScenes/car_AP_dist_2.0': 0.4925, 'pts_bbox_NuScenes/car_AP_dist_4.0': 0.5904, 'pts_bbox_NuScenes/car_trans_err': 0.5439, 'pts_bbox_NuScenes/car_scale_err': 0.1665, 'pts_bbox_NuScenes/car_orient_err': 0.2338, 'pts_bbox_NuScenes/car_vel_err': 0.1976, 'pts_bbox_NuScenes/car_attr_err': 0.0838, 'pts_bbox_NuScenes/mATE': 0.7717, 'pts_bbox_NuScenes/mASE': 0.465, 'pts_bbox_NuScenes/mAOE': 0.678, 'pts_bbox_NuScenes/mAVE': 0.7995, 'pts_bbox_NuScenes/mAAE': 0.3288, 'pts_bbox_NuScenes/truck_AP_dist_0.5': 0.0246, 'pts_bbox_NuScenes/truck_AP_dist_1.0': 0.0629, 'pts_bbox_NuScenes/truck_AP_dist_2.0': 0.1913, 'pts_bbox_NuScenes/truck_AP_dist_4.0': 0.2296, 'pts_bbox_NuScenes/truck_trans_err': 0.6462, 'pts_bbox_NuScenes/truck_scale_err': 0.1906, 'pts_bbox_NuScenes/truck_orient_err': 0.1426, 'pts_bbox_NuScenes/truck_vel_err': 0.0863, 'pts_bbox_NuScenes/truck_attr_err': 0.0042, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_trans_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_scale_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_orient_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_vel_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_attr_err': 1.0, 'pts_bbox_NuScenes/bus_AP_dist_0.5': 0.0309, 'pts_bbox_NuScenes/bus_AP_dist_1.0': 0.1996, 'pts_bbox_NuScenes/bus_AP_dist_2.0': 0.6928, 'pts_bbox_NuScenes/bus_AP_dist_4.0': 0.7527, 'pts_bbox_NuScenes/bus_trans_err': 0.9348, 'pts_bbox_NuScenes/bus_scale_err': 0.1231, 'pts_bbox_NuScenes/bus_orient_err': 0.3087, 'pts_bbox_NuScenes/bus_vel_err': 2.2435, 'pts_bbox_NuScenes/bus_attr_err': 0.1627, 'pts_bbox_NuScenes/trailer_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/trailer_trans_err': 1.0, 'pts_bbox_NuScenes/trailer_scale_err': 1.0, 'pts_bbox_NuScenes/trailer_orient_err': 1.0, 'pts_bbox_NuScenes/trailer_vel_err': 1.0, 'pts_bbox_NuScenes/trailer_attr_err': 1.0, 'pts_bbox_NuScenes/barrier_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/barrier_trans_err': 1.0, 'pts_bbox_NuScenes/barrier_scale_err': 1.0, 'pts_bbox_NuScenes/barrier_orient_err': 1.0, 'pts_bbox_NuScenes/barrier_vel_err': nan, 'pts_bbox_NuScenes/barrier_attr_err': nan, 'pts_bbox_NuScenes/motorcycle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_1.0': 0.0026, 'pts_bbox_NuScenes/motorcycle_AP_dist_2.0': 0.0252, 'pts_bbox_NuScenes/motorcycle_AP_dist_4.0': 0.0303, 'pts_bbox_NuScenes/motorcycle_trans_err': 0.8089, 'pts_bbox_NuScenes/motorcycle_scale_err': 0.316, 'pts_bbox_NuScenes/motorcycle_orient_err': 1.1098, 'pts_bbox_NuScenes/motorcycle_vel_err': 0.1287, 'pts_bbox_NuScenes/motorcycle_attr_err': 0.0385, 'pts_bbox_NuScenes/bicycle_AP_dist_0.5': 0.0021, 'pts_bbox_NuScenes/bicycle_AP_dist_1.0': 0.0022, 'pts_bbox_NuScenes/bicycle_AP_dist_2.0': 0.0169, 'pts_bbox_NuScenes/bicycle_AP_dist_4.0': 0.0169, 'pts_bbox_NuScenes/bicycle_trans_err': 0.6757, 'pts_bbox_NuScenes/bicycle_scale_err': 0.2503, 'pts_bbox_NuScenes/bicycle_orient_err': 0.8094, 'pts_bbox_NuScenes/bicycle_vel_err': 1.2457, 'pts_bbox_NuScenes/bicycle_attr_err': 0.058, 'pts_bbox_NuScenes/pedestrian_AP_dist_0.5': 0.0233, 'pts_bbox_NuScenes/pedestrian_AP_dist_1.0': 0.1336, 'pts_bbox_NuScenes/pedestrian_AP_dist_2.0': 0.2496, 'pts_bbox_NuScenes/pedestrian_AP_dist_4.0': 0.3049, 'pts_bbox_NuScenes/pedestrian_trans_err': 0.6945, 'pts_bbox_NuScenes/pedestrian_scale_err': 0.2653, 'pts_bbox_NuScenes/pedestrian_orient_err': 0.4974, 'pts_bbox_NuScenes/pedestrian_vel_err': 0.4939, 'pts_bbox_NuScenes/pedestrian_attr_err': 0.2833, 'pts_bbox_NuScenes/traffic_cone_AP_dist_0.5': 0.145, 'pts_bbox_NuScenes/traffic_cone_AP_dist_1.0': 0.1992, 'pts_bbox_NuScenes/traffic_cone_AP_dist_2.0': 0.2731, 'pts_bbox_NuScenes/traffic_cone_AP_dist_4.0': 0.2845, 'pts_bbox_NuScenes/traffic_cone_trans_err': 0.4132, 'pts_bbox_NuScenes/traffic_cone_scale_err': 0.338, 'pts_bbox_NuScenes/traffic_cone_orient_err': nan, 'pts_bbox_NuScenes/traffic_cone_vel_err': nan, 'pts_bbox_NuScenes/traffic_cone_attr_err': nan, 'pts_bbox_NuScenes/NDS': 0.2634933997763062, 'pts_bbox_NuScenes/mAP': 0.13556957062335306},
-# {'patch_size': 5, 'step_size': 5, 'max_steps': 50, 'pts_bbox_NuScenes/car_AP_dist_0.5': 0.1978, 'pts_bbox_NuScenes/car_AP_dist_1.0': 0.4971, 'pts_bbox_NuScenes/car_AP_dist_2.0': 0.7613, 'pts_bbox_NuScenes/car_AP_dist_4.0': 0.8571, 'pts_bbox_NuScenes/car_trans_err': 0.532, 'pts_bbox_NuScenes/car_scale_err': 0.162, 'pts_bbox_NuScenes/car_orient_err': 0.1451, 'pts_bbox_NuScenes/car_vel_err': 0.238, 'pts_bbox_NuScenes/car_attr_err': 0.0773, 'pts_bbox_NuScenes/mATE': 0.7935, 'pts_bbox_NuScenes/mASE': 0.4607, 'pts_bbox_NuScenes/mAOE': 0.6712, 'pts_bbox_NuScenes/mAVE': 0.8043, 'pts_bbox_NuScenes/mAAE': 0.3114, 'pts_bbox_NuScenes/truck_AP_dist_0.5': 0.143, 'pts_bbox_NuScenes/truck_AP_dist_1.0': 0.2383, 'pts_bbox_NuScenes/truck_AP_dist_2.0': 0.5999, 'pts_bbox_NuScenes/truck_AP_dist_4.0': 0.6774, 'pts_bbox_NuScenes/truck_trans_err': 0.7026, 'pts_bbox_NuScenes/truck_scale_err': 0.1931, 'pts_bbox_NuScenes/truck_orient_err': 0.095, 'pts_bbox_NuScenes/truck_vel_err': 0.1148, 'pts_bbox_NuScenes/truck_attr_err': 0.0086, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_trans_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_scale_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_orient_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_vel_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_attr_err': 1.0, 'pts_bbox_NuScenes/bus_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/bus_AP_dist_1.0': 0.1392, 'pts_bbox_NuScenes/bus_AP_dist_2.0': 0.7266, 'pts_bbox_NuScenes/bus_AP_dist_4.0': 0.8233, 'pts_bbox_NuScenes/bus_trans_err': 0.9727, 'pts_bbox_NuScenes/bus_scale_err': 0.1222, 'pts_bbox_NuScenes/bus_orient_err': 0.3119, 'pts_bbox_NuScenes/bus_vel_err': 2.0169, 'pts_bbox_NuScenes/bus_attr_err': 0.124, 'pts_bbox_NuScenes/trailer_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/trailer_trans_err': 1.0, 'pts_bbox_NuScenes/trailer_scale_err': 1.0, 'pts_bbox_NuScenes/trailer_orient_err': 1.0, 'pts_bbox_NuScenes/trailer_vel_err': 1.0, 'pts_bbox_NuScenes/trailer_attr_err': 1.0, 'pts_bbox_NuScenes/barrier_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/barrier_trans_err': 1.0, 'pts_bbox_NuScenes/barrier_scale_err': 1.0, 'pts_bbox_NuScenes/barrier_orient_err': 1.0, 'pts_bbox_NuScenes/barrier_vel_err': nan, 'pts_bbox_NuScenes/barrier_attr_err': nan, 'pts_bbox_NuScenes/motorcycle_AP_dist_0.5': 0.0307, 'pts_bbox_NuScenes/motorcycle_AP_dist_1.0': 0.1626, 'pts_bbox_NuScenes/motorcycle_AP_dist_2.0': 0.3664, 'pts_bbox_NuScenes/motorcycle_AP_dist_4.0': 0.4583, 'pts_bbox_NuScenes/motorcycle_trans_err': 0.7371, 'pts_bbox_NuScenes/motorcycle_scale_err': 0.2842, 'pts_bbox_NuScenes/motorcycle_orient_err': 0.9727, 'pts_bbox_NuScenes/motorcycle_vel_err': 0.0838, 'pts_bbox_NuScenes/motorcycle_attr_err': 0.0122, 'pts_bbox_NuScenes/bicycle_AP_dist_0.5': 0.005, 'pts_bbox_NuScenes/bicycle_AP_dist_1.0': 0.0285, 'pts_bbox_NuScenes/bicycle_AP_dist_2.0': 0.1028, 'pts_bbox_NuScenes/bicycle_AP_dist_4.0': 0.1048, 'pts_bbox_NuScenes/bicycle_trans_err': 0.7907, 'pts_bbox_NuScenes/bicycle_scale_err': 0.2436, 'pts_bbox_NuScenes/bicycle_orient_err': 1.0252, 'pts_bbox_NuScenes/bicycle_vel_err': 1.5864, 'pts_bbox_NuScenes/bicycle_attr_err': 0.0691, 'pts_bbox_NuScenes/pedestrian_AP_dist_0.5': 0.0594, 'pts_bbox_NuScenes/pedestrian_AP_dist_1.0': 0.2898, 'pts_bbox_NuScenes/pedestrian_AP_dist_2.0': 0.551, 'pts_bbox_NuScenes/pedestrian_AP_dist_4.0': 0.6723, 'pts_bbox_NuScenes/pedestrian_trans_err': 0.7315, 'pts_bbox_NuScenes/pedestrian_scale_err': 0.2493, 'pts_bbox_NuScenes/pedestrian_orient_err': 0.4909, 'pts_bbox_NuScenes/pedestrian_vel_err': 0.3942, 'pts_bbox_NuScenes/pedestrian_attr_err': 0.1997, 'pts_bbox_NuScenes/traffic_cone_AP_dist_0.5': 0.2762, 'pts_bbox_NuScenes/traffic_cone_AP_dist_1.0': 0.4587, 'pts_bbox_NuScenes/traffic_cone_AP_dist_2.0': 0.5985, 'pts_bbox_NuScenes/traffic_cone_AP_dist_4.0': 0.6582, 'pts_bbox_NuScenes/traffic_cone_trans_err': 0.4688, 'pts_bbox_NuScenes/traffic_cone_scale_err': 0.353, 'pts_bbox_NuScenes/traffic_cone_orient_err': nan, 'pts_bbox_NuScenes/traffic_cone_vel_err': nan, 'pts_bbox_NuScenes/traffic_cone_attr_err': nan, 'pts_bbox_NuScenes/NDS': 0.3269416677328915, 'pts_bbox_NuScenes/mAP': 0.26209579358518054},
-# {'patch_size': 35, 'step_size': 5, 'max_steps': 50, 'pts_bbox_NuScenes/car_AP_dist_0.5': 0.0996, 'pts_bbox_NuScenes/car_AP_dist_1.0': 0.2299, 'pts_bbox_NuScenes/car_AP_dist_2.0': 0.3806, 'pts_bbox_NuScenes/car_AP_dist_4.0': 0.4598, 'pts_bbox_NuScenes/car_trans_err': 0.5365, 'pts_bbox_NuScenes/car_scale_err': 0.1651, 'pts_bbox_NuScenes/car_orient_err': 0.2566, 'pts_bbox_NuScenes/car_vel_err': 0.2085, 'pts_bbox_NuScenes/car_attr_err': 0.0901, 'pts_bbox_NuScenes/mATE': 0.752, 'pts_bbox_NuScenes/mASE': 0.4736, 'pts_bbox_NuScenes/mAOE': 0.6877, 'pts_bbox_NuScenes/mAVE': 0.7976, 'pts_bbox_NuScenes/mAAE': 0.3405, 'pts_bbox_NuScenes/truck_AP_dist_0.5': 0.0123, 'pts_bbox_NuScenes/truck_AP_dist_1.0': 0.0443, 'pts_bbox_NuScenes/truck_AP_dist_2.0': 0.1016, 'pts_bbox_NuScenes/truck_AP_dist_4.0': 0.128, 'pts_bbox_NuScenes/truck_trans_err': 0.536, 'pts_bbox_NuScenes/truck_scale_err': 0.1956, 'pts_bbox_NuScenes/truck_orient_err': 0.1837, 'pts_bbox_NuScenes/truck_vel_err': 0.0901, 'pts_bbox_NuScenes/truck_attr_err': 0.0411, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_trans_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_scale_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_orient_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_vel_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_attr_err': 1.0, 'pts_bbox_NuScenes/bus_AP_dist_0.5': 0.0587, 'pts_bbox_NuScenes/bus_AP_dist_1.0': 0.2671, 'pts_bbox_NuScenes/bus_AP_dist_2.0': 0.6477, 'pts_bbox_NuScenes/bus_AP_dist_4.0': 0.7394, 'pts_bbox_NuScenes/bus_trans_err': 0.7875, 'pts_bbox_NuScenes/bus_scale_err': 0.1314, 'pts_bbox_NuScenes/bus_orient_err': 0.2654, 'pts_bbox_NuScenes/bus_vel_err': 2.3426, 'pts_bbox_NuScenes/bus_attr_err': 0.183, 'pts_bbox_NuScenes/trailer_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/trailer_trans_err': 1.0, 'pts_bbox_NuScenes/trailer_scale_err': 1.0, 'pts_bbox_NuScenes/trailer_orient_err': 1.0, 'pts_bbox_NuScenes/trailer_vel_err': 1.0, 'pts_bbox_NuScenes/trailer_attr_err': 1.0, 'pts_bbox_NuScenes/barrier_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/barrier_trans_err': 1.0, 'pts_bbox_NuScenes/barrier_scale_err': 1.0, 'pts_bbox_NuScenes/barrier_orient_err': 1.0, 'pts_bbox_NuScenes/barrier_vel_err': nan, 'pts_bbox_NuScenes/barrier_attr_err': nan, 'pts_bbox_NuScenes/motorcycle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_2.0': 0.001, 'pts_bbox_NuScenes/motorcycle_AP_dist_4.0': 0.0041, 'pts_bbox_NuScenes/motorcycle_trans_err': 0.8414, 'pts_bbox_NuScenes/motorcycle_scale_err': 0.3251, 'pts_bbox_NuScenes/motorcycle_orient_err': 1.12, 'pts_bbox_NuScenes/motorcycle_vel_err': 0.0781, 'pts_bbox_NuScenes/motorcycle_attr_err': 0.0, 'pts_bbox_NuScenes/bicycle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/bicycle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/bicycle_AP_dist_2.0': 0.0009, 'pts_bbox_NuScenes/bicycle_AP_dist_4.0': 0.0009, 'pts_bbox_NuScenes/bicycle_trans_err': 0.7513, 'pts_bbox_NuScenes/bicycle_scale_err': 0.2855, 'pts_bbox_NuScenes/bicycle_orient_err': 0.8407, 'pts_bbox_NuScenes/bicycle_vel_err': 1.1224, 'pts_bbox_NuScenes/bicycle_attr_err': 0.0956, 'pts_bbox_NuScenes/pedestrian_AP_dist_0.5': 0.0182, 'pts_bbox_NuScenes/pedestrian_AP_dist_1.0': 0.091, 'pts_bbox_NuScenes/pedestrian_AP_dist_2.0': 0.175, 'pts_bbox_NuScenes/pedestrian_AP_dist_4.0': 0.2196, 'pts_bbox_NuScenes/pedestrian_trans_err': 0.6461, 'pts_bbox_NuScenes/pedestrian_scale_err': 0.2756, 'pts_bbox_NuScenes/pedestrian_orient_err': 0.5232, 'pts_bbox_NuScenes/pedestrian_vel_err': 0.5389, 'pts_bbox_NuScenes/pedestrian_attr_err': 0.3143, 'pts_bbox_NuScenes/traffic_cone_AP_dist_0.5': 0.1068, 'pts_bbox_NuScenes/traffic_cone_AP_dist_1.0': 0.1591, 'pts_bbox_NuScenes/traffic_cone_AP_dist_2.0': 0.2042, 'pts_bbox_NuScenes/traffic_cone_AP_dist_4.0': 0.2191, 'pts_bbox_NuScenes/traffic_cone_trans_err': 0.4209, 'pts_bbox_NuScenes/traffic_cone_scale_err': 0.3576, 'pts_bbox_NuScenes/traffic_cone_orient_err': nan, 'pts_bbox_NuScenes/traffic_cone_vel_err': nan, 'pts_bbox_NuScenes/traffic_cone_attr_err': nan, 'pts_bbox_NuScenes/NDS': 0.24947282053908873, 'pts_bbox_NuScenes/mAP': 0.1092243631971396},
-{'patch_scale': 0, 'patch_size': 0, 'step_size': 5, 'max_steps': 50, 'pts_bbox_NuScenes/car_AP_dist_0.5': 0.2024, 'pts_bbox_NuScenes/car_AP_dist_1.0': 0.5217, 'pts_bbox_NuScenes/car_AP_dist_2.0': 0.7948, 'pts_bbox_NuScenes/car_AP_dist_4.0': 0.8998, 'pts_bbox_NuScenes/car_trans_err': 0.519, 'pts_bbox_NuScenes/car_scale_err': 0.1614, 'pts_bbox_NuScenes/car_orient_err': 0.1439, 'pts_bbox_NuScenes/car_vel_err': 0.2223, 'pts_bbox_NuScenes/car_attr_err': 0.0758, 'pts_bbox_NuScenes/mATE': 0.7872, 'pts_bbox_NuScenes/mASE': 0.4553, 'pts_bbox_NuScenes/mAOE': 0.6688, 'pts_bbox_NuScenes/mAVE': 0.8114, 'pts_bbox_NuScenes/mAAE': 0.3072, 'pts_bbox_NuScenes/truck_AP_dist_0.5': 0.1397, 'pts_bbox_NuScenes/truck_AP_dist_1.0': 0.2995, 'pts_bbox_NuScenes/truck_AP_dist_2.0': 0.6035, 'pts_bbox_NuScenes/truck_AP_dist_4.0': 0.7796, 'pts_bbox_NuScenes/truck_trans_err': 0.6165, 'pts_bbox_NuScenes/truck_scale_err': 0.1814, 'pts_bbox_NuScenes/truck_orient_err': 0.0978, 'pts_bbox_NuScenes/truck_vel_err': 0.1441, 'pts_bbox_NuScenes/truck_attr_err': 0.0131, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_trans_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_scale_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_orient_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_vel_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_attr_err': 1.0, 'pts_bbox_NuScenes/bus_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/bus_AP_dist_1.0': 0.163, 'pts_bbox_NuScenes/bus_AP_dist_2.0': 0.6839, 'pts_bbox_NuScenes/bus_AP_dist_4.0': 0.8251, 'pts_bbox_NuScenes/bus_trans_err': 1.0305, 'pts_bbox_NuScenes/bus_scale_err': 0.1233, 'pts_bbox_NuScenes/bus_orient_err': 0.2902, 'pts_bbox_NuScenes/bus_vel_err': 2.063, 'pts_bbox_NuScenes/bus_attr_err': 0.124, 'pts_bbox_NuScenes/trailer_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/trailer_trans_err': 1.0, 'pts_bbox_NuScenes/trailer_scale_err': 1.0, 'pts_bbox_NuScenes/trailer_orient_err': 1.0, 'pts_bbox_NuScenes/trailer_vel_err': 1.0, 'pts_bbox_NuScenes/trailer_attr_err': 1.0, 'pts_bbox_NuScenes/barrier_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/barrier_trans_err': 1.0, 'pts_bbox_NuScenes/barrier_scale_err': 1.0, 'pts_bbox_NuScenes/barrier_orient_err': 1.0, 'pts_bbox_NuScenes/barrier_vel_err': nan, 'pts_bbox_NuScenes/barrier_attr_err': nan, 'pts_bbox_NuScenes/motorcycle_AP_dist_0.5': 0.1136, 'pts_bbox_NuScenes/motorcycle_AP_dist_1.0': 0.3703, 'pts_bbox_NuScenes/motorcycle_AP_dist_2.0': 0.5684, 'pts_bbox_NuScenes/motorcycle_AP_dist_4.0': 0.7293, 'pts_bbox_NuScenes/motorcycle_trans_err': 0.6506, 'pts_bbox_NuScenes/motorcycle_scale_err': 0.2868, 'pts_bbox_NuScenes/motorcycle_orient_err': 0.9451, 'pts_bbox_NuScenes/motorcycle_vel_err': 0.0628, 'pts_bbox_NuScenes/motorcycle_attr_err': 0.0082, 'pts_bbox_NuScenes/bicycle_AP_dist_0.5': 0.0003, 'pts_bbox_NuScenes/bicycle_AP_dist_1.0': 0.0966, 'pts_bbox_NuScenes/bicycle_AP_dist_2.0': 0.3909, 'pts_bbox_NuScenes/bicycle_AP_dist_4.0': 0.4197, 'pts_bbox_NuScenes/bicycle_trans_err': 0.8548, 'pts_bbox_NuScenes/bicycle_scale_err': 0.2028, 'pts_bbox_NuScenes/bicycle_orient_err': 1.0056, 'pts_bbox_NuScenes/bicycle_vel_err': 1.592, 'pts_bbox_NuScenes/bicycle_attr_err': 0.0332, 'pts_bbox_NuScenes/pedestrian_AP_dist_0.5': 0.0827, 'pts_bbox_NuScenes/pedestrian_AP_dist_1.0': 0.3631, 'pts_bbox_NuScenes/pedestrian_AP_dist_2.0': 0.6654, 'pts_bbox_NuScenes/pedestrian_AP_dist_4.0': 0.8378, 'pts_bbox_NuScenes/pedestrian_trans_err': 0.717, 'pts_bbox_NuScenes/pedestrian_scale_err': 0.2494, 'pts_bbox_NuScenes/pedestrian_orient_err': 0.5368, 'pts_bbox_NuScenes/pedestrian_vel_err': 0.4072, 'pts_bbox_NuScenes/pedestrian_attr_err': 0.203, 'pts_bbox_NuScenes/traffic_cone_AP_dist_0.5': 0.2977, 'pts_bbox_NuScenes/traffic_cone_AP_dist_1.0': 0.5125, 'pts_bbox_NuScenes/traffic_cone_AP_dist_2.0': 0.6606, 'pts_bbox_NuScenes/traffic_cone_AP_dist_4.0': 0.7199, 'pts_bbox_NuScenes/traffic_cone_trans_err': 0.4834, 'pts_bbox_NuScenes/traffic_cone_scale_err': 0.3474, 'pts_bbox_NuScenes/traffic_cone_orient_err': nan, 'pts_bbox_NuScenes/traffic_cone_vel_err': nan, 'pts_bbox_NuScenes/traffic_cone_attr_err': nan, 'pts_bbox_NuScenes/NDS': 0.35628657214512105, 'pts_bbox_NuScenes/mAP': 0.31854038050372957},
-{'patch_scale': 0.1, 'step_size': 5, 'max_steps': 50, 'pts_bbox_NuScenes/car_AP_dist_0.5': 0.2339, 'pts_bbox_NuScenes/car_AP_dist_1.0': 0.4576, 'pts_bbox_NuScenes/car_AP_dist_2.0': 0.6835, 'pts_bbox_NuScenes/car_AP_dist_4.0': 0.7685, 'pts_bbox_NuScenes/car_trans_err': 0.4828, 'pts_bbox_NuScenes/car_scale_err': 0.1554, 'pts_bbox_NuScenes/car_orient_err': 0.1534, 'pts_bbox_NuScenes/car_vel_err': 0.525, 'pts_bbox_NuScenes/car_attr_err': 0.2663, 'pts_bbox_NuScenes/mATE': 0.7133, 'pts_bbox_NuScenes/mASE': 0.4847, 'pts_bbox_NuScenes/mAOE': 0.6357, 'pts_bbox_NuScenes/mAVE': 1.0749, 'pts_bbox_NuScenes/mAAE': 0.4249, 'pts_bbox_NuScenes/truck_AP_dist_0.5': 0.0238, 'pts_bbox_NuScenes/truck_AP_dist_1.0': 0.0801, 'pts_bbox_NuScenes/truck_AP_dist_2.0': 0.2056, 'pts_bbox_NuScenes/truck_AP_dist_4.0': 0.2301, 'pts_bbox_NuScenes/truck_trans_err': 0.6271, 'pts_bbox_NuScenes/truck_scale_err': 0.2037, 'pts_bbox_NuScenes/truck_orient_err': 0.1205, 'pts_bbox_NuScenes/truck_vel_err': 1.4763, 'pts_bbox_NuScenes/truck_attr_err': 0.4798, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_trans_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_scale_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_orient_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_vel_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_attr_err': 1.0, 'pts_bbox_NuScenes/bus_AP_dist_0.5': 0.1925, 'pts_bbox_NuScenes/bus_AP_dist_1.0': 0.4186, 'pts_bbox_NuScenes/bus_AP_dist_2.0': 0.6154, 'pts_bbox_NuScenes/bus_AP_dist_4.0': 0.6947, 'pts_bbox_NuScenes/bus_trans_err': 0.5078, 'pts_bbox_NuScenes/bus_scale_err': 0.1925, 'pts_bbox_NuScenes/bus_orient_err': 0.1527, 'pts_bbox_NuScenes/bus_vel_err': 2.3875, 'pts_bbox_NuScenes/bus_attr_err': 0.0698, 'pts_bbox_NuScenes/trailer_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/trailer_trans_err': 1.0, 'pts_bbox_NuScenes/trailer_scale_err': 1.0, 'pts_bbox_NuScenes/trailer_orient_err': 1.0, 'pts_bbox_NuScenes/trailer_vel_err': 1.0, 'pts_bbox_NuScenes/trailer_attr_err': 1.0, 'pts_bbox_NuScenes/barrier_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/barrier_trans_err': 1.0, 'pts_bbox_NuScenes/barrier_scale_err': 1.0, 'pts_bbox_NuScenes/barrier_orient_err': 1.0, 'pts_bbox_NuScenes/barrier_vel_err': nan, 'pts_bbox_NuScenes/barrier_attr_err': nan, 'pts_bbox_NuScenes/motorcycle_AP_dist_0.5': 0.001, 'pts_bbox_NuScenes/motorcycle_AP_dist_1.0': 0.0354, 'pts_bbox_NuScenes/motorcycle_AP_dist_2.0': 0.1207, 'pts_bbox_NuScenes/motorcycle_AP_dist_4.0': 0.1624, 'pts_bbox_NuScenes/motorcycle_trans_err': 0.7656, 'pts_bbox_NuScenes/motorcycle_scale_err': 0.364, 'pts_bbox_NuScenes/motorcycle_orient_err': 1.0411, 'pts_bbox_NuScenes/motorcycle_vel_err': 1.0377, 'pts_bbox_NuScenes/motorcycle_attr_err': 0.4146, 'pts_bbox_NuScenes/bicycle_AP_dist_0.5': 0.0001, 'pts_bbox_NuScenes/bicycle_AP_dist_1.0': 0.0228, 'pts_bbox_NuScenes/bicycle_AP_dist_2.0': 0.0247, 'pts_bbox_NuScenes/bicycle_AP_dist_4.0': 0.0247, 'pts_bbox_NuScenes/bicycle_trans_err': 0.7101, 'pts_bbox_NuScenes/bicycle_scale_err': 0.2825, 'pts_bbox_NuScenes/bicycle_orient_err': 0.8617, 'pts_bbox_NuScenes/bicycle_vel_err': 0.7454, 'pts_bbox_NuScenes/bicycle_attr_err': 0.0507, 'pts_bbox_NuScenes/pedestrian_AP_dist_0.5': 0.0468, 'pts_bbox_NuScenes/pedestrian_AP_dist_1.0': 0.285, 'pts_bbox_NuScenes/pedestrian_AP_dist_2.0': 0.4518, 'pts_bbox_NuScenes/pedestrian_AP_dist_4.0': 0.5769, 'pts_bbox_NuScenes/pedestrian_trans_err': 0.6794, 'pts_bbox_NuScenes/pedestrian_scale_err': 0.2784, 'pts_bbox_NuScenes/pedestrian_orient_err': 0.392, 'pts_bbox_NuScenes/pedestrian_vel_err': 0.4274, 'pts_bbox_NuScenes/pedestrian_attr_err': 0.118, 'pts_bbox_NuScenes/traffic_cone_AP_dist_0.5': 0.3587, 'pts_bbox_NuScenes/traffic_cone_AP_dist_1.0': 0.5157, 'pts_bbox_NuScenes/traffic_cone_AP_dist_2.0': 0.5947, 'pts_bbox_NuScenes/traffic_cone_AP_dist_4.0': 0.6031, 'pts_bbox_NuScenes/traffic_cone_trans_err': 0.3608, 'pts_bbox_NuScenes/traffic_cone_scale_err': 0.3704, 'pts_bbox_NuScenes/traffic_cone_orient_err': nan, 'pts_bbox_NuScenes/traffic_cone_vel_err': nan, 'pts_bbox_NuScenes/traffic_cone_attr_err': nan, 'pts_bbox_NuScenes/NDS': 0.2794942294408294, 'pts_bbox_NuScenes/mAP': 0.21072209271152934},
-{'patch_scale': 0.4, 'step_size': 5, 'max_steps': 50, 'pts_bbox_NuScenes/car_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/car_AP_dist_1.0': 0.0099, 'pts_bbox_NuScenes/car_AP_dist_2.0': 0.042, 'pts_bbox_NuScenes/car_AP_dist_4.0': 0.0841, 'pts_bbox_NuScenes/car_trans_err': 0.7192, 'pts_bbox_NuScenes/car_scale_err': 0.2058, 'pts_bbox_NuScenes/car_orient_err': 0.4193, 'pts_bbox_NuScenes/car_vel_err': 0.632, 'pts_bbox_NuScenes/car_attr_err': 0.1937, 'pts_bbox_NuScenes/mATE': 0.9245, 'pts_bbox_NuScenes/mASE': 0.6462, 'pts_bbox_NuScenes/mAOE': 0.886, 'pts_bbox_NuScenes/mAVE': 1.2321, 'pts_bbox_NuScenes/mAAE': 0.531, 'pts_bbox_NuScenes/truck_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/truck_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/truck_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/truck_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/truck_trans_err': 1.0035, 'pts_bbox_NuScenes/truck_scale_err': 0.3874, 'pts_bbox_NuScenes/truck_orient_err': 0.6923, 'pts_bbox_NuScenes/truck_vel_err': 0.8028, 'pts_bbox_NuScenes/truck_attr_err': 0.2737, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_trans_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_scale_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_orient_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_vel_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_attr_err': 1.0, 'pts_bbox_NuScenes/bus_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/bus_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/bus_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/bus_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/bus_trans_err': 1.0484, 'pts_bbox_NuScenes/bus_scale_err': 0.5597, 'pts_bbox_NuScenes/bus_orient_err': 0.7363, 'pts_bbox_NuScenes/bus_vel_err': 3.7336, 'pts_bbox_NuScenes/bus_attr_err': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/trailer_trans_err': 1.0, 'pts_bbox_NuScenes/trailer_scale_err': 1.0, 'pts_bbox_NuScenes/trailer_orient_err': 1.0, 'pts_bbox_NuScenes/trailer_vel_err': 1.0, 'pts_bbox_NuScenes/trailer_attr_err': 1.0, 'pts_bbox_NuScenes/barrier_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/barrier_trans_err': 1.0, 'pts_bbox_NuScenes/barrier_scale_err': 1.0, 'pts_bbox_NuScenes/barrier_orient_err': 1.0, 'pts_bbox_NuScenes/barrier_vel_err': nan, 'pts_bbox_NuScenes/barrier_attr_err': nan, 'pts_bbox_NuScenes/motorcycle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/motorcycle_trans_err': 1.1433, 'pts_bbox_NuScenes/motorcycle_scale_err': 0.4957, 'pts_bbox_NuScenes/motorcycle_orient_err': 1.3831, 'pts_bbox_NuScenes/motorcycle_vel_err': 0.8239, 'pts_bbox_NuScenes/motorcycle_attr_err': 0.3983, 'pts_bbox_NuScenes/bicycle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/bicycle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/bicycle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/bicycle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/bicycle_trans_err': 1.0, 'pts_bbox_NuScenes/bicycle_scale_err': 1.0, 'pts_bbox_NuScenes/bicycle_orient_err': 1.0, 'pts_bbox_NuScenes/bicycle_vel_err': 1.0, 'pts_bbox_NuScenes/bicycle_attr_err': 1.0, 'pts_bbox_NuScenes/pedestrian_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/pedestrian_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/pedestrian_AP_dist_2.0': 0.0024, 'pts_bbox_NuScenes/pedestrian_AP_dist_4.0': 0.0059, 'pts_bbox_NuScenes/pedestrian_trans_err': 0.7615, 'pts_bbox_NuScenes/pedestrian_scale_err': 0.426, 'pts_bbox_NuScenes/pedestrian_orient_err': 0.7429, 'pts_bbox_NuScenes/pedestrian_vel_err': 0.8642, 'pts_bbox_NuScenes/pedestrian_attr_err': 0.3824, 'pts_bbox_NuScenes/traffic_cone_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/traffic_cone_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/traffic_cone_AP_dist_2.0': 0.0004, 'pts_bbox_NuScenes/traffic_cone_AP_dist_4.0': 0.0019, 'pts_bbox_NuScenes/traffic_cone_trans_err': 0.5685, 'pts_bbox_NuScenes/traffic_cone_scale_err': 0.3869, 'pts_bbox_NuScenes/traffic_cone_orient_err': nan, 'pts_bbox_NuScenes/traffic_cone_vel_err': nan, 'pts_bbox_NuScenes/traffic_cone_attr_err': nan, 'pts_bbox_NuScenes/NDS': 0.10307101011115391, 'pts_bbox_NuScenes/mAP': 0.003664406443865858},
-{'patch_scale': 0.2, 'step_size': 5, 'max_steps': 50, 'pts_bbox_NuScenes/car_AP_dist_0.5': 0.1707, 'pts_bbox_NuScenes/car_AP_dist_1.0': 0.3341, 'pts_bbox_NuScenes/car_AP_dist_2.0': 0.4896, 'pts_bbox_NuScenes/car_AP_dist_4.0': 0.5859, 'pts_bbox_NuScenes/car_trans_err': 0.4912, 'pts_bbox_NuScenes/car_scale_err': 0.1596, 'pts_bbox_NuScenes/car_orient_err': 0.1852, 'pts_bbox_NuScenes/car_vel_err': 0.5504, 'pts_bbox_NuScenes/car_attr_err': 0.284, 'pts_bbox_NuScenes/mATE': 0.817, 'pts_bbox_NuScenes/mASE': 0.5275, 'pts_bbox_NuScenes/mAOE': 0.6438, 'pts_bbox_NuScenes/mAVE': 1.1538, 'pts_bbox_NuScenes/mAAE': 0.4314, 'pts_bbox_NuScenes/truck_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/truck_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/truck_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/truck_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/truck_trans_err': 0.8401, 'pts_bbox_NuScenes/truck_scale_err': 0.3115, 'pts_bbox_NuScenes/truck_orient_err': 0.1671, 'pts_bbox_NuScenes/truck_vel_err': 1.6933, 'pts_bbox_NuScenes/truck_attr_err': 0.5287, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_trans_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_scale_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_orient_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_vel_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_attr_err': 1.0, 'pts_bbox_NuScenes/bus_AP_dist_0.5': 0.0031, 'pts_bbox_NuScenes/bus_AP_dist_1.0': 0.0308, 'pts_bbox_NuScenes/bus_AP_dist_2.0': 0.4106, 'pts_bbox_NuScenes/bus_AP_dist_4.0': 0.4993, 'pts_bbox_NuScenes/bus_trans_err': 1.1312, 'pts_bbox_NuScenes/bus_scale_err': 0.3192, 'pts_bbox_NuScenes/bus_orient_err': 0.2465, 'pts_bbox_NuScenes/bus_vel_err': 2.6237, 'pts_bbox_NuScenes/bus_attr_err': 0.0342, 'pts_bbox_NuScenes/trailer_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/trailer_trans_err': 1.0, 'pts_bbox_NuScenes/trailer_scale_err': 1.0, 'pts_bbox_NuScenes/trailer_orient_err': 1.0, 'pts_bbox_NuScenes/trailer_vel_err': 1.0, 'pts_bbox_NuScenes/trailer_attr_err': 1.0, 'pts_bbox_NuScenes/barrier_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/barrier_trans_err': 1.0, 'pts_bbox_NuScenes/barrier_scale_err': 1.0, 'pts_bbox_NuScenes/barrier_orient_err': 1.0, 'pts_bbox_NuScenes/barrier_vel_err': nan, 'pts_bbox_NuScenes/barrier_attr_err': nan, 'pts_bbox_NuScenes/motorcycle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/motorcycle_trans_err': 0.9884, 'pts_bbox_NuScenes/motorcycle_scale_err': 0.4772, 'pts_bbox_NuScenes/motorcycle_orient_err': 1.0886, 'pts_bbox_NuScenes/motorcycle_vel_err': 1.1233, 'pts_bbox_NuScenes/motorcycle_attr_err': 0.3515, 'pts_bbox_NuScenes/bicycle_AP_dist_0.5': 0.0006, 'pts_bbox_NuScenes/bicycle_AP_dist_1.0': 0.0026, 'pts_bbox_NuScenes/bicycle_AP_dist_2.0': 0.0091, 'pts_bbox_NuScenes/bicycle_AP_dist_4.0': 0.0256, 'pts_bbox_NuScenes/bicycle_trans_err': 0.7053, 'pts_bbox_NuScenes/bicycle_scale_err': 0.3454, 'pts_bbox_NuScenes/bicycle_orient_err': 0.6864, 'pts_bbox_NuScenes/bicycle_vel_err': 0.7134, 'pts_bbox_NuScenes/bicycle_attr_err': 0.0769, 'pts_bbox_NuScenes/pedestrian_AP_dist_0.5': 0.0254, 'pts_bbox_NuScenes/pedestrian_AP_dist_1.0': 0.184, 'pts_bbox_NuScenes/pedestrian_AP_dist_2.0': 0.2952, 'pts_bbox_NuScenes/pedestrian_AP_dist_4.0': 0.3674, 'pts_bbox_NuScenes/pedestrian_trans_err': 0.6639, 'pts_bbox_NuScenes/pedestrian_scale_err': 0.3063, 'pts_bbox_NuScenes/pedestrian_orient_err': 0.4199, 'pts_bbox_NuScenes/pedestrian_vel_err': 0.5265, 'pts_bbox_NuScenes/pedestrian_attr_err': 0.1756, 'pts_bbox_NuScenes/traffic_cone_AP_dist_0.5': 0.3576, 'pts_bbox_NuScenes/traffic_cone_AP_dist_1.0': 0.403, 'pts_bbox_NuScenes/traffic_cone_AP_dist_2.0': 0.455, 'pts_bbox_NuScenes/traffic_cone_AP_dist_4.0': 0.4749, 'pts_bbox_NuScenes/traffic_cone_trans_err': 0.3497, 'pts_bbox_NuScenes/traffic_cone_scale_err': 0.3559, 'pts_bbox_NuScenes/traffic_cone_orient_err': nan, 'pts_bbox_NuScenes/traffic_cone_vel_err': nan, 'pts_bbox_NuScenes/traffic_cone_attr_err': nan, 'pts_bbox_NuScenes/NDS': 0.2220962114217028, 'pts_bbox_NuScenes/mAP': 0.12811698142315028},
-{'patch_scale': 0.3, 'step_size': 5, 'max_steps': 50, 'pts_bbox_NuScenes/car_AP_dist_0.5': 0.0805, 'pts_bbox_NuScenes/car_AP_dist_1.0': 0.1741, 'pts_bbox_NuScenes/car_AP_dist_2.0': 0.2969, 'pts_bbox_NuScenes/car_AP_dist_4.0': 0.3847, 'pts_bbox_NuScenes/car_trans_err': 0.5615, 'pts_bbox_NuScenes/car_scale_err': 0.1619, 'pts_bbox_NuScenes/car_orient_err': 0.2552, 'pts_bbox_NuScenes/car_vel_err': 0.52, 'pts_bbox_NuScenes/car_attr_err': 0.2501, 'pts_bbox_NuScenes/mATE': 0.8516, 'pts_bbox_NuScenes/mASE': 0.5439, 'pts_bbox_NuScenes/mAOE': 0.8545, 'pts_bbox_NuScenes/mAVE': 1.1057, 'pts_bbox_NuScenes/mAAE': 0.4349, 'pts_bbox_NuScenes/truck_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/truck_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/truck_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/truck_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/truck_trans_err': 0.8411, 'pts_bbox_NuScenes/truck_scale_err': 0.3348, 'pts_bbox_NuScenes/truck_orient_err': 0.5588, 'pts_bbox_NuScenes/truck_vel_err': 1.3903, 'pts_bbox_NuScenes/truck_attr_err': 0.616, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/construction_vehicle_trans_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_scale_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_orient_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_vel_err': 1.0, 'pts_bbox_NuScenes/construction_vehicle_attr_err': 1.0, 'pts_bbox_NuScenes/bus_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/bus_AP_dist_1.0': 0.0408, 'pts_bbox_NuScenes/bus_AP_dist_2.0': 0.2097, 'pts_bbox_NuScenes/bus_AP_dist_4.0': 0.2614, 'pts_bbox_NuScenes/bus_trans_err': 1.069, 'pts_bbox_NuScenes/bus_scale_err': 0.4012, 'pts_bbox_NuScenes/bus_orient_err': 0.3179, 'pts_bbox_NuScenes/bus_vel_err': 2.9264, 'pts_bbox_NuScenes/bus_attr_err': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/trailer_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/trailer_trans_err': 1.0, 'pts_bbox_NuScenes/trailer_scale_err': 1.0, 'pts_bbox_NuScenes/trailer_orient_err': 1.0, 'pts_bbox_NuScenes/trailer_vel_err': 1.0, 'pts_bbox_NuScenes/trailer_attr_err': 1.0, 'pts_bbox_NuScenes/barrier_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/barrier_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/barrier_trans_err': 1.0, 'pts_bbox_NuScenes/barrier_scale_err': 1.0, 'pts_bbox_NuScenes/barrier_orient_err': 1.0, 'pts_bbox_NuScenes/barrier_vel_err': nan, 'pts_bbox_NuScenes/barrier_attr_err': nan, 'pts_bbox_NuScenes/motorcycle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/motorcycle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/motorcycle_trans_err': 1.0479, 'pts_bbox_NuScenes/motorcycle_scale_err': 0.557, 'pts_bbox_NuScenes/motorcycle_orient_err': 1.4767, 'pts_bbox_NuScenes/motorcycle_vel_err': 0.6862, 'pts_bbox_NuScenes/motorcycle_attr_err': 0.2704, 'pts_bbox_NuScenes/bicycle_AP_dist_0.5': 0.0, 'pts_bbox_NuScenes/bicycle_AP_dist_1.0': 0.0, 'pts_bbox_NuScenes/bicycle_AP_dist_2.0': 0.0, 'pts_bbox_NuScenes/bicycle_AP_dist_4.0': 0.0, 'pts_bbox_NuScenes/bicycle_trans_err': 0.8553, 'pts_bbox_NuScenes/bicycle_scale_err': 0.3024, 'pts_bbox_NuScenes/bicycle_orient_err': 1.4361, 'pts_bbox_NuScenes/bicycle_vel_err': 0.6445, 'pts_bbox_NuScenes/bicycle_attr_err': 0.0, 'pts_bbox_NuScenes/pedestrian_AP_dist_0.5': 0.0029, 'pts_bbox_NuScenes/pedestrian_AP_dist_1.0': 0.0502, 'pts_bbox_NuScenes/pedestrian_AP_dist_2.0': 0.1157, 'pts_bbox_NuScenes/pedestrian_AP_dist_4.0': 0.1579, 'pts_bbox_NuScenes/pedestrian_trans_err': 0.7408, 'pts_bbox_NuScenes/pedestrian_scale_err': 0.3483, 'pts_bbox_NuScenes/pedestrian_orient_err': 0.6456, 'pts_bbox_NuScenes/pedestrian_vel_err': 0.6782, 'pts_bbox_NuScenes/pedestrian_attr_err': 0.3424, 'pts_bbox_NuScenes/traffic_cone_AP_dist_0.5': 0.0492, 'pts_bbox_NuScenes/traffic_cone_AP_dist_1.0': 0.0698, 'pts_bbox_NuScenes/traffic_cone_AP_dist_2.0': 0.1045, 'pts_bbox_NuScenes/traffic_cone_AP_dist_4.0': 0.1142, 'pts_bbox_NuScenes/traffic_cone_trans_err': 0.4007, 'pts_bbox_NuScenes/traffic_cone_scale_err': 0.3338, 'pts_bbox_NuScenes/traffic_cone_orient_err': nan, 'pts_bbox_NuScenes/traffic_cone_vel_err': nan, 'pts_bbox_NuScenes/traffic_cone_attr_err': nan, 'pts_bbox_NuScenes/NDS': 0.15791773166955086, 'pts_bbox_NuScenes/mAP': 0.052810918644201954}
-]
-
 CLASSES = ['car', 'bus', 'truck', 'trailer', 'construction_vehicle', 'pedestrian', 'motorcycle', 'bicycle', 'traffic_cone', 'barrier']
 CLASSES_METRIC = ['AP', 'trans_err', 'scale_err', 'orient_err', 'vel_err', 'attr_err']
 METRICS = ['mATE', 'mASE', 'mAOE', 'mAVE', 'mAAE']
+PARAMETERS = dict(
+    BEVFormer_Tiny = 33.6,
+    BEVFormer_Tiny_Temp = 33.6,
+    BEVFormer_Small = 59.6,
+    BEVFormer_Small_Temp = 59.6,
+    BEVFormer_Base = 69.1,
+    BEVFormer_Base_Temp = 69.1,
+    DETR3D_CBGS = 53.8,
+    DETR3D = 53.8,
+    FCOS3D = 55.1,
+    PGD = 56.2,
+    BEVDepth_R50 = 53.1,
+    BEVDet_R50 = 48.2
+    )
+
+COLORS = ['#4169E1', '#0000FF', '#9932CC', '#800080', '#F08080', '#B22222', '#FFE4B5', '#FFA500', '#00FF00', '#2E8B57', '#FFFF00', '#FFD700']
+MODELS = [
+    'BEVFormer_Tiny',
+    'BEVFormer_Tiny_Temp',
+    'BEVFormer_Small',
+    'BEVFormer_Small_Temp',
+    'BEVFormer_Base',
+    'BEVFormer_Base_Temp',
+    'DETR3D_CBGS',
+    'DETR3D',
+    'FCOS3D',
+    'PGD',
+    'BEVDepth_R50',
+    'BEVDet_R50',
+]
+VAL_MAP = dict(
+    BEVFormer_Tiny = 0,
+    BEVFormer_Tiny_Temp = 0.2524,
+    BEVFormer_Small = 0,
+    BEVFormer_Small_Temp = 0.3699,
+    BEVFormer_Base = 0,
+    BEVFormer_Base_Temp = 0.4167,
+    DETR3D_CBGS = 0.3494,
+    DETR3D = 0,
+    FCOS3D = 0.3214,
+    PGD = 0.3360,
+    BEVDepth_R50 = 0.3327,
+    BEVDet_R50 = 0.2987
+)
+
+
+pgd_attack_untarget = dict(
+    metric = 'max_steps',
+    max_steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50],
+    BEVFormer_Tiny = [0.2015, 0.1331,0.1053,0.0821,0.0663,0.0488,0.0443,0.0380,0.0358,0.0316,0.0216,0.0048,0.0003,0.0000,0.0000],
+    BEVFormer_Tiny_Temp = [0.2662,0.1838,0.1363,0.1100,0.0887,0.0686,0.0527,0.0423,0.0377,0.0321,0.0272,0.0012,0.0000,0.0000,0.0000],
+    BEVFormer_Small = [0.1893,0.1468,0.1155,0.0852,0.0694,0.0569,0.0414,0.0376,0.0338,0.0312,0.0186,0.0029,0.0006,0.0031,0.0001],
+    BEVFormer_Small_Temp = [0.3546,0.2455,0.1835,0.1470,0.1262,0.1030,0.0813,0.0556,0.0421,0.0381,0.0375,0.0107,0.0005,0.0,0.0], # remanchmark the last two
+    BEVFormer_Base = [0.3185, 0.2400,0.1955, 0.1692,0.1462,0.1272,0.1194,0.1095,0.0905,0.0871,0.0775,0.0447,0.0331,0.0221,0.0159],
+    BEVFormer_Base_Temp = [0.3766,0.2700,0.2190,0.1637,0.1416,0.1348,0.1106,0.0980,0.0802,0.0662,0.0553,0.0221,0.0109,0.0017,0.0001],
+    DETR3D_CBGS = [0.3219,0.2756,0.2456,0.2283,0.2077,0.1932,0.1745,0.1705,0.1538,0.1551,0.1530,0.1017,0.0753,0.0559,0.0448], # double check this results
+    DETR3D = [0.3112,0.2579,0.2139,0.1835,0.1636,0.1353,0.1105,0.1053,0.0988,0.0895,0.0747,0.0251,0.0079,0.0015,0.000],
+    FCOS3D = [0.3083,0.2532,0.2082,0.1587,0.1385,0.1121,0.0929,0.0759,0.0627,0.0524,0.0423,0.0085,0.0005,0.0000,0.0000],
+    PGD = [0.3344,0.2666,0.2203,0.1819,0.1504,0.1234,0.1017,0.0838,0.0722,0.0631,0.0502,0.0104,0.0021,0.0001,0.0000],
+    BEVDepth_R50 = [0.3248,0.2126,0.1655,0.1328,0.0992,0.0733,0.0680,0.0496,0.0415,0.0310,0.0275,0.0041,0.0003,0.0000,0.0000], # rebenchmark this part
+    BEVDet_R50 = [0.2831,0.1551,0.1170,0.0728,0.0540,0.0405,0.0384,0.0199,0.0161,0.0064,0.0080,0.0000,0.0000,0.0000,0.0000]
+    )
+
+
+pgd_transfer = dict(
+    metric = 'max_steps',
+    max_steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50],
+    BEVFormer_DETR3D = [0.3112],
+    DETR3D_BEVFormer = []
+)
+
+
+pgd_attack_target = dict(
+    metric = 'max_steps',
+    max_steps = [0, 2, 4, 6, 8, 10, 20, 30, 40, 50],
+    BEVFormer_Tiny = [0.2015,0.1603,0.1333,0.1176,0.0979,0.0920,0.0396,0.0168,0.0132,0.0107],
+    BEVFormer_Tiny_Temp = [0.2662,0.2177,0.1906,0.1685,0.1525,0.1328,0.0778,0.0449,0.0254,0.0180],
+    BEVFormer_Small = [0.1893,0.1570,0.1386,0.1241,0.1098,0.0954,0.0576,0.0410,0.0295,0.0250],
+    BEVFormer_Small_Temp = [0.3546,0.2645,0.2075,0.1943,0.1645,0.1397,0.1106,0.0578,0.0524,0.0516], 
+    BEVFormer_Base = [0.3185,0.2511,0.2276,0.2029,0.1952,0.1837,0.1464,0.1286,0.0981,0.0829],
+    BEVFormer_Base_Temp = [0.3766,0.2871,0.2483,0.2149,0.1856,0.1788,0.1380,0.0863,0.0735,0.0654],
+    DETR3D_CBGS = [0.3219,0.2820,0.2509,0.2228,0.1942,0.1797,0.1095,0.0770,0.0628,0.0501], 
+    DETR3D = [0.3112,0.2915,0.2703,0.2441,0.2314,0.2172,0.1572,0.1159,0.0963,0.0754],
+    FCOS3D = [0.3083,0.2652,0.2404,0.2132,0.1897,0.1784,0.1270,0.1041,0.0861,0.0799],
+    PGD = [0.3344,0.2997,0.2681,0.2471,0.2220,0.2131,0.1599,0.1326,0.1044,0.0951],
+    BEVDepth_R50 = [0.3248,0.2681,0.2494,0.2374,0.2308,0.2064,0.1867,0.1436,0.1325,0.1063],
+    BEVDet_R50 = [0.2831,0.2007,0.1698,0.1482,0.1401,0.1315,0.0863,0.0552,0.0320,0.0200])
+
+pgd_attack_local = dict(
+    metric = 'max_steps',
+    max_steps = [0, 2, 4, 6, 8, 10, 20, 30, 40, 50],
+    BEVFormer_Tiny = [0.2015,0.1572,0.1172,0.0971,0.0722,0.0511,0.0202,0.0098,0.0067,0.0038],
+    BEVFormer_Tiny_Temp = [0.2662,0.1914,0.1479,0.1057,0.0849,0.0677,0.0276,0.0168,0.0138,0.0052],
+    BEVFormer_Small = [0.1893,0.1703,0.1526,0.1285,0.1221,0.1001,0.0418,0.0221,0.0090,0.0062],
+    BEVFormer_Small_Temp = [0.3546,0.2270,0.1619,0.1364,0.1102,0.0973,0.0443,0.0345,0.0221,0.0209], 
+    BEVFormer_Base = [0.3185,0.2253,0.1617,0.1303,0.1074,0.0923,0.0441,0.0239,0.0121,0.0062],
+    BEVFormer_Base_Temp = [0.3766,0.2385,0.1965,0.1531,0.1241,0.1004,0.0518,0.0220,0.0183,0.0112],
+    DETR3D_CBGS = [0.3219,0.2866,0.2410,0.2134,0.1960,0.1670,0.1105,0.0767,0.0554,0.0423], 
+    DETR3D = [0.3112,0.2776,0.2413,0.2145,0.1837,0.1628,0.1020,0.0595,0.0395,0.0278],
+    FCOS3D = [0.3083,0.1647,0.1015,0.0671,0.0544,0.0379,0.0185,0.0122,0.0091,0.0064],
+    PGD = [0.3344,0.1984,0.1244,0.0919,0.0715,0.0577,0.0320,0.0211,0.0159,0.0125],
+    BEVDepth_R50 = [0.3248,0.2508,0.2125,0.1787,0.1533,0.1449,0.0892,0.0614,0.0434,0.0368],
+    BEVDet_R50 = [0.2831,0.1897,0.1542,0.1246,0.1134,0.1018,0.0614,0.0400,0.0284,0.0253]
+    )
+
+dynamic_patch_untarget_attack = dict(
+    metric = 'scale',
+    scale = [0, 0.1, 0.2, 0.3, 0.4],
+    BEVFormer_Tiny = [0.2015,0.1028,0.0543,0.0213,0.0007],
+    BEVFormer_Tiny_Temp = [0.2662,0.1434,0.0652,0.0249,0.0056],
+    BEVFormer_Small = [0.1893,0.1142,0.0544,0.0187,0.0023],
+    BEVFormer_Small_Temp = [0.3546,0.1794,0.0848,0.0344,0.0078], 
+    BEVFormer_Base = [0.3185,0.2175,0.1225,0.0529,0.0132],
+    BEVFormer_Base_Temp = [0.3766,0.2145,0.1244,0.0444,0.0031],
+    DETR3D_CBGS = [0.3219,0.2376,0.1551,0.0893,0.0218], 
+    DETR3D = [0.3112,0.2059,0.1034,0.0237,0.0007],
+    FCOS3D = [0.3083,0.1647,0.0458,0.0066,0.0000],
+    PGD = [0.3344,0.1898,0.0551,0.000,0.000],
+    BEVDepth_R50 = [0.3248,0.1753,0.0617,0.0043,0.0],
+    BEVDet_R50 = [0.2831,0.1285,0.0296,0.0005,0.0000]
+    )
+
+
+dynamic_patch_loc_attack = dict(
+    metric = 'scale',
+    scale = [0, 0.1, 0.2, 0.3, 0.4],
+    BEVFormer_Tiny = [0.2015,0.1501,0.0979,0.0595,0.0235],
+    BEVFormer_Tiny_Temp = [0.2662,0.1939,0.1284,0.0811,0.0358],
+    BEVFormer_Small = [0.1893], # rebenchmark
+    BEVFormer_Small_Temp = [0.3546,0.2356,0.1493,0.1109,0.0592],
+    BEVFormer_Base = [0.3185], # rebenchmark
+    BEVFormer_Base_Temp = [0.3766,0.2622,0.1955,0.1012,0.0649],
+    DETR3D_CBGS = [0.3219,0.2823,0.2223,0.1425,0.0825],
+    DETR3D = [0.3112,0.2705], # rebenchmark
+    FCOS3D = [0.3083,0.1710,0.0897,0.0388,0.0201],
+    PGD = [0.3344,0.2148,0.1246,0.0618,0.0182],
+    BEVDepth_R50 = [0.3248,0.2583,0.1532,0.0954,0.0393],
+    BEVDet_R50 = [0.2831,0.2180,0.1308,0.0614,0.0325])
 
 def collect_data(data, metric, catagory):
 
@@ -51,6 +178,7 @@ def plot_api(x, y, xtitle, ytitle, out_path):
     plt.savefig(out_path)
     plt.cla()
 
+
 def visualize_object(data):
     """Visualize metric of different object according to experiment settings (e.x. patch_size, step_size, etc.)
     Args:
@@ -74,7 +202,8 @@ def multi_plot_api(xs, ys, labels, xtitle, ytitle, out_path):
 
     for i in range(len(xs)):
         label_ = labels[i].replace('_', '-')
-        plt.plot(xs[i], ys[i], 'o-', label=labels[i], markersize=3)
+        assert len(xs[i]) == len(ys[i]), f"x doesn't match y in {label_}"
+        plt.plot(xs[i], ys[i], 'o-', label=label_, markersize=3)
     plt.xlabel(xtitle)
     plt.ylabel(ytitle)
     plt.legend()
@@ -82,78 +211,22 @@ def multi_plot_api(xs, ys, labels, xtitle, ytitle, out_path):
     plt.cla()
 
 
-pgd_attack_untarget = dict(
-    metric = 'max_steps',
-    max_steps = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 30, 40, 50],
-    # BEVFormer_Tiny = [0.2015, 0.1331,0.1053,0.0821,0.0663,0.0488,0.0443,0.0380,0.0358,0.0316,0.0216,0.0048,0.0003,0.0000,0.0000],
-    # BEVFormer_Base = [0.3185, 0.2400,0.1955, 0.1692,0.1462,0.1272,0.1194,0.1095,0.0905,0.0871,0.0775,0.0447,0.0331,0.0221,0.0159],
-    BEVFormer_Tiny_Temp = [0.2662,0.1838,0.1363,0.1100,0.0887,0.0686,0.0527,0.0423,0.0377,0.0321,0.0272,0.0012,0.0000,0.0000,0.0000],
-    BEVFormer_Small_Temp = []
-    BEVFormer_Base_Temp = [0.3766,0.2700,0.2190,0.1637,0.1416,0.1348,0.1106,0.0980,0.0802,0.0662,0.0553,0.0221,0.0109,0.0017,0.0001],
-    DETR3D_CBGS = [0.3219,0.2756,0.2456,0.2283,0.2077,0.1932,0.1745,0.1705,0.1538,0.1551,0.1530,0.1017,0.0753,0.0559,0.0448],
-    DETR3D = [],
-    FCOS3D = [0.3083,0.2532,0.2082,0.1587,0.1385,0.1121,0.0929,0.0759,0.0627,0.0524,0.0423,0.0085,0.0005,0.0000,0.0000],
-    PGD = [0.3344,0.2666,0.2203,0.1819,0.1504,0.1234,0.1017,0.0838,0.0722,0.0631,0.0502,0.0104,0.0021,0.0001,0.0000],
-    BEVDepth_R50 = [0.3248,0.2126,0.1655,0.1328,0.0992,0.0733,0.0680,0.0496,0.0415,0.0310,0.0275,0.0041,0.0003,0.0000,0.0000],
-    BEVDet_R50 = [0.2831,0.1551,0.1170,0.0728,0.0540,0.0405,0.0384,0.0199,0.0161,0.0064,0.0080,0.0000,0.0000,0.0000,0.0000])
-
-pgd_attack_target = dict(
-    metric = 'max_steps',
-    max_steps = [0, 2, 4, 6, 8, 10, 20, 30, 40, 50],
-    # BEVFormer_Tiny = [0.2015],
-    # BEVFormer_Base = [0.3185],
-    BEVFormer_Tiny_Temp = [0.2662],
-    BEVFormer_Base_Temp = [0.3766],
-    DETR3D_CBGS = [0.3219],
-    DETR3D_CBGS = [],
-    FCOS3D = [0.3083],
-    PGD = [0.3344],
-    BEVDepth_R50 = [0.3248],
-    BEVDet_R50 = [0.2831])
-
-pgd_attack_local = dict(
-    metric = 'max_steps',
-    max_steps = [0, 2, 4, 6, 8, 10, 20, 30, 40, 50],
-    # BEVFormer_Tiny = [0.2015],
-    # BEVFormer_Base = [0.3185],
-    BEVFormer_Tiny_Temp = [0.2662],
-    BEVFormer_Base_Temp = [0.3766],
-    DETR3D_CBGS = [0.3219],
-    DETR3D_CBGS = [],
-    FCOS3D = [0.3083],
-    PGD = [0.3344],
-    BEVDepth_R50 = [0.3248],
-    BEVDet_R50 = [0.2831])
+def plot_scatter_api(xs, ys, labels, xtitle, ytitle, parameters, out_path):
+    assert isinstance(xs, list or tuple)
+    assert isinstance(ys, list or tuple)
+    assert isinstance(labels, list or tuple)
+    assert len(xs) == len(ys) and len(xs) == len(labels)
 
 
-dynamic_patch_untarget_attack = dict(
-    metric = 'scale',
-    scale = [0, 0.1, 0.2, 0.3, 0.4],
-    # BEVFormer_Tiny = [0.2015],
-    # BEVFormer_Base = [0.3185],
-    BEVFormer_Tiny_Temp = [0.2662],
-    BEVFormer_Base_Temp = [0.3766],
-    DETR3D_CBGS = [0.3219],
-    DETR3D_CBGS = [],
-    FCOS3D = [0.3083],
-    PGD = [0.3344],
-    BEVDepth_R50 = [0.3248],
-    BEVDet_R50 = [0.2831])
-
-
-dynamic_patch_loc_attack = dict(
-    metric = 'scale',
-    scale = [0, 0.1, 0.2, 0.3, 0.4],
-    # BEVFormer_Tiny = [0.2015],
-    # BEVFormer_Base = [0.3185],
-    BEVFormer_Tiny_Temp = [0.2662],
-    BEVFormer_Base_Temp = [0.3766],
-    DETR3D_CBGS = [0.3219],
-    DETR3D_CBGS = [],
-    FCOS3D = [0.3083],
-    PGD = [0.3344],
-    BEVDepth_R50 = [0.3248],
-    BEVDet_R50 = [0.2831])
+    fig, ax = plt.subplots()
+    for i in range(len(xs)):
+        label_ = labels[i].replace('_', '-')
+        ax.scatter(x=[xs[i]], y=[ys[i]], marker='o', c=COLORS[i], alpha=0.8, s=200, label=label_)
+    plt.xlabel(xtitle)
+    plt.ylabel(ytitle)
+    plt.legend(markerscale=0.3)
+    plt.savefig(out_path)
+    plt.cla()
 
 
 def parse_data(results, relative=False):
@@ -163,14 +236,15 @@ def parse_data(results, relative=False):
         relative (bool): visualize relative performance drop
     """
     assert isinstance(results, dict)
-    keys = list(results.keys())
+    # keys = list(results.keys())
+    keys = MODELS
     xs = []
     ys = []
     labels = []
     for key in keys:
-        if key == 'scale':
+        if key == 'metric' or key == results['metric']:
             continue
-        x = results['scale']
+        x = results[results['metric']]
         y = results[key]
         if relative:
             y = [y[i] / y[0] for i in range(len(y))]
@@ -181,6 +255,63 @@ def parse_data(results, relative=False):
     return xs, ys, labels
 
 
+def collect_clean_accuracy(results_dict, val=False):
+    assert isinstance(results_dict, dict)
+
+    # models = list(results_dict.keys())
+    models = MODELS
+    acc_all = []
+    model_names = []
+    for model in models:
+        if model == 'metric' or model == results_dict['metric']:
+            continue
+        if not val:
+            # map on mini datasets
+            acc = results_dict[model][0]
+        else:
+            # map on validation datasets
+            acc = VAL_MAP[model]
+        acc_all.append(acc)
+        model_names.append(model)
+    
+    return acc_all, model_names
+
+
+def collect_model_size():
+    models = MODELS
+    size_all = []
+    for i, model in enumerate(models):
+        size_all.append(PARAMETERS[model])
+
+    return size_all, models
+
+
+def collect_robustness_acc(results_dicts, param=False, val=False):
+    """Calculate average adversarial robustness v.s. clean accuracy
+    """
+    assert isinstance(results_dicts, List)
+    assert isinstance(results_dicts[0], dict)
+
+    if param:
+        clean_accs, model_names = collect_model_size()
+    else:
+        clean_accs, model_names = collect_clean_accuracy(results_dicts[0])
+
+    adver_accs = []
+    for model_name in model_names:
+        adver_acc = []
+        for results_dict in results_dicts:
+            adver_acc.extend(results_dict[model_name][1: ])
+        adver_acc = np.mean(np.array(adver_acc))
+        adver_accs.append(adver_acc)
+
+    return clean_accs, adver_accs, model_names
+
+
 if __name__ == '__main__':
-    xs, ys, labels = parse_data(dynamic_patch_attack, relative=False)
-    multi_plot_api(xs, ys, labels, 'scale', 'mAP', 'visual/patch/dyn_abs.pdf')
+    xs, ys, labels = parse_data(pgd_attack_untarget, relative=True)
+    multi_plot_api(xs, ys, labels, 'max steps', 'mAP', 'visual/depth_estimation/pgd_attack_untarget.png')
+
+    # pgd_attack_untarget, pgd_attack_target, pgd_attack_local, dynamic_patch_untarget_attack
+    # clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_untarget, pgd_attack_target, pgd_attack_local, dynamic_patch_untarget_attack], param=True)
+    # plot_scatter_api(clean_accs, adver_accs, model_names, 'Model Size', 'Adv mAP', PARAMETERS, 'visual/overall/average.png')
