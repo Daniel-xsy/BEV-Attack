@@ -24,7 +24,7 @@ input_modality = dict(
     use_map=False,
     use_external=False)
 model = dict(
-    type='Petr3D',
+    type='Petr3D_Adv',
     use_grid_mask=True,
     img_backbone=dict(
         type='ResNet',
@@ -46,7 +46,7 @@ model = dict(
         out_channels=256,
         num_outs=2),    
     pts_bbox_head=dict(
-        type='PETRHead',
+        type='PETRHead_Adv',
         num_classes=10,
         in_channels=256,
         num_query=900,
@@ -82,7 +82,7 @@ model = dict(
                                      'ffn', 'norm')),
             )),
         bbox_coder=dict(
-            type='NMSFreeCoder',
+            type='NMSFreeCoder_Adv',
             # type='NMSFreeClsCoder',
             post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0],
             pc_range=point_cloud_range,
@@ -113,7 +113,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'PETRCustomNuScenesDataset'
-data_root = '../nuscenes'
+data_root = '../nuscenes_mini'
 
 file_client_args = dict(backend='disk')
 db_sampler = dict()
@@ -146,7 +146,7 @@ train_pipeline = [
 ]
 test_pipeline = [
     dict(type='LoadMultiViewImageFromFiles', to_float32=True),
-    # dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
+    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True, with_attr_label=False),
     dict(type='ResizeCropFlipImage', data_aug_conf = ida_aug_conf, training=False),
     dict(type='NormalizeMultiviewImage', **img_norm_cfg),
     dict(type='PadMultiViewImage', size_divisor=32),
@@ -160,7 +160,7 @@ test_pipeline = [
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='Collect3D', keys=['img']) # 'gt_bboxes_3d', 'gt_labels_3d', 
+            dict(type='Collect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img']) # 
         ])
 ]
 
@@ -210,6 +210,36 @@ find_unused_parameters = False
 runner = dict(type='EpochBasedRunner', max_epochs=total_epochs)
 load_from=None
 resume_from=None
+
+
+# attack_severity_type = 'scale'
+# attack = dict(
+#     type='PatchAttack',
+#     step_size=5,
+#     dynamic_patch_size=True,
+#     scale=[0.1, 0.2, 0.3, 0.4],
+#     num_steps=50,
+#     # patch_size=(15,15),
+#     img_norm=img_norm_cfg,
+#     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+attack_severity_type = 'num_steps'
+attack = dict(
+    type='PGD',
+    epsilon=5,
+    step_size=0.1,
+    num_steps=[2,4,6,8,10,20,30,40,50], # 
+    img_norm=img_norm_cfg,
+    single_camera=False,
+    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+    # loss_fn=dict(type='ClassficationObjective', activate=False),
+    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    category='Madry',
+    rand_init=True,
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+
 
 # mAP: 0.3174
 # mATE: 0.8397
