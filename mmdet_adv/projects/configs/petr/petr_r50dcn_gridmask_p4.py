@@ -1,6 +1,6 @@
 _base_ = [
-    '../../../mmdetection3d/configs/_base_/datasets/nus-3d.py',
-    '../../../mmdetection3d/configs/_base_/default_runtime.py'
+    '../_base_/datasets/nus-3d.py',
+    '../_base_/default_runtime.py'
 ]
 backbone_norm_cfg = dict(type='LN', requires_grad=True)
 plugin=True
@@ -112,8 +112,8 @@ model = dict(
             iou_cost=dict(type='IoUCost', weight=0.0), # Fake cost. This is just to make it compatible with DETR head. 
             pc_range=point_cloud_range))))
 
-dataset_type = 'CustomNuScenesDataset'
-data_root = '/data/Dataset/nuScenes/'
+dataset_type = 'PETRCustomNuScenesDataset'
+data_root = '../nuscenes_mini/'
 
 file_client_args = dict(backend='disk')
 db_sampler = dict()
@@ -178,8 +178,17 @@ data = dict(
         # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
         # and box_type_3d='Depth' in sunrgbd and scannet dataset.
         box_type_3d='LiDAR'),
-    val=dict(type=dataset_type, pipeline=test_pipeline, classes=class_names, modality=input_modality),
-    test=dict(type=dataset_type, pipeline=test_pipeline, classes=class_names, modality=input_modality))
+    val=dict(type=dataset_type, 
+             ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+             pipeline=test_pipeline, 
+             classes=class_names, 
+             modality=input_modality),
+    test=dict(type=dataset_type, 
+              ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+              pipeline=test_pipeline, 
+              classes=class_names, 
+              modality=input_modality),
+    nonshuffler_sampler=dict(type='DistributedSampler'))
 
 optimizer = dict(
     type='AdamW', 
