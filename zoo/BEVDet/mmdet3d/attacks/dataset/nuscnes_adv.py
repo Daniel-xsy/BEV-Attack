@@ -271,12 +271,15 @@ class NuScenesDataset_Adv(Custom3DDataset):
                 else:
                     if self.prev_only or self.next_only:
                         adjacent = 'prev' if self.prev_only else 'next'
-                    elif self.test_mode:
+                    # elif self.test_mode:
+                    # always in test mode for attack
+                    elif True:
                         adjacent = self.test_adj
                     else:
                         adjacent = np.random.choice(['prev', 'next'])
                 if type(info[adjacent]) is list:
-                    if self.test_mode:
+                    # always in test mode for attacl
+                    if True:
                         if self.test_adj_ids is not None:
                             info_adj=[]
                             select_id = self.test_adj_ids
@@ -300,23 +303,25 @@ class NuScenesDataset_Adv(Custom3DDataset):
                 input_dict.update(dict(img_info=info['cams'],
                                        curr=info,
                                        adjacent=info_adj,
-                                       adjacent_type=adjacent))
+                                       adjacent_type=adjacent,
+                                       lidar2img=lidar2img_rts))
 
-        if not self.test_mode:
-            annos = self.get_ann_info(index)
-            input_dict['ann_info'] = annos
-            if self.img_info_prototype == 'bevdet_sequential':
-                bbox = input_dict['ann_info']['gt_bboxes_3d'].tensor
-                if 'abs' in self.speed_mode:
-                    bbox[:, 7:9] = bbox[:, 7:9] + torch.from_numpy(info['velo']).view(1,2).to(bbox)
-                if input_dict['adjacent_type'] == 'next' and not self.fix_direction:
-                    bbox[:, 7:9] = -bbox[:, 7:9]
-                if 'dis' in self.speed_mode:
-                    time = abs(input_dict['timestamp'] - 1e-6 * input_dict['adjacent']['timestamp'])
-                    bbox[:, 7:9] = bbox[:, 7:9] * time
-                input_dict['ann_info']['gt_bboxes_3d'] = LiDARInstance3DBoxes(bbox,
-                                                                              box_dim=bbox.shape[-1],
-                                                                              origin=(0.5, 0.5, 0.0))
+        # if not self.test_mode:
+        # load annotation for attack
+        annos = self.get_ann_info(index)
+        input_dict['ann_info'] = annos
+        if self.img_info_prototype == 'bevdet_sequential':
+            bbox = input_dict['ann_info']['gt_bboxes_3d'].tensor
+            if 'abs' in self.speed_mode:
+                bbox[:, 7:9] = bbox[:, 7:9] + torch.from_numpy(info['velo']).view(1,2).to(bbox)
+            if input_dict['adjacent_type'] == 'next' and not self.fix_direction:
+                bbox[:, 7:9] = -bbox[:, 7:9]
+            if 'dis' in self.speed_mode:
+                time = abs(input_dict['timestamp'] - 1e-6 * input_dict['adjacent']['timestamp'])
+                bbox[:, 7:9] = bbox[:, 7:9] * time
+            input_dict['ann_info']['gt_bboxes_3d'] = LiDARInstance3DBoxes(bbox,
+                                                                            box_dim=bbox.shape[-1],
+                                                                            origin=(0.5, 0.5, 0.0))
         return input_dict
 
     def get_ann_info(self, index):

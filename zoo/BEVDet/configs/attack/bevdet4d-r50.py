@@ -1,6 +1,6 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
-_base_ = ['../_base_/datasets/nus-3d.py',
+_base_ = ['../_base_/datasets/nus-3d-adv.py',
           '../_base_/default_runtime.py']
 # Global
 # If point cloud range is changed, the models should also change their point
@@ -40,7 +40,7 @@ numC_Trans=64
 
 
 model = dict(
-    type='BEVDetSequentialES',
+    type='BEVDetSequentialES_Adv',
     aligned=True,
     detach=True,
     before=True,
@@ -76,7 +76,7 @@ model = dict(
                       num_layer=[2,], num_channels=[64,], stride=[1,],
                       backbone_output_ids=[0,]),
     pts_bbox_head=dict(
-        type='CenterHead',
+        type='CenterHead_Adv',
         in_channels=256,
         tasks=[
             dict(num_class=1, class_names=['car']),
@@ -90,7 +90,7 @@ model = dict(
             reg=(2, 2), height=(1, 2), dim=(3, 2), rot=(2, 2), vel=(2, 2)),
         share_conv_channel=64,
         bbox_coder=dict(
-            type='CenterPointBBoxCoder',
+            type='CenterPointBBoxCoder_Adv',
             pc_range=point_cloud_range[:2],
             post_center_range=[-61.2, -61.2, -10.0, 61.2, 61.2, 10.0],
             max_num=500,
@@ -189,6 +189,7 @@ test_pipeline = [
         load_dim=5,
         use_dim=5,
         file_client_args=file_client_args),
+    dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
     dict(
         type='MultiScaleFlipAug3D',
         img_scale=(1333, 800),
@@ -199,7 +200,7 @@ test_pipeline = [
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='Collect3D', keys=['points', 'img_inputs'],
+            dict(type='Collect3D', keys=['img_inputs', 'gt_bboxes_3d', 'gt_labels_3d'], # 'points', 
                  meta_keys=('filename', 'ori_shape', 'img_shape', 'lidar2img',
                             'depth2img', 'cam2img', 'pad_shape',
                             'scale_factor', 'flip', 'pcd_horizontal_flip',
@@ -253,10 +254,12 @@ data = dict(
             prev_only=True,
             fix_direction=True)),
     val=dict(pipeline=test_pipeline, classes=class_names,
-            ann_file=data_root + 'nuscenes_infos_val_4d_interval3_max60.pkl',
-        modality=input_modality, img_info_prototype='bevdet_sequential',),
+             filter_empty_gt=False,
+             ann_file=data_root + 'nuscenes_infos_val_4d_interval3_max60.pkl',
+             modality=input_modality, img_info_prototype='bevdet_sequential',),
     test=dict(pipeline=test_pipeline, classes=class_names,
-            ann_file=data_root + 'nuscenes_infos_val_4d_interval3_max60.pkl',
+              filter_empty_gt=False,
+              ann_file=data_root + 'nuscenes_infos_val_4d_interval3_max60.pkl',
               modality=input_modality,
               img_info_prototype='bevdet_sequential',
               max_interval=10,
@@ -272,3 +275,37 @@ lr_config = dict(
     warmup_ratio=0.001,
     step=[16, 22])
 runner = dict(type='EpochBasedRunner', max_epochs=25)
+
+img_norm_cfg = dict(
+    mean=[[0.485, 0.456, 0.406]], std=[0.229, 0.224, 0.225], to_rgb=False)
+
+attack_severity_type='num_steps'
+attack = dict(
+    type='PGD',
+    epsilon=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+    step_size=[0.1/255/0.229, 0.1/255/0.224, 0.1/255/0.225],
+    num_steps=[1,2,3,4,5,6,7,8,9,10,20,30,40,50],
+    img_norm=img_norm_cfg,
+    single_camera=False,
+    totensor=True,
+    sequential=True,
+    loss_fn=dict(type='ClassficationObjective', activate=False),
+    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+    # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    category='Madry',
+    rand_init=True,
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+# attack_severity_type='scale'
+# attack = dict(
+#     type='PatchAttack',
+#     step_size=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+#     dynamic_patch_size=True,
+#     scale=[0.4], # 0.1, 0.2, 0.3, 
+#     num_steps=50,
+#     totensor=True,
+#     sequential=True,
+#     img_norm=img_norm_cfg,
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

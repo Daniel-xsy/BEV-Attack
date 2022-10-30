@@ -24,6 +24,7 @@ class PGD(BaseAttacker):
                  rand_init=False,
                  single_camera=False,
                  mono_model=False,
+                 sequential=False,
                  *args, 
                  **kwargs):
         """ PGD pixel attack
@@ -36,6 +37,7 @@ class PGD(BaseAttacker):
             rand_init (bool): random initialize adversarial noise or zero initialize
             assigner (class): assign prediction bbox to ground truth bbox
             single_camera (bool): only attack random choose single camera
+            sequential (bool): sequential inputs in BEVDet4D
         """
         super().__init__(*args, **kwargs)
         self.epsilon = epsilon
@@ -47,6 +49,7 @@ class PGD(BaseAttacker):
         self.single_camera = single_camera
         self.mono_model = mono_model
         self.rand_init = rand_init
+        self.sequential = sequential
 
         if self.mono_model:
             self.size = (1, 3, 1, 1) # do not have stereo camera information
@@ -87,15 +90,21 @@ class PGD(BaseAttacker):
             camera = random.randint(0, 5)
             camera_mask = torch.zeros((B, M, C, H, W))
             camera_mask[:, camera] = 1
+        # sequential input, only attack current timestamp
+        if self.sequential:
+            B, M, C, H, W = img_.size()
+            assert M % 6 == 0, f"When activate sequential input, camera number must be full divided by 6, now {M}"
+            camera_mask = torch.zeros((B, M, C, H, W))
+            camera_mask[:, 0 : -1 : 2] = 1
 
         if self.category == "trades":
-            if self.single_camera:
+            if self.single_camera or self.sequential:
                 x_adv = img_.detach() + camera_mask * self.epsilon * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
             else:
                 x_adv = img_.detach() + self.epsilon * torch.randn(img_.shape).to(img_.device).detach() if self.rand_init else img_.detach()
 
         if self.category == "Madry":
-            if self.single_camera:
+            if self.single_camera or self.sequential:
                 x_adv = img_.detach() + camera_mask * torch.from_numpy(np.random.uniform(-self.epsilon, self.epsilon, img_.shape)).float().to(img_.device) if self.rand_init else img_.detach()
             else:
                 x_adv = img_.detach() + torch.from_numpy(np.random.uniform(-self.epsilon, self.epsilon, img_.shape)).float().to(img_.device) if self.rand_init else img_.detach()
@@ -118,7 +127,7 @@ class PGD(BaseAttacker):
 
             loss_adv.backward()
             eta = self.step_size * x_adv.grad.sign()
-            if self.single_camera:
+            if self.single_camera or self.sequential:
                 eta = eta * camera_mask
             x_adv = x_adv.detach() + eta
             x_adv = torch.min(torch.max(x_adv, img_ - self.epsilon), img_ + self.epsilon)

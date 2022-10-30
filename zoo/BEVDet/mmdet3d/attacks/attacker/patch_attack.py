@@ -29,6 +29,7 @@ class PatchAttack(BaseAttacker):
                  patch_size=None,
                  dynamic_patch_size=False,
                  mono_model=False,
+                 sequential=False,
                  scale=0.5,
                  *args, 
                  **kwargs):
@@ -42,6 +43,7 @@ class PatchAttack(BaseAttacker):
             patch_size (list): adversarial patch size, None if using dynamic patch size
             denamic_patch_size (bool): when activate, adjust patch size according to object size
             scale (float): patch size scale of object size, in (0, 1)
+            sequential (bool): sequential inputs in BEVDet4D
         """
 
         self.step_size = step_size
@@ -49,6 +51,7 @@ class PatchAttack(BaseAttacker):
         self.dynamic_patch = dynamic_patch_size
         self.mono_model = mono_model
         self.scale = scale
+        self.sequential = sequential
         self.assigner = BBOX_ASSIGNERS.build(assigner)
         self.loss_fn = LOSSES.build(loss_fn)
         if patch_size is not None:
@@ -121,11 +124,16 @@ class PatchAttack(BaseAttacker):
 
         # valid image plane positions
         reference_points_cam = (reference_points_cam * bev_mask).int()
-        patch_mask = torch.zeros_like(img_)
 
+        patch_mask = torch.zeros_like(img_)
         # get patch mask of original image
         if self.dynamic_patch:
             patch_size = self.get_patch_size(corners, lidar2img, bev_mask, scale=self.scale)
+        # sequential input on BEVDet4D
+        if self.sequential:
+            reference_points_cam = reference_points_cam.repeat(2, 1, 1)
+            patch_size = patch_size.repeat(2, 1, 1)
+            bev_mask = bev_mask.repeat(2, 1, 1)
         patch_mask = self.get_patch_mask(reference_points_cam, bev_mask, patch_mask, \
                                                 patch_size if self.dynamic_patch else self.patch_size)
 
@@ -182,7 +190,7 @@ class PatchAttack(BaseAttacker):
         assert patch_size.size(-1) == 2, f"Last dim of patch size should have size of 2, now f{patch_size.size(0)}"
 
         if not self.dynamic_patch:
-            patch_size = patch_size.view(1, 1, 2).repeat(M, N, 1)
+            patch_size = patch_size.view(1, 1, 2).repeat(M_, N, 1)
 
         # patch size on single side
         patch_size = torch.div(patch_size, 2, rounding_mode='floor')
@@ -193,11 +201,18 @@ class PatchAttack(BaseAttacker):
         pos_y = (torch.minimum(reference_points_cam[..., 1] + patch_size[..., 1] + 1, H * torch.ones_like(reference_points_cam[..., 1])) * bev_mask).int()
 
         for m in range(M):
+            m_ = m
+            if self.sequential:
+                # sequential inputs, only set current timestamp
+                if m % 2 == 1:
+                    continue
+                # an ugly workarund
+                m_ = m // 2
             for n in range(N):
                 # reference point do not hit the image
-                if neg_x[m, n] == pos_x[m, n]:
+                if neg_x[m_, n] == pos_x[m_, n]:
                     continue
-                patch_mask[0, m, :, neg_y[m, n] : pos_y[m, n], neg_x[m, n] : pos_x[m, n]] = 1
+                patch_mask[0, m, :, neg_y[m_, n] : pos_y[m_, n], neg_x[m_, n] : pos_x[m_, n]] = 1
 
         return patch_mask
 
