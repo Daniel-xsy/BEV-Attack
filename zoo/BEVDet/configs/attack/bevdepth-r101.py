@@ -1,7 +1,6 @@
 # Copyright (c) Phigent Robotics. All rights reserved.
 
 _base_ = ['../_base_/datasets/nus-3d-adv.py',
-          '../_base_/schedules/cyclic_20e.py',
           '../_base_/default_runtime.py']
 # Global
 # If point cloud range is changed, the models should also change their point
@@ -40,48 +39,43 @@ voxel_size = [0.1, 0.1, 0.2]
 numC_Trans=64
 
 model = dict(
-    type='BEVDet_Adv',
+    type='BEVDepth_Adv',
     img_backbone=dict(
-        type='SwinTransformer',
-        pretrained='https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_tiny_patch4_window7_224.pth',
-        pretrain_img_size=224,
-        embed_dims=96,
-        patch_size=4,
-        window_size=7,
-        mlp_ratio=4,
-        depths=[2, 2, 6, 2],
-        num_heads=[3, 6, 12, 24],
-        strides=(4, 2, 2, 2),
-        out_indices=(2, 3,),
-        qkv_bias=True,
-        qk_scale=None,
-        patch_norm=True,
-        drop_rate=0.,
-        attn_drop_rate=0.,
-        drop_path_rate=0.0,
-        use_abs_pos_embed=False,
-        act_cfg=dict(type='GELU'),
-        norm_cfg=dict(type='LN', requires_grad=True),
-        pretrain_style='official',
-        output_missing_index_as_none=False),
+        pretrained='torchvision://resnet101',
+        type='ResNet',
+        depth=101,
+        num_stages=4,
+        out_indices=(2, 3),
+        frozen_stages=-1,
+        norm_cfg=dict(type='BN', requires_grad=True),
+        norm_eval=False,
+        with_cp=True,
+        style='pytorch'),
     img_neck=dict(
-        type='FPN_LSS',
-        in_channels=384+768,
+        type='FPNForBEVDet',
+        in_channels=[1024, 2048],
         out_channels=512,
-        extra_upsample=None,
-        input_feature_index=(0,1),
-        scale_factor=2),
-    img_view_transformer=dict(type='ViewTransformerLiftSplatShoot',
+        num_outs=1,
+        start_level=0,
+        out_ids=[0]),
+    img_view_transformer=dict(type='ViewTransformerLSSBEVDepth',
+                              loss_depth_weight=100.0,
                               grid_config=grid_config,
                               data_config=data_config,
+                              numC_Trans=numC_Trans,
                               use_bev_pool=False,
-                              numC_Trans=numC_Trans),
+                              extra_depth_net=dict(type='ResNetForBEVDet',
+                                                   numC_input=256,
+                                                   num_layer=[3,],
+                                                   num_channels=[256,],
+                                                   stride=[1,])),
     img_bev_encoder_backbone = dict(type='ResNetForBEVDet', numC_input=numC_Trans),
     img_bev_encoder_neck = dict(type='FPN_LSS',
                                 in_channels=numC_Trans*8+numC_Trans*2,
                                 out_channels=256),
     pts_bbox_head=dict(
         type='CenterHead_Adv',
+        task_specific=True,
         in_channels=256,
         tasks=[
             dict(num_class=1, class_names=['car']),
@@ -143,7 +137,7 @@ model = dict(
 
 
 # Data
-dataset_type = 'NuScenesDataset'
+dataset_type = 'NuScenesDataset_Adv'
 data_root = '../../nuscenes_mini/'
 file_client_args = dict(backend='disk')
 
@@ -152,7 +146,6 @@ train_pipeline = [
     dict(type='LoadMultiViewImageFromFiles_BEVDet', is_train=True, data_config=data_config),
     dict(
         type='LoadPointsFromFile',
-        dummy=True,
         coord_type='LIDAR',
         load_dim=5,
         use_dim=5,
@@ -170,6 +163,7 @@ train_pipeline = [
         flip_ratio_bev_horizontal=0.5,
         flip_ratio_bev_vertical=0.5,
         update_img2lidar=True),
+    dict(type='PointToMultiViewDepth', grid_config=grid_config),
     dict(type='ObjectRangeFilter', point_cloud_range=point_cloud_range),
     dict(type='ObjectNameFilter', classes=class_names),
     dict(type='DefaultFormatBundle3D', class_names=class_names),
@@ -193,6 +187,7 @@ test_pipeline = [
         use_dim=5,
         file_client_args=file_client_args),
     dict(type='LoadAnnotations3D', with_bbox_3d=True, with_label_3d=True),
+    dict(type='PointToMultiViewDepth', grid_config=grid_config),
     dict(
         type='MultiScaleFlipAug3D',
         img_scale=(1333, 800),
@@ -211,6 +206,13 @@ test_pipeline = [
 eval_pipeline = [
     dict(type='LoadMultiViewImageFromFiles_BEVDet', data_config=data_config),
     dict(
+        type='LoadPointsFromFile',
+        coord_type='LIDAR',
+        load_dim=5,
+        use_dim=5,
+        file_client_args=file_client_args),
+    dict(type='PointToMultiViewDepth', grid_config=grid_config),
+    dict(
         type='DefaultFormatBundle3D',
         class_names=class_names,
         with_label=False),
@@ -226,7 +228,7 @@ input_modality = dict(
 
 data = dict(
     samples_per_gpu=8,
-    workers_per_gpu=8,
+    workers_per_gpu=4,
     train=dict(
         type='CBGSDataset',
         dataset=dict(
@@ -242,56 +244,60 @@ data = dict(
             # and box_type_3d='Depth' in sunrgbd and scannet dataset.
             box_type_3d='LiDAR',
             img_info_prototype='bevdet')),
-    val=dict(pipeline=test_pipeline, 
+    val=dict(data_root=data_root,
+             ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+             pipeline=test_pipeline, 
              classes=class_names,
              filter_empty_gt=False,
              modality=input_modality, 
              img_info_prototype='bevdet'),
-    test=dict(pipeline=test_pipeline, 
-             classes=class_names,
-             filter_empty_gt=False,
-             modality=input_modality, 
-             img_info_prototype='bevdet'))
+    test=dict(data_root=data_root,
+              ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+              pipeline=test_pipeline, 
+              classes=class_names,
+              filter_empty_gt=False,
+              modality=input_modality, 
+              img_info_prototype='bevdet'))
 
 # Optimizer
-lr_config = dict(
-    policy='cyclic',
-    target_ratio=(5, 1e-4),
-    cyclic_times=1,
-    step_ratio_up=0.4,
-)
-
 optimizer = dict(type='AdamW', lr=2e-4, weight_decay=0.01)
-evaluation = dict(interval=20, pipeline=eval_pipeline)
+optimizer_config = dict(grad_clip=None)
+lr_config = dict(
+    policy='step',
+    warmup='linear',
+    warmup_iters=500,
+    warmup_ratio=0.001,
+    step=[16, 22])
+runner = dict(type='EpochBasedRunner', max_epochs=24)
 
 img_norm_cfg = dict(
     mean=[[0.485, 0.456, 0.406]], std=[0.229, 0.224, 0.225], to_rgb=False)
 
-attack_severity_type='num_steps'
-attack = dict(
-    type='PGD',
-    epsilon=[5/255/0.229, 5/255/0.224, 5/255/0.225],
-    step_size=[0.1/255/0.229, 0.1/255/0.224, 0.1/255/0.225],
-    num_steps=[2,4,6,8,10,20,30,40,50],
-    img_norm=img_norm_cfg,
-    single_camera=False,
-    totensor=True,
-    # loss_fn=dict(type='ClassficationObjective', activate=False),
-    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
-    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
-    category='Madry',
-    rand_init=True,
-    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
-
-# attack_severity_type='scale'
+# attack_severity_type='num_steps'
 # attack = dict(
-#     type='PatchAttack',
-#     step_size=[5/255/0.229, 5/255/0.224, 5/255/0.225],
-#     dynamic_patch_size=True,
-#     scale=[0.1, 0.2, 0.3, 0.4],
-#     num_steps=50,
-#     totensor=True,
+#     type='PGD',
+#     epsilon=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+#     step_size=[0.1/255/0.229, 0.1/255/0.224, 0.1/255/0.225],
+#     num_steps=[2,4,6,8,10,20,30,40,50],
 #     img_norm=img_norm_cfg,
+#     single_camera=False,
+#     totensor=True,
 #     # loss_fn=dict(type='ClassficationObjective', activate=False),
+#     # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
 #     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     category='Madry',
+#     rand_init=True,
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+attack_severity_type='scale'
+attack = dict(
+    type='PatchAttack',
+    step_size=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+    dynamic_patch_size=True,
+    scale=[0.1, 0.2, 0.3, 0.4],
+    num_steps=50,
+    totensor=True,
+    img_norm=img_norm_cfg,
+    # loss_fn=dict(type='ClassficationObjective', activate=False),
+    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
