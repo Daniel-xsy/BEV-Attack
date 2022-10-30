@@ -18,4 +18,5 @@ nuscenes
 nuscenes_mini
 
 # visual results
-visual
+visual/*/*.png
+visual/*/*.pdf
