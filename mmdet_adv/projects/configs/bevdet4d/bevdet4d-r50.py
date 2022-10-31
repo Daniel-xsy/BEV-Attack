@@ -65,6 +65,7 @@ model = dict(
     img_view_transformer=dict(type='ViewTransformerLiftSplatShoot',
                               grid_config=grid_config,
                               data_config=data_config,
+                              use_bev_pool=False,
                               numC_Trans=numC_Trans),
     img_bev_encoder_backbone = dict(type='ResNetForBEVDet',  numC_input=128,
                                     num_channels=[128, 256, 512]),

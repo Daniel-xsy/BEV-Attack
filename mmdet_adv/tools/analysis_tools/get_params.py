@@ -15,6 +15,7 @@ for i in range(len(folder)):
         all = 0
         for key in list(model['state_dict'].keys()):
             if 'backbone' in key:
+            # if key.startswith('img_backbone'):
                 backbone += model['state_dict'][key].nelement()
             elif 'neck' in key:
                 neck += model['state_dict'][key].nelement()

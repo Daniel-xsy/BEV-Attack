@@ -1,15 +1,17 @@
 # ---------------------------------------------
 # Copyright (c) OpenMMLab. All rights reserved.
 # ---------------------------------------------
-#  Modified by Zhiqi Li
+#  Modified by Shaoyuan Xie
+#  Used to visualize adversarial examples
 # ---------------------------------------------
 
 import os
 import time
+import numpy as np
 import os.path as osp
 import warnings
 import argparse
-from typing import List, Tuple
+from typing import Tuple,List
 
 import mmcv
 import torch
@@ -26,15 +28,38 @@ import mmdet3d
 from mmdet3d.datasets import build_dataset
 from mmdet3d.models import build_model
 
-from projects.mmdet3d_plugin.bevformer.apis.test import custom_multi_gpu_test
-from projects.mmdet3d_plugin.datasets.builder import build_dataloader
+from mmdet3d.datasets import build_dataloader
+from mmdet3d.attacks import build_attack
+from tools.utils import single_gpu_attack
 
-from projects.mmdet3d_plugin.attacks import build_attack
-from projects.mmdet3d_plugin.apis import single_gpu_attack
+import matplotlib.pyplot as plt
+import torchvision.transforms.functional as F
+from torchvision.utils import make_grid
 
-from shutil import copyfile
 
-from tools.analysis_tools.parse_results import collect_metric, Logging_str
+def denormalize(img, mean, std):
+    
+    img = img * torch.tensor(std).view(3, 1, 1) + torch.tensor(mean).view(3, 1, 1)
+
+    # img = img / 255
+
+    return img
+
+depth_estimation = []
+def layer_hook(module, inputs, outputs):
+    depth_estimation.append(outputs.softmax(dim=1))
+
+
+def show(imgs, mean, std):
+    if not isinstance(imgs, list):
+        imgs = [imgs]
+    fig, axs = plt.subplots(ncols=len(imgs), squeeze=False)
+    for i, img in enumerate(imgs):
+        img = img.detach()
+        img = denormalize(img, mean, std)
+        img = F.to_pil_image(img)
+        axs[0, i].imshow(np.asarray(img))
+        axs[0, i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
 
 def parse_args():
@@ -42,8 +67,8 @@ def parse_args():
         description='MMDet attack a model')
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
-    parser.add_argument('--wb_checkpoint', help='white box checkpoint for transfer black box attack')
-    parser.add_argument('--out', help='output result file in pickle format')
+    parser.add_argument('--attack', action='store_true', default=False)
+    parser.add_argument('--show', action='store_true', default=False)
     args = parser.parse_args()
 
     return args
@@ -52,7 +77,6 @@ def parse_args():
 def main():
 
     args = parse_args()
-    assert args.out is not None, "Specify output dir by add --out argument"
 
     cfg = Config.fromfile(args.config)
     # import modules from string list.
@@ -78,12 +102,6 @@ def main():
                     print(_module_path)
                     plg_lib = importlib.import_module(_module_path)
 
-    transfer_attack = False
-    if args.wb_checkpoint is not None or cfg.get('wb_model', None):
-        assert cfg.get('wb_model', None), "When activate black box attack, should specify wb_model in config file"
-        assert args.wb_checkpoint is not None, "When activate black box attack, should specify wb_model checkpoint in arg"
-        transfer_attack = True
-
     # set cudnn_benchmark
     if cfg.get('cudnn_benchmark', False):
         torch.backends.cudnn.benchmark = True
@@ -107,9 +125,6 @@ def main():
             for ds_cfg in cfg.data.test:
                 ds_cfg.pipeline = replace_ImageToTensor(ds_cfg.pipeline)
 
-
-    set_random_seed(0, deterministic=False)
-
     # build the dataloader
     dataset = build_dataset(cfg.data.test)
     # test_mode false to return ground truth used in the attack
@@ -122,22 +137,15 @@ def main():
         workers_per_gpu=cfg.data.workers_per_gpu,
         dist=False,
         shuffle=False,
-        nonshuffler_sampler=cfg.data.nonshuffler_sampler,
     )
 
     # build the model and load checkpoint
     cfg.model.train_cfg = None
     model = build_model(cfg.model, test_cfg=cfg.get('test_cfg'))
-    if transfer_attack:
-        wb_model = build_model(cfg.wb_model, test_cfg=cfg.get('test_cfg'))
-
     fp16_cfg = cfg.get('fp16', None)
     if fp16_cfg is not None:
-        assert False, "Not support float16 model"
         wrap_fp16_model(model)
     checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
-    if transfer_attack:
-        wb_checkpoint = load_checkpoint(wb_model, args.wb_checkpoint, map_location='cpu')
 
     # old versions did not save class info in checkpoints, this walkaround is
     # for backward compatibility
@@ -152,36 +160,22 @@ def main():
         # segmentation dataset has `PALETTE` attribute
         model.PALETTE = dataset.PALETTE
 
-    # Fix parameters
     for n, p in model.named_parameters():
         p.requires_grad = False
     model = MMDataParallel(model, device_ids=[0])
 
-    if transfer_attack:
-        for n, p in wb_model.named_parameters():
-            p.requires_grad = False
-        wb_model = MMDataParallel(wb_model, device_ids=[0])
-    else:
-        wb_model = model
+    # Attack Debug
+    if args.attack:
 
-    attack_severity_type = cfg.attack_severity_type
-    assert attack_severity_type in list(cfg.attack.keys()), f"Attack severity type {attack_severity_type} \
-        is not a parameters in attack type {cfg.attack.type}"
-    severity_list = cfg.attack[attack_severity_type]
-    assert isinstance(severity_list, List), f"{attack_severity_type} in attack {cfg.attack.type} should be list\
-        now {type(severity_list)}"
-        
-    logging = Logging_str(osp.join('../log', cfg.model.type, args.out, f"{os.path.splitext(os.path.basename(args.config))[0]}.md"))
-    logging.write(f"Load model checkpoint from {args.checkpoint}")
+        attack_severity_type = cfg.attack_severity_type
+        assert attack_severity_type in list(cfg.attack.keys()), f"Attack severity type {attack_severity_type} \
+            is not a parameters in attack type {cfg.attack.type}"
+        severity_list = cfg.attack[attack_severity_type]
+        assert isinstance(severity_list, List), f"{attack_severity_type} in attack {cfg.attack.type} should be list\
+            now {type(severity_list)}"
+        cfg.attack[attack_severity_type] = np.random.choice(severity_list)
+        print(f'Random choose {attack_severity_type}: {cfg.attack[attack_severity_type]}')
 
-    logging.write(f"## Model Configuration\n")
-    logging.write(f"```")
-    logging.write(cfg.pretty_text)
-    logging.write(f"```\n")
-
-    for i in range(len(severity_list)):
-        cfg.attack[attack_severity_type] = severity_list[i]
-        # build attack
         attacker = build_attack(cfg.attack)
         if hasattr(attacker, 'loader'):
             attack_dataset = build_dataset(attacker.loader)
@@ -190,33 +184,54 @@ def main():
                 samples_per_gpu=samples_per_gpu,
                 workers_per_gpu=cfg.data.workers_per_gpu,
                 dist=False,
-                shuffle=False,
-                nonshuffler_sampler=cfg.data.nonshuffler_sampler,
+                shuffle=False
             )
             attacker.loader = attack_loader
 
-        outputs = single_gpu_attack(model, wb_model, data_loader, attacker)
+        # outputs = single_gpu_attack(model, data_loader, attacker)
+        data_loader = iter(data_loader)
+        data = next(data_loader)
+        data = next(data_loader)
+        
+        mean = cfg.img_norm_cfg['mean']
+        std = cfg.img_norm_cfg['std']
 
-        kwargs = {}
-        kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, args.out, f"{attack_severity_type}_{severity_list[i]}")
+        if args.show:
+            orig_img = make_grid(data['img_inputs'][0][0].squeeze()[:4])
+            show(orig_img, mean, std)
+            plt.savefig('original.png', dpi=400)
+            plt.cla()
 
-        if not osp.isdir(kwargs['jsonfile_prefix']): os.makedirs(kwargs['jsonfile_prefix'])
-        # copy config file
-        copyfile(args.config, osp.join(kwargs['jsonfile_prefix'], 'config.py'))
+        print('running attacks')
+        inputs = attacker.run(model, **data)   
 
-        eval_kwargs = cfg.get('evaluation', {}).copy()
-        # hard-code way to remove EvalHook args
-        for key in [
-                'interval', 'tmpdir', 'start', 'gpu_collect', 'save_best',
-                'rule'
-        ]:
-            eval_kwargs.pop(key, None)
-        eval_kwargs.update(dict(metric='bbox', **kwargs))
+        hook = model.img_view_transformer.depthnet.register_forward_hook(layer_hook)
+        results = model(return_loss=False, rescale=True, **inputs)
+        depth = depth_estimation
+        hook.remove()
 
-        results = dataset.evaluate(outputs, **eval_kwargs)
-        logging.write(f"### {attack_severity_type} {severity_list[i]}\n")
-        collect_metric(results, logging)
-        # logging.write(str(results))
+        if args.show:
+            print('save results')
+            adv_img = make_grid(inputs['img_inputs'][0][0].squeeze()[:4])
+            show(adv_img, mean, std)
+            plt.savefig('adver.png', dpi=400)
+            plt.cla()
+
+    else:
+        data_loader = iter(data_loader)
+        data = next(data_loader)
+        inputs = {'img_inputs': data['img_inputs'], 'img_metas': data['img_metas']}   
+        if args.show:
+            mean = cfg.img_norm_cfg['mean']
+            std = cfg.img_norm_cfg['std']
+            orig_img = make_grid(data['img_inputs'][0][0].squeeze())
+            show(orig_img, mean, std)
+            plt.savefig('original.png', dpi=200)
+            plt.cla()
+        results = model(return_loss=False, rescale=True, **inputs)
+    
+
+
 
 
 if __name__ == '__main__':
