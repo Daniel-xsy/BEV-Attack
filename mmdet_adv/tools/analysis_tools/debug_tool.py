@@ -54,7 +54,7 @@ def show(imgs, mean, std):
         img = img.detach()
         img = denormalize(img, mean, std)
         img = F.to_pil_image(img)
-        axs[0, i].imshow(np.asarray(img))
+        axs[0, i].imshow(np.asarray(img)[:,:,::-1])
         axs[0, i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
 
@@ -176,16 +176,6 @@ def main():
         print(f'Random choose {attack_severity_type}: {cfg.attack[attack_severity_type]}')
 
         attacker = build_attack(cfg.attack)
-        if hasattr(attacker, 'loader'):
-            attack_dataset = build_dataset(attacker.loader)
-            attack_loader = build_dataloader(
-                attack_dataset,
-                samples_per_gpu=samples_per_gpu,
-                workers_per_gpu=cfg.data.workers_per_gpu,
-                dist=False,
-                shuffle=False
-            )
-            attacker.loader = attack_loader
 
         # outputs = single_gpu_attack(model, data_loader, attacker)
         data_loader = iter(data_loader)
@@ -201,6 +191,7 @@ def main():
             plt.cla()
 
         print('running attacks')
+        attacker.train(model)
         inputs = attacker.run(model, **data)   
 
         if args.show:
@@ -213,6 +204,13 @@ def main():
     else:
         data_loader = iter(data_loader)
         data = next(data_loader)
+        if args.show:
+            mean = cfg.img_norm_cfg['mean']
+            std = cfg.img_norm_cfg['std']
+            orig_img = make_grid(data['img'][0].data[0].squeeze()[0])
+            show(orig_img, mean, std)
+            plt.savefig('original.png', dpi=200)
+            plt.cla()
         inputs = {'img': data['img'], 'img_metas': data['img_metas']}   
         results = model(return_loss=False, rescale=True, **inputs)
         

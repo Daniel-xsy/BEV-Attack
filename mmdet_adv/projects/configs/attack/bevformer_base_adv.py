@@ -263,28 +263,53 @@ log_config = dict(
 checkpoint_config = dict(interval=1)
 
 
-# attack_severity_type = 'scale'
+# attack_severity_type = 'patch_size'
 # attack = dict(
 #     type='PatchAttack',
 #     step_size=5,
-#     dynamic_patch_size=True,
-#     scale=[0.1, 0.2, 0.3, 0.4],
+#     dynamic_patch_size=False,
+#     # scale=[0.3], # 0.1, 0.2, 0.4
 #     num_steps=50,
-#     # patch_size=(15,15),
+#     patch_size=[25],
 #     img_norm=img_norm_cfg,
-#     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
-attack_severity_type = 'num_steps'
+# attack_severity_type = 'num_steps'
+# attack = dict(
+#     type='PGD',
+#     epsilon=5,
+#     step_size=0.1,
+#     num_steps=[10],
+#     img_norm=img_norm_cfg,
+#     single_camera=False,
+#     loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1, targets=0),
+#     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     category='Madry',
+#     rand_init=True,
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+attack_severity_type = 'scale'
 attack = dict(
-    type='PGD',
-    epsilon=5,
-    step_size=0.1,
-    num_steps=[2,4,6,8,10,20,30,40,50],
+    type='UniversalPatchAttackOptim',
+    epoch=5,
+    lr=10,
+    is_train=True,
+    category_specify=False,
+    dataset_cfg=dict(
+        dataset=dict(type=dataset_type,
+                    data_root=data_root,
+                    ann_file=data_root + 'nuscenes_infos_temporal_train.pkl',
+                    pipeline=test_pipeline, bev_size=(bev_h_, bev_w_),
+                    test_mode=False,
+                    adv_mode=True,
+                    classes=class_names, modality=input_modality),
+        shuffle=True,
+        workers_per_gpu=32),
+    dynamic_patch_size=False,
+    scale=[0.2],
+    patch_size=(200,200),
     img_norm=img_norm_cfg,
-    single_camera=False,
-    loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
-    # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
-    category='Madry',
-    rand_init=True,
+    loss_fn=dict(type='TargetedClassificationObjective',num_cls=10,random=True,thresh=0.1,targets=None),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

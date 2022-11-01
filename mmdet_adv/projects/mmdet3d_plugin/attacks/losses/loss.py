@@ -41,9 +41,13 @@ class TargetedClassificationObjective(nn.Module):
 
     # Fix targeted attack for fair comparasion
     # last dimension only used in FCOS3D for background
-    TARGETS = torch.tensor((4, 6, 0, 7, 8, 6, 2, 0, 1, 2))
+    # TARGETS = torch.tensor((4, 6, 0, 7, 8, 6, 2, 0, 1, 2))
+    CLASSES = ('car', 'truck', 'trailer', 'bus', 'construction_vehicle',
+               'bicycle', 'motorcycle', 'pedestrian', 'traffic_cone',
+               'barrier')
+    TARGETS = torch.tensor((7, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
-    def __init__(self, num_cls=10, random=True, thresh=0.1):
+    def __init__(self, num_cls=10, random=True, thresh=0.1, targets=None):
         """Classification adversarial objective, use targeted adversarial attacks
 
         Args:
@@ -56,6 +60,10 @@ class TargetedClassificationObjective(nn.Module):
         self.random = random
         self.num_cls = num_cls
         self.thresh = thresh
+        if targets:
+            assert isinstance(targets, float), "Only support assign one target class"
+            self.TARGETS = torch.tensor(targets).repeat(num_cls)
+        print(f'Attack Target: {self.TARGETS}')
         # self.targets = self._random_target()
 
         # TODO: Add ohther attack methods
