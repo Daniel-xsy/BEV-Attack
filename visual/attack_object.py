@@ -777,25 +777,25 @@ if __name__ == '__main__':
     # plot_scatter_api(clean_accs, adver_accs, model_names, 'mAP', 'Adversarial mAP', PARAMETERS, 'visual/test.png') # visual/test.png
 
 
-    # ###############################################################
-    # # Bar1: Ablation Study: BEV Model v.s. Non-BEV Model
-    # # - [ ] Make it look better !
-    # metric = 'NDS'
-    # MODELS = ['FCOS3D','PGD','BEVDepth_R101','BEVDet_R101']
-    # model_accs = collect_average_adv_acc([pgd_attack_untarget, pgd_attack_local, dynamic_patch_untarget_attack, dynamic_patch_loc_attack], metric=metric)
-    # plot_bar_api(model_accs, MODELS, ['pgd cls', 'pgd loc', 'patch cls', 'patch loc'], out_path='visual/figure/bev_nonbev.pdf', ylabel=metric)
-
-
-    ##############################################################
-    # Fig4: Ablation: model size
-    #  - [] 
-    # 'BEVFormer_Tiny','BEVFormer_Tiny_Temp',
-    MODELS = ['BEVFormer_Small_Temp','BEVFormer_Base_Temp',
-              'DETR3D_CBGS','FCOS3D','PGD','BEVDepth_R50','BEVDet_R50','PETR_R50']
+    ###############################################################
+    # Bar1: Ablation Study: BEV Model v.s. Non-BEV Model
+    # - [ ] Make it look better !
     metric = 'NDS'
-    clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_untarget, pgd_attack_local, dynamic_patch_untarget_attack,dynamic_patch_loc_attack], 
-                                            param=True, val=True, metric=metric, range=-1)
-    for i in range(len(model_names)):
-        print(f'{model_names[i]}  clean_{metric}: {clean_accs[i]}  adver_{metric}: {adver_accs[i]}') # visual/figure/model_size.pdf
-    plot_scatter_api(clean_accs, adver_accs, model_names, 'Model Size', f'Adversarial {metric}', PARAMETERS, 'visual/figure/model_size.pdf', \
-                     size=(6, 6)) # 
+    MODELS = ['FCOS3D','PGD','BEVDepth_R101','BEVDet_R101']
+    model_accs = collect_average_adv_acc([pgd_attack_untarget, pgd_attack_local, dynamic_patch_untarget_attack, dynamic_patch_loc_attack], metric=metric)
+    plot_bar_api(model_accs, MODELS, ['pixel cls', 'pixel loc', 'patch cls', 'patch loc'], out_path='visual/figure/bev_nonbev.pdf', ylabel=metric)
+
+
+    # ##############################################################
+    # # Fig4: Ablation: model size
+    # #  - [] 
+    # # 'BEVFormer_Tiny','BEVFormer_Tiny_Temp',
+    # MODELS = ['BEVFormer_Small_Temp','BEVFormer_Base_Temp',
+    #           'DETR3D_CBGS','FCOS3D','PGD','BEVDepth_R50','BEVDet_R50','PETR_R50']
+    # metric = 'NDS'
+    # clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_untarget, pgd_attack_local, dynamic_patch_untarget_attack,dynamic_patch_loc_attack], 
+    #                                         param=True, val=True, metric=metric, range=-1)
+    # for i in range(len(model_names)):
+    #     print(f'{model_names[i]}  clean_{metric}: {clean_accs[i]}  adver_{metric}: {adver_accs[i]}') # visual/figure/model_size.pdf
+    # plot_scatter_api(clean_accs, adver_accs, model_names, 'Model Size', f'Adversarial {metric}', PARAMETERS, 'visual/figure/model_size.pdf', \
+    #                  size=(6, 6)) # 

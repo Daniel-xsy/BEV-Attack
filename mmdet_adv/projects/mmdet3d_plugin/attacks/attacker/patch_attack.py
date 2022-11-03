@@ -547,6 +547,7 @@ class UniversalPatchAttackOptim(BaseAttacker):
                  assigner,
                  lr=100,
                  category_specify=True,
+                 max_train_samples=None,
                  is_train=True,
                  mono_model=False,
                  catagory_num=10,
@@ -575,6 +576,7 @@ class UniversalPatchAttackOptim(BaseAttacker):
         self.catagory_num = catagory_num
         self.dynamic_patch = dynamic_patch_size
         self.scale = scale
+        self.max_train_samples = max_train_samples
         self.mono_model = mono_model
         self.loader = self._build_load(dataset_cfg)
         self.assigner = BBOX_ASSIGNERS.build(assigner)
@@ -612,6 +614,7 @@ class UniversalPatchAttackOptim(BaseAttacker):
 
         if patch_path:
             # return loaded patch
+            print(f'Load patch from file {patch_path}')
             patches = mmcv.load(patch_path)
             return patches
 
@@ -637,28 +640,41 @@ class UniversalPatchAttackOptim(BaseAttacker):
 
         for i in range(self.epoch):
             for batch_id, data in enumerate(self.loader):
-
+                if self.max_train_samples:
+                    if batch_id + i * len(self.loader) > self.max_train_samples:
+                        return self.patches
                 self.patches.requires_grad_()
+                self.optimizer.zero_grad()
 
                 img, img_metas = data['img'], data['img_metas']
                 gt_bboxes_3d = data['gt_bboxes_3d']
                 gt_labels_3d = data['gt_labels_3d']
 
                 reference_points_cam, bev_mask, patch_size = self.get_reference_points(img, img_metas, gt_bboxes_3d)
+                # No groud truth
+                if reference_points_cam is None:
+                    continue
                 inputs = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
-                try:
-                    outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs)
-                except:
-                    outputs = model(return_loss=False, rescale=True, **inputs) # adv_mode=True,
+                # outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs)
+                outputs = model(return_loss=False, rescale=True, **inputs) # adv_mode=True,
                 # assign pred bbox to ground truth
                 assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
+                if assign_results is None:
+                    continue
                 # multiply -1 to max loss_adv
                 loss_adv = -1 * self.loss_fn(**assign_results)
 
-                loss_adv.backward()
-                # update
-                self.optimizer.step()
-                self.patches = torch.clamp(self.patches.detach(), self.lower.view(1, 3, 1, 1), self.upper.view(1, 3, 1, 1))
+                # workaround: When the patch is not attach to image
+                # there might be no grad
+                try:
+                    loss_adv.backward()
+                    # update
+                    self.optimizer.step()
+                except:
+                    print('Warning: No grad')
+                # using in-place operation
+                # or the id(self.patches) is not equal to that in optimizer
+                self.patches.data.clamp_(self.lower.view(1, 3, 1, 1), self.upper.view(1, 3, 1, 1))
                 print(f'[Epoch: {i}/{self.epoch}] Iteration: {batch_id}/{len(self.loader)}  Loss: {loss_adv}')
 
         return self.patches
@@ -673,8 +689,12 @@ class UniversalPatchAttackOptim(BaseAttacker):
             inputs (dict): {'img': img, 'img_metas': img_metas}
         """
         reference_points_cam, bev_mask, patch_size = self.get_reference_points(img, img_metas, gt_bboxes_3d)
-        inputs = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
-        return inputs
+        # No ground truth in image
+        if reference_points_cam is None:
+            return {'img': img, 'img_metas': img_metas}
+        else:
+            inputs = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
+            return inputs
 
     def place_patch(self, img, img_metas, gt_labels, reference_points_cam, bev_mask, patch_size=torch.tensor((5,5))):
             """Place patch to the center of object
@@ -690,12 +710,16 @@ class UniversalPatchAttackOptim(BaseAttacker):
             Reurn:
                 patch_img (torch.Tensor): pacthed image
             """
-
-            img_ = img[0].data[0].clone()
+            img_copy = deepcopy(img)
+            img_ = img_copy[0].data[0].clone()
             gt_labels = gt_labels[0].data[0][0]
-            B, M, C, H, W = img_.size()
+            if self.mono_model:
+                B, C, H, W = img_.size()
+                M = 1
+            else:
+                B, M, C, H, W = img_.size()
             M_, N = reference_points_cam.size()[:2]
-            assert M == M_, f"camera number in image(f{M}) not equal to camera number in reference_points_cam(f{M_})"
+            assert M == M_, f"camera number in image({M}) not equal to camera number in reference_points_cam(f{M_})"
             assert B == 1, f"Batchsize should be set to 1 when attack, now f{B}"
             # assert (patch_size % 2).any() == 1, f"Patch size should set to odd number, now f{patch_size}"
             assert patch_size.size(-1) == 2, f"Last dim of patch size should have size of 2, now f{patch_size.size(0)}"
@@ -727,28 +751,37 @@ class UniversalPatchAttackOptim(BaseAttacker):
                     w_, h_ = int(pos_x[m, n] - neg_x[m, n]), int(pos_y[m, n] - neg_y[m, n])
                     # resize patch size
                     resize_patch = F.interpolate(patches[gt_labels[n]].unsqueeze(dim=0), size=(h_, w_), mode='bilinear', align_corners=True).squeeze(dim=0)
-                    img_[0, m, :, neg_y[m, n] : pos_y[m, n], neg_x[m, n] : pos_x[m, n]] = resize_patch # workaround to avoid one pixel
-                    a = 1
+                    if self.mono_model:
+                        img_[0, :, neg_y[m, n] : pos_y[m, n], neg_x[m, n] : pos_x[m, n]] = resize_patch
+                    else:
+                        img_[0, m, :, neg_y[m, n] : pos_y[m, n], neg_x[m, n] : pos_x[m, n]] = resize_patch
 
-            img[0].data[0] = img_
-            return {'img': img, 'img_metas': img_metas}
+            img_copy[0].data[0] = img_
+            return {'img': img_copy, 'img_metas': img_metas}
 
     def get_reference_points(self, img, img_metas, gt_bboxes_3d):
 
-        img = deepcopy(img)
         img_ = img[0].data[0].clone()
-        B, M, C, H, W = img_.size()
+        B = img_.size(0)
+        assert B == 1, f"When attack models, batchsize should be set to 1, but now {B}"
+        C, H, W = img_.size()[-3:]
         gt_bboxes_3d_ = gt_bboxes_3d[0].data[0][0].clone()
+
+        # when evaluate monocular model, some camera do not cantain bbox
+        if len(gt_bboxes_3d_.tensor) == 0:
+            return None, None, None
+
         # project from world coordinate to image coordinate
-        center = gt_bboxes_3d_.gravity_center
-        corners = gt_bboxes_3d_.corners
-        center = torch.cat(
-            (center, torch.ones_like(center[..., :1])), -1).unsqueeze(dim=-1)
+        center = deepcopy(gt_bboxes_3d_.gravity_center)
+        corners = deepcopy(gt_bboxes_3d_.corners)
 
         if self.mono_model:
             # when attack monocular models, the coordinate is camera coordinate
             # we need to transform to lidar coordinate first
             center, corners = self.camera2lidar(center, corners, img_metas)
+
+        center = torch.cat(
+            (center, torch.ones_like(center[..., :1])), -1).unsqueeze(dim=-1)
 
         lidar2img = img_metas[0].data[0][0]['lidar2img']
         lidar2img = np.asarray(lidar2img)
@@ -764,8 +797,8 @@ class UniversalPatchAttackOptim(BaseAttacker):
         reference_points_cam = reference_points_cam[..., 0:2] / torch.maximum(
             reference_points_cam[..., 2:3], torch.ones_like(reference_points_cam[..., 2:3]) * eps)
 
-        reference_points_cam[..., 0] /= img_metas[0].data[0][0]['img_shape'][0][1]
-        reference_points_cam[..., 1] /= img_metas[0].data[0][0]['img_shape'][0][0]
+        reference_points_cam[..., 0] /= W
+        reference_points_cam[..., 1] /= H
         bev_mask = (bev_mask & (reference_points_cam[..., 1:2] > 0.0)
                     & (reference_points_cam[..., 1:2] < 1.0)
                     & (reference_points_cam[..., 0:1] < 1.0)
@@ -821,3 +854,18 @@ class UniversalPatchAttackOptim(BaseAttacker):
         patch_size[..., 1] = (scale * (ymax - ymin))
         
         return patch_size.int()
+
+
+    def camera2lidar(self, center, corners, img_metas):
+        """Convert camera coordinate to lidar coordinate
+        """
+        assert 'sensor2lidar_translation' in list(img_metas[0].data[0][0].keys())
+        assert 'sensor2lidar_rotation' in list(img_metas[0].data[0][0].keys())
+
+        sensor2lidar_translation = np.array(img_metas[0].data[0][0]['sensor2lidar_translation'])
+        sensor2lidar_rotation = np.array(img_metas[0].data[0][0]['sensor2lidar_rotation'])
+
+        center = center @ sensor2lidar_rotation.T + sensor2lidar_translation
+        corners = corners @ sensor2lidar_rotation.T + sensor2lidar_translation
+
+        return center, corners
