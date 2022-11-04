@@ -34,7 +34,7 @@ from mmdet3d.models import build_model
 
 from mmdet3d.datasets import build_dataloader
 from mmdet3d.attacks import build_attack
-from tools.utils import single_gpu_attack
+from mmdet3d.apis import single_gpu_attack
 
 import matplotlib.pyplot as plt
 import torchvision.transforms.functional as F
@@ -179,16 +179,6 @@ def main():
         print(f'Random choose {attack_severity_type}: {cfg.attack[attack_severity_type]}')
 
         attacker = build_attack(cfg.attack)
-        if hasattr(attacker, 'loader'):
-            attack_dataset = build_dataset(attacker.loader)
-            attack_loader = build_dataloader(
-                attack_dataset,
-                samples_per_gpu=samples_per_gpu,
-                workers_per_gpu=cfg.data.workers_per_gpu,
-                dist=False,
-                shuffle=False
-            )
-            attacker.loader = attack_loader
 
         # outputs = single_gpu_attack(model, data_loader, attacker)
         data_loader = iter(data_loader)
@@ -204,6 +194,9 @@ def main():
             plt.cla()
 
         print('running attacks')
+        if hasattr(attacker, 'loader'):
+            if attacker.is_train:
+                attacker.train(model)
         inputs = attacker.run(model, **data)   
 
         if args.show:

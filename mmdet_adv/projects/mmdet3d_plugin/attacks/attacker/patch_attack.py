@@ -617,12 +617,20 @@ class UniversalPatchAttackOptim(BaseAttacker):
         """
 
         if patch_paths is not None:
-            # return loaded patch
             patches = 0
             for patch_path in patch_paths:
                 print(f'Load patch from file {patch_path}')
-                patches += mmcv.load(patch_path)
+                info = mmcv.load(patch_path)
+                patches_ = info['patch'].detach()
+                if info['img_norm_cfg']['to_rgb']:
+                    # a workaround to turn gbr ==> rgb
+                    patches_ = torch.tensor(patches_.numpy()[:, ::-1].copy())
+                patches += patches_
             patches /= len(patch_paths)
+
+            if self.totensor:
+                patches /= 255.0
+            patches = (patches - torch.tensor(self.img_norm['mean']).view(1, 3, 1, 1)) / torch.tensor(self.img_norm['std']).view(1, 3, 1, 1)
             return patches
 
         catagory_num = self.catagory_num if self.category_specify else 1

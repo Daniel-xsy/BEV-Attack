@@ -40,7 +40,6 @@ from torchvision.utils import make_grid
 def denormalize(img, mean, std):
     
     img = img * torch.tensor(std).view(3, 1, 1) + torch.tensor(mean).view(3, 1, 1)
-
     img = img / 255
 
     return img
@@ -54,7 +53,7 @@ def show(imgs, mean, std):
         img = img.detach()
         img = denormalize(img, mean, std)
         img = F.to_pil_image(img)
-        axs[0, i].imshow(np.asarray(img)[:,:,::-1])
+        axs[0, i].imshow(np.asarray(img)[:,:,::-1]) # [:,:,::-1]
         axs[0, i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
 
@@ -180,23 +179,25 @@ def main():
         # outputs = single_gpu_attack(model, data_loader, attacker)
         data_loader = iter(data_loader)
         data = next(data_loader)
+        data = next(data_loader)
         
         mean = cfg.img_norm_cfg['mean']
         std = cfg.img_norm_cfg['std']
 
         if args.show:
-            orig_img = make_grid(data['img'][0].data[0].squeeze()[0])
+            orig_img = make_grid(data['img'][0].data[0].squeeze())
             show(orig_img, mean, std)
             plt.savefig('original.png', dpi=200)
             plt.cla()
 
         print('running attacks')
-        attacker.train(model)
+        if attacker.is_train:
+            attacker.train(model)
         inputs = attacker.run(model, **data)   
 
         if args.show:
             print('save results')
-            adv_img = make_grid(inputs['img'][0].data[0].squeeze()[0])
+            adv_img = make_grid(inputs['img'][0].data[0].squeeze())
             show(adv_img, mean, std)
             plt.savefig('adver.png', dpi=200)
             plt.cla()

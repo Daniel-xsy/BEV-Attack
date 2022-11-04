@@ -289,15 +289,41 @@ img_norm_cfg = dict(
 #     rand_init=True,
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
-attack_severity_type='scale'
+# attack_severity_type='scale'
+# attack = dict(
+#     type='PatchAttack',
+#     step_size=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+#     dynamic_patch_size=True,
+#     scale=[0.1, 0.2, 0.3, 0.4],
+#     num_steps=50,
+#     totensor=True,
+#     img_norm=img_norm_cfg,
+#     # loss_fn=dict(type='ClassficationObjective', activate=False),
+#     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+attack_severity_type = 'scale'
 attack = dict(
-    type='PatchAttack',
-    step_size=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+    type='UniversalPatchAttackOptim',
+    epoch=1,
+    lr=5,
+    is_train=True,
+    category_specify=False,
+    dataset_cfg=dict(
+        dataset=dict(data_root='../../nuscenes_mini/',
+             ann_file='../../nuscenes_mini/' + 'nuscenes_infos_temporal_val.pkl',
+             pipeline=test_pipeline, 
+             classes=class_names,
+             filter_empty_gt=False,
+             modality=input_modality, 
+             img_info_prototype='bevdet'),
+        shuffle=True,
+        workers_per_gpu=32),
     dynamic_patch_size=True,
-    scale=[0.1, 0.2, 0.3, 0.4],
-    num_steps=50,
-    totensor=True,
+    patch_path=None,
+    scale=[0.3],
+    max_train_samples=323,
+    patch_size=(200,200),
     img_norm=img_norm_cfg,
-    # loss_fn=dict(type='ClassficationObjective', activate=False),
-    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    loss_fn=dict(type='TargetedClassificationObjective',num_cls=10,random=True,thresh=0.1,targets=None),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

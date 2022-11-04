@@ -30,7 +30,9 @@ def single_gpu_attack(model,
 
     # universal attack: train universial patch first
     if hasattr(attacker, 'loader'):
-        attacker.train(model)
+        if attacker.is_train:
+            attacker.train(model)
+            mmcv.dump(attacker.patches, f'./uni_patch/{model.module.__class__.__name__}_coslr_size{attacker.patch_size[0]}_scale{attacker.scale}_lr{attacker.lr}_sample{attacker.max_train_samples}.pkl')
 
     prog_bar = mmcv.ProgressBar(len(dataset))
     for i, data in enumerate(data_loader):

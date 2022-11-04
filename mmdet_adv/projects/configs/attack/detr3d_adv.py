@@ -256,7 +256,7 @@ attack = dict(
     dynamic_patch_size=True,
     scale=[0.3],
     max_train_samples=323,
-    # patch_path=['/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch/PGDMono3D_coslr_size100_scale0.3_lr10_sample1938.pkl'],
+    patch_path=['/home/cixie/shaoyuan/BEV-Attack/zoo/BEVDet/uni_patch_new/BEVDet_Adv_coslr_size100_scale0.3_lr0.0392156862745098_sample323.pkl'],
     patch_size=(100,100),
     img_norm=img_norm_cfg,
     loss_fn=dict(type='TargetedClassificationObjective',num_cls=10, random=True, thresh=0.1, targets=None),

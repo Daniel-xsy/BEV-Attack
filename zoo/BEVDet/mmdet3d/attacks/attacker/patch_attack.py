@@ -527,6 +527,11 @@ class UniversalPatchAttackOptim(BaseAttacker):
     """Universal PatchAttack, one fixed patch pattern adversarial to all scenes and object
     using optimizer for training patch
     """
+
+    # workaround to align different image coordinate
+    RESIZE = (768, 432)
+    CROP = (32, 176, 736, 432)
+
     def __init__(self,
                  epoch,
                  dataset_cfg,
@@ -567,6 +572,9 @@ class UniversalPatchAttackOptim(BaseAttacker):
         self.max_train_samples = max_train_samples
         self.mono_model = mono_model
         self.adv_mode = adv_mode
+        self.lr = lr
+        if self.totensor:
+            self.lr /= 255.0
         self.loader = self._build_load(dataset_cfg)
         self.assigner = BBOX_ASSIGNERS.build(assigner)
         self.loss_fn = LOSSES.build(loss_fn)
@@ -583,7 +591,8 @@ class UniversalPatchAttackOptim(BaseAttacker):
         assert not category_specify or catagory_num != 0, f"When catagory specify is activated, catagory number can't be 0"
         # init patch
         self.patches = self._init_patch(patch_path)
-        self.optimizer = optim.Adam([self.patches], lr=lr)
+        if is_train:
+            self.optimizer = optim.Adam([self.patches], lr=lr)
 
     def _build_load(self, dataset_cfg):
         dataset = build_dataset(dataset_cfg.dataset)
@@ -594,24 +603,37 @@ class UniversalPatchAttackOptim(BaseAttacker):
                                        shuffle=True)
         return data_loader
 
-    def _init_patch(self, patch_path):
+    def _init_patch(self, patch_paths):
         """Initilize patch pattern
 
         Return:
             patches (torch.Tensor): init patch
         """
 
-        if patch_path:
-            # return loaded patch
-            print(f'Load patch from file {patch_path}')
-            patches = mmcv.load(patch_path)
+        if patch_paths is not None:
+            patches = 0
+            for patch_path in patch_paths:
+                print(f'Load patch from file {patch_path}')
+                info = mmcv.load(patch_path)
+                patches_ = info['patch'].detach()
+                if not info['img_norm_cfg']['to_rgb']:
+                    # a workaround to turn gbr ==> rgb
+                    patches_ = torch.tensor(patches_.numpy()[:, ::-1].copy())
+                patches += patches_
+            patches /= len(patch_paths)
+
+            if self.totensor:
+                patches /= 255.0
+            patches = (patches - torch.tensor(self.img_norm['mean']).view(1, 3, 1, 1)) / torch.tensor(self.img_norm['std']).view(1, 3, 1, 1)
             return patches
 
         catagory_num = self.catagory_num if self.category_specify else 1
 
-        # init patch pixel uniformly from [0, 255]
-        patches = 255 * torch.rand((catagory_num, 3, self.patch_size[0], self.patch_size[1]))
-        # patches = 255 * torch.ones((catagory_num, 3, self.patch_size[0], self.patch_size[1])) # only for debug usage
+        if self.totensor:
+            maxi = 1.0
+        else:
+            maxi = 255.0
+        patches = maxi * torch.rand((catagory_num, 3, self.patch_size[0], self.patch_size[1]))
         # normalize
         patches = (patches - torch.tensor(self.img_norm['mean']).view(1, 3, 1, 1)) / torch.tensor(self.img_norm['std']).view(1, 3, 1, 1)
 
@@ -632,10 +654,11 @@ class UniversalPatchAttackOptim(BaseAttacker):
                 if self.max_train_samples:
                     if batch_id + i * len(self.loader) > self.max_train_samples:
                         return self.patches
+                self._adjust_learning_rate(i * len(self.loader) + batch_id)
                 self.patches.requires_grad_()
                 self.optimizer.zero_grad()
 
-                img, img_metas = data['img'], data['img_metas']
+                img, img_metas = data['img_inputs'], data['img_metas']
                 gt_bboxes_3d = data['gt_bboxes_3d']
                 gt_labels_3d = data['gt_labels_3d']
 
@@ -670,11 +693,12 @@ class UniversalPatchAttackOptim(BaseAttacker):
                 self.optimizer.step()
                 # using in-place operation to clip patch range
                 self.patches.data.clamp_(self.lower.view(1, 3, 1, 1), self.upper.view(1, 3, 1, 1))
-                print(f'[Epoch: {i}/{self.epoch}] Iteration: {batch_id}/{len(self.loader)}  Loss: {loss_adv}')
+                lr = self.optimizer.param_groups[0]['lr']
+                print(f'[Epoch: {i}/{self.epoch}] Iteration: {batch_id}/{len(self.loader)}  Loss: {loss_adv}  lr: {lr}')
 
         return self.patches
 
-    def run(self, model, img, img_metas, gt_bboxes_3d, gt_labels_3d):
+    def run(self, model, img_inputs, img_metas, gt_bboxes_3d, gt_labels_3d):
         """Paste patch on the image on-the-fly
 
         Args:
@@ -683,12 +707,12 @@ class UniversalPatchAttackOptim(BaseAttacker):
         Return:
             inputs (dict): {'img': img, 'img_metas': img_metas}
         """
-        reference_points_cam, bev_mask, patch_size = self.get_reference_points(img, img_metas, gt_bboxes_3d)
+        reference_points_cam, bev_mask, patch_size = self.get_reference_points(img_inputs, img_metas, gt_bboxes_3d)
         # No ground truth in image
         if reference_points_cam is None:
-            return {'img': img, 'img_metas': img_metas}
+            return {'img_inputs': img_inputs, 'img_metas': img_metas}
         else:
-            inputs = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
+            inputs, _ = self.place_patch(img_inputs, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
             return inputs
 
     def place_patch(self, img, img_metas, gt_labels, reference_points_cam, bev_mask, patch_size=torch.tensor((5,5))):
@@ -706,7 +730,7 @@ class UniversalPatchAttackOptim(BaseAttacker):
                 patch_img (torch.Tensor): pacthed image
             """
             img_copy = deepcopy(img)
-            img_ = img_copy[0].data[0].clone()
+            img_ = img_copy[0][0].clone()
             gt_labels = gt_labels[0].data[0][0]
             if self.mono_model:
                 B, C, H, W = img_.size()
@@ -754,12 +778,12 @@ class UniversalPatchAttackOptim(BaseAttacker):
                         img_[0, m, :, neg_y[m, n] : pos_y[m, n], neg_x[m, n] : pos_x[m, n]] = resize_patch
                     is_placed = True
 
-            img_copy[0].data[0] = img_
-            return {'img': img_copy, 'img_metas': img_metas}, is_placed
+            img_copy[0][0] = img_
+            return {'img_inputs': img_copy, 'img_metas': img_metas}, is_placed
 
     def get_reference_points(self, img, img_metas, gt_bboxes_3d):
 
-        img_ = img[0].data[0].clone()
+        img_ = img[0][0].clone()
         B = img_.size(0)
         assert B == 1, f"When attack models, batchsize should be set to 1, but now {B}"
         C, H, W = img_.size()[-3:]
@@ -795,15 +819,16 @@ class UniversalPatchAttackOptim(BaseAttacker):
         reference_points_cam = reference_points_cam[..., 0:2] / torch.maximum(
             reference_points_cam[..., 2:3], torch.ones_like(reference_points_cam[..., 2:3]) * eps)
 
-        reference_points_cam[..., 0] /= W
-        reference_points_cam[..., 1] /= H
+        reference_points_cam[..., 0] /= 1600
+        reference_points_cam[..., 1] /= 900
+        reference_points_cam = (reference_points_cam * torch.tensor((self.RESIZE[0], self.RESIZE[1])) - torch.tensor((self.CROP[0], self.CROP[1])))
         bev_mask = (bev_mask & (reference_points_cam[..., 1:2] > 0.0)
-                    & (reference_points_cam[..., 1:2] < 1.0)
-                    & (reference_points_cam[..., 0:1] < 1.0)
+                    & (reference_points_cam[..., 1:2] < self.CROP[3] - self.CROP[1])
+                    & (reference_points_cam[..., 0:1] < self.CROP[2] - self.CROP[0])
                     & (reference_points_cam[..., 0:1] > 0.0))
 
         # valid image plane positions
-        reference_points_cam = (reference_points_cam * bev_mask * torch.tensor((W, H))).int()
+        reference_points_cam = (reference_points_cam * bev_mask).int()
 
         if self.dynamic_patch:
             patch_size = self.get_patch_size(corners, lidar2img, bev_mask, scale=self.scale)
@@ -851,8 +876,7 @@ class UniversalPatchAttackOptim(BaseAttacker):
         patch_size[..., 0] = (scale * (xmax - xmin))
         patch_size[..., 1] = (scale * (ymax - ymin))
         
-        return patch_size.int()
-
+        return (patch_size * self.RESIZE[0] / 1600).int() 
 
     def camera2lidar(self, center, corners, img_metas):
         """Convert camera coordinate to lidar coordinate
@@ -867,3 +891,8 @@ class UniversalPatchAttackOptim(BaseAttacker):
         corners = corners @ sensor2lidar_rotation.T + sensor2lidar_translation
 
         return center, corners
+
+    def _adjust_learning_rate(self, step):
+        lr = self.lr * np.cos(step / self.max_train_samples * np.pi / 2)
+        for param_group in self.optimizer.param_groups:
+            param_group["lr"] = lr
