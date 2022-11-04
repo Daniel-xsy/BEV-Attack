@@ -36,7 +36,7 @@ def single_gpu_attack(model,
     if hasattr(attacker, 'loader'):
         if attacker.is_train:
             attacker.train(wb_model)
-            mmcv.dump(attacker.patches, f'./uni_patch/uni_attacker_{wb_model.module.__class__.__name__}.pkl')
+            mmcv.dump(attacker.patches, f'./uni_patch/{wb_model.module.__class__.__name__}_coslr_size{attacker.patch_size[0]}_scale{attacker.scale}_lr{attacker.lr}_sample{attacker.max_train_samples}.pkl')
 
     prog_bar = mmcv.ProgressBar(len(dataset))
     for i, data in enumerate(data_loader):

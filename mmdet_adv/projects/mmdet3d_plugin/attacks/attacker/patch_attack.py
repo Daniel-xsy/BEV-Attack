@@ -550,6 +550,7 @@ class UniversalPatchAttackOptim(BaseAttacker):
                  max_train_samples=None,
                  is_train=True,
                  mono_model=False,
+                 adv_mode=False,
                  catagory_num=10,
                  patch_size=50,
                  dynamic_patch_size=False,
@@ -578,6 +579,8 @@ class UniversalPatchAttackOptim(BaseAttacker):
         self.scale = scale
         self.max_train_samples = max_train_samples
         self.mono_model = mono_model
+        self.adv_mode = adv_mode
+        self.lr = lr
         self.loader = self._build_load(dataset_cfg)
         self.assigner = BBOX_ASSIGNERS.build(assigner)
         self.loss_fn = LOSSES.build(loss_fn)
@@ -594,7 +597,8 @@ class UniversalPatchAttackOptim(BaseAttacker):
         assert not category_specify or catagory_num != 0, f"When catagory specify is activated, catagory number can't be 0"
         # init patch
         self.patches = self._init_patch(patch_path)
-        self.optimizer = optim.Adam([self.patches], lr=lr)
+        if is_train:
+            self.optimizer = optim.Adam([self.patches], lr=lr)
 
     def _build_load(self, dataset_cfg):
         dataset = build_dataset(dataset_cfg.dataset)
@@ -605,17 +609,20 @@ class UniversalPatchAttackOptim(BaseAttacker):
                                        shuffle=True)
         return data_loader
 
-    def _init_patch(self, patch_path):
+    def _init_patch(self, patch_paths):
         """Initilize patch pattern
 
         Return:
             patches (torch.Tensor): init patch
         """
 
-        if patch_path:
+        if patch_paths is not None:
             # return loaded patch
-            print(f'Load patch from file {patch_path}')
-            patches = mmcv.load(patch_path)
+            patches = 0
+            for patch_path in patch_paths:
+                print(f'Load patch from file {patch_path}')
+                patches += mmcv.load(patch_path)
+            patches /= len(patch_paths)
             return patches
 
         catagory_num = self.catagory_num if self.category_specify else 1
@@ -643,6 +650,7 @@ class UniversalPatchAttackOptim(BaseAttacker):
                 if self.max_train_samples:
                     if batch_id + i * len(self.loader) > self.max_train_samples:
                         return self.patches
+                self._adjust_learning_rate(i * len(self.loader) + batch_id)
                 self.patches.requires_grad_()
                 self.optimizer.zero_grad()
 
@@ -653,29 +661,36 @@ class UniversalPatchAttackOptim(BaseAttacker):
                 reference_points_cam, bev_mask, patch_size = self.get_reference_points(img, img_metas, gt_bboxes_3d)
                 # No groud truth
                 if reference_points_cam is None:
+                    print('Warning: No ground truth')
                     continue
-                inputs = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
-                # outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs)
-                outputs = model(return_loss=False, rescale=True, **inputs) # adv_mode=True,
+                inputs, is_placed = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
+                if not is_placed:
+                    # No patch place on the image, do not need to do gradient descent
+                    continue
+                if self.adv_mode:
+                    outputs = model(return_loss=False, rescale=True, adv_mode=True, **inputs)
+                else:
+                    outputs = model(return_loss=False, rescale=True, **inputs) # adv_mode=True,
                 # assign pred bbox to ground truth
                 assign_results = self.assigner.assign(outputs, gt_bboxes_3d, gt_labels_3d)
                 if assign_results is None:
+                    # When no prediction is assign to ground truth, it might take additional GPU memory
+                    # There are two situations: a.model do not predict any output
+                    #                           b.predictions do not match gt
+                    # This is a workaround to clear the compute graph
+                    print('Warning: No assign results')
+                    key = list(outputs[0].keys())[0]
+                    if outputs[0][key]['scores_3d'].numel() != 0:
+                        outputs[0][key]['scores_3d'].sum().backward()
                     continue
                 # multiply -1 to max loss_adv
                 loss_adv = -1 * self.loss_fn(**assign_results)
-
-                # workaround: When the patch is not attach to image
-                # there might be no grad
-                try:
-                    loss_adv.backward()
-                    # update
-                    self.optimizer.step()
-                except:
-                    print('Warning: No grad')
-                # using in-place operation
-                # or the id(self.patches) is not equal to that in optimizer
+                loss_adv.backward()
+                self.optimizer.step()
+                # using in-place operation to clip patch range
                 self.patches.data.clamp_(self.lower.view(1, 3, 1, 1), self.upper.view(1, 3, 1, 1))
-                print(f'[Epoch: {i}/{self.epoch}] Iteration: {batch_id}/{len(self.loader)}  Loss: {loss_adv}')
+                lr = self.optimizer.param_groups[0]['lr']
+                print(f'[Epoch: {i}/{self.epoch}] Iteration: {batch_id}/{len(self.loader)}  Loss: {loss_adv}  lr: {lr}')
 
         return self.patches
 
@@ -693,7 +708,7 @@ class UniversalPatchAttackOptim(BaseAttacker):
         if reference_points_cam is None:
             return {'img': img, 'img_metas': img_metas}
         else:
-            inputs = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
+            inputs, _ = self.place_patch(img, img_metas, gt_labels_3d, reference_points_cam, bev_mask, patch_size)
             return inputs
 
     def place_patch(self, img, img_metas, gt_labels, reference_points_cam, bev_mask, patch_size=torch.tensor((5,5))):
@@ -743,21 +758,24 @@ class UniversalPatchAttackOptim(BaseAttacker):
             neg_y = torch.maximum(reference_points_cam[..., 1] - patch_size[..., 1], torch.zeros_like(reference_points_cam[..., 1])) * bev_mask
             pos_y = torch.minimum(reference_points_cam[..., 1] + patch_size[..., 1] + 1, H * torch.ones_like(reference_points_cam[..., 1])) * bev_mask
 
+            # place patch on the input image
+            is_placed = False
             for m in range(M):
                 for n in range(N):
-                    # reference point do not hit the image
-                    if neg_x[m, n] == pos_x[m, n]:
-                        continue
                     w_, h_ = int(pos_x[m, n] - neg_x[m, n]), int(pos_y[m, n] - neg_y[m, n])
+                    # reference point do not hit the image or the patch is too large
+                    if w_ <= 0 or h_ <= 0 or w_ >= W or h_ >= H:
+                        continue
                     # resize patch size
                     resize_patch = F.interpolate(patches[gt_labels[n]].unsqueeze(dim=0), size=(h_, w_), mode='bilinear', align_corners=True).squeeze(dim=0)
                     if self.mono_model:
                         img_[0, :, neg_y[m, n] : pos_y[m, n], neg_x[m, n] : pos_x[m, n]] = resize_patch
                     else:
                         img_[0, m, :, neg_y[m, n] : pos_y[m, n], neg_x[m, n] : pos_x[m, n]] = resize_patch
+                    is_placed = True
 
             img_copy[0].data[0] = img_
-            return {'img': img_copy, 'img_metas': img_metas}
+            return {'img': img_copy, 'img_metas': img_metas}, is_placed
 
     def get_reference_points(self, img, img_metas, gt_bboxes_3d):
 
@@ -869,3 +887,9 @@ class UniversalPatchAttackOptim(BaseAttacker):
         corners = corners @ sensor2lidar_rotation.T + sensor2lidar_translation
 
         return center, corners
+
+    
+    def _adjust_learning_rate(self, step):
+        lr = self.lr * np.cos(step / self.max_train_samples * np.pi / 2)
+        for param_group in self.optimizer.param_groups:
+            param_group["lr"] = lr

@@ -360,7 +360,7 @@ dynamic_patch_untarget_attack = dict(
     ),
     PGD = dict(
         NDS = [0.3525,0.2612,0.1676,0.0130,0.0085],
-        mAP = [0.3344,0.1898,0.0551,0.0000,0.0000], # rebenchmark PGD patch scale 0.3
+        mAP = [0.3344,0.1898,0.0551,0.0000,0.0000],
     ),
     BEVDepth_R50 = dict(
         NDS = [0.3759,0.2868,0.1721,0.0710,0.0057],

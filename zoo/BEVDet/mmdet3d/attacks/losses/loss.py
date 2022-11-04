@@ -31,7 +31,8 @@ class TargetedClassificationObjective(nn.Module):
 
     # Fix targeted attack for fair comparasion
     # last dimension only used in FCOS3D for background
-    TARGETS = torch.tensor((4, 6, 0, 7, 8, 6, 2, 0, 1, 2))
+    # TARGETS = torch.tensor((4, 6, 0, 7, 8, 6, 2, 0, 1, 2))
+    TARGETS = torch.tensor((7, 0, 0, 0, 0, 0, 0, 0, 0, 0))
 
     def __init__(self, num_cls=10, random=True, thresh=0.1):
         """Classification adversarial objective, use targeted adversarial attacks

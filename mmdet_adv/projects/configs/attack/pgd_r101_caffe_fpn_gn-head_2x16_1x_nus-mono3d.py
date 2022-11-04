@@ -97,7 +97,7 @@ test_pipeline = [
 ]
 version = 'v1.0-mini'
 dataset_type = 'CustomNuScenesMonoDataset_Adv'
-data_root = '/data1/data/shaoyuan/nuscenes_mini/'
+data_root = '../nuscenes_mini/'
 # dataset_type = 'NuScenesMonoDataset'
 data = dict(
     samples_per_gpu=1,
@@ -156,17 +156,17 @@ runner = dict(max_epochs=total_epochs)
 # )
 
 
-attack = dict(
-    type='PatchAttack',
-    step_size=5,
-    dynamic_patch_size=True,
-    mono_model=True,
-    # patch_size=(15, 15),
-    scale=0.3,
-    num_steps=50,
-    img_norm=img_norm_cfg,
-    loss_fn=dict(type='ClassficationObjective', activate=False),
-    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+# attack = dict(
+#     type='PatchAttack',
+#     step_size=5,
+#     dynamic_patch_size=True,
+#     mono_model=True,
+#     # patch_size=(15, 15),
+#     scale=0.3,
+#     num_steps=50,
+#     img_norm=img_norm_cfg,
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 
 # attack_severity_type = 'num_steps'
@@ -185,15 +185,51 @@ attack = dict(
 #     rand_init=True,
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
-attack_severity_type ='scale'
+# attack_severity_type ='scale'
+# attack = dict(
+#     type='PatchAttack',
+#     step_size=5,
+#     dynamic_patch_size=True,
+#     scale=[0.1, 0.2, 0.3, 0.4],
+#     num_steps=50,
+#     mono_model=True,
+#     # patch_size=(15,15),
+#     img_norm=img_norm_cfg,
+#     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+
+input_modality = dict(
+    use_lidar=False,
+    use_camera=True,
+    use_radar=False,
+    use_map=False,
+    use_external=False)
+attack_severity_type = 'scale'
 attack = dict(
-    type='PatchAttack',
-    step_size=5,
-    dynamic_patch_size=True,
-    scale=[0.1, 0.2, 0.3, 0.4],
-    num_steps=50,
+    type='UniversalPatchAttackOptim',
+    epoch=1,
+    lr=10,
+    is_train=False,
+    category_specify=False,
     mono_model=True,
-    # patch_size=(15,15),
+    dataset_cfg=dict(
+        dataset=dict(type=dataset_type,
+                    data_root='../nuscenes_mini/',
+                    ann_file='../nuscenes_mini/' + 'nuscenes_infos_temporal_train_mono3d.coco.json',
+                    img_prefix='../nuscenes_mini/',
+                    classes=class_names,
+                    pipeline=test_pipeline,
+                    modality=input_modality,
+                    test_mode=False,
+                    box_type_3d='Camera'),
+        shuffle=True,
+        workers_per_gpu=32),
+    dynamic_patch_size=True,
+    max_train_samples=323*6,
+    scale=[0.3],
+    patch_size=(100,100),
+    # patch_path=['/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch/BEVFormer_coslr_size100_scale0.3_lr10_sample323.pkl'],
     img_norm=img_norm_cfg,
-    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    loss_fn=dict(type='TargetedClassificationObjective',num_cls=10, random=True, thresh=0.1, targets=None),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

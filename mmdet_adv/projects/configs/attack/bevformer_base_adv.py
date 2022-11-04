@@ -293,7 +293,7 @@ checkpoint_config = dict(interval=1)
 attack_severity_type = 'scale'
 attack = dict(
     type='UniversalPatchAttackOptim',
-    epoch=5,
+    epoch=1,
     lr=10,
     is_train=True,
     category_specify=False,
@@ -307,9 +307,11 @@ attack = dict(
                     classes=class_names, modality=input_modality),
         shuffle=True,
         workers_per_gpu=32),
-    dynamic_patch_size=False,
-    scale=[0.2],
-    patch_size=(200,200),
+    dynamic_patch_size=True,
+    # patch_path='/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch/uni_attacker_Petr3D_Adv.pkl',
+    patch_path=None,
+    scale=[0.3],
+    patch_size=(100,100),
     img_norm=img_norm_cfg,
     loss_fn=dict(type='TargetedClassificationObjective',num_cls=10,random=True,thresh=0.1,targets=None),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
