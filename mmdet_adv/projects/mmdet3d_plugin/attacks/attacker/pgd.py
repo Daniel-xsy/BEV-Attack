@@ -129,7 +129,6 @@ class PGD(BaseAttacker):
 
 
         img[0].data[0] = x_adv.detach()
-        torch.cuda.empty_cache()
 
         return {'img': img, 'img_metas':img_metas}
 

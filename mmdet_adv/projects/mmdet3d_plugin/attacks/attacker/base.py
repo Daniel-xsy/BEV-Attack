@@ -24,7 +24,7 @@ class BaseAttacker:
         if self.totensor:
             maxi = 1.0
         else:
-            maxi = 1.0
+            maxi = 255.0
         upper = (maxi - torch.tensor(self.img_norm['mean'])) / torch.tensor(self.img_norm['std'])
         lower = - torch.tensor(self.img_norm['mean']) / torch.tensor(self.img_norm['std'])
         
