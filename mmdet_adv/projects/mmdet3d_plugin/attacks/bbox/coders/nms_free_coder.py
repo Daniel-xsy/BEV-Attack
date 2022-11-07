@@ -88,7 +88,9 @@ class NMSFreeCoder_Adv(BaseBBoxCoder):
             scores = final_scores[mask]
             labels = final_preds[mask]
             # return all class score for adversarial attack
-            logits = cls_logits[bbox_index][mask]
+            # logits = cls_logits[bbox_index][mask]
+            # use logits after sigmoid as attack logits
+            logits = cls_scores[bbox_index][mask]
 
             predictions_dict = {
                 'bboxes': boxes3d,
