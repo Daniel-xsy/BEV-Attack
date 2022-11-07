@@ -11,9 +11,9 @@ def add_adj_info():
     interval = 3
     max_adj = 60
     for set in ['train', 'val']:
-        dataset = pickle.load(open('./data/nuscenes/nuscenes_infos_%s.pkl' % set, 'rb'))
-        nuscenes_version = 'v1.0-trainval'
-        dataroot = './data/nuscenes/'
+        dataset = pickle.load(open('../../nuscenes_mini/nuscenes_infos_temporal_%s.pkl' % set, 'rb')) # nuscenes_infos_temporal_train
+        nuscenes_version = 'v1.0-mini'
+        dataroot = '../../nuscenes_mini/'
         nuscenes = NuScenes(nuscenes_version, dataroot)
         map_token_to_id = dict()
         for id in range(len(dataset['infos'])):
@@ -38,7 +38,7 @@ def add_adj_info():
                             break
                         sd_adj = nuscenes.get('sample_data', sample_data[adj])
                         sample_data = sd_adj
-                        adj_list[cam].append(dict(data_path='./data/nuscenes/' + sd_adj['filename'],
+                        adj_list[cam].append(dict(data_path='../../nuscenes_mini/' + sd_adj['filename'],
                                                   timestamp=sd_adj['timestamp'],
                                                   ego_pose_token=sd_adj['ego_pose_token']))
                         count += 1
@@ -92,7 +92,7 @@ def add_adj_info():
             dataset['infos'][id]['velo'] = velocity_lidar
             dataset['infos'][id]['gt_velocity'] = dataset['infos'][id]['gt_velocity'] - velocity_lidar.reshape(1, 2)
 
-        with open('./data/nuscenes/nuscenes_infos_%s_4d_interval%d_max%d.pkl' % (set, interval, max_adj), 'wb') as fid:
+        with open('../../nuscenes_mini/nuscenes_infos_%s_4d_interval%d_max%d.pkl' % (set, interval, max_adj), 'wb') as fid:
             pickle.dump(dataset, fid)
 
 if __name__=='__main__':

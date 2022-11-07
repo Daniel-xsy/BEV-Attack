@@ -224,45 +224,45 @@ resume_from=None
 #     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
-# attack_severity_type = 'num_steps'
-# attack = dict(
-#     type='PGD',
-#     epsilon=5,
-#     step_size=0.1,
-#     num_steps=[2,4,6,8,10,20,30,40,50], # 
-#     img_norm=img_norm_cfg,
-#     single_camera=False,
-#     # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
-#     # loss_fn=dict(type='ClassficationObjective', activate=False),
-#     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
-#     category='Madry',
-#     rand_init=True,
-#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
-
-attack_severity_type = 'scale'
+attack_severity_type = 'num_steps'
 attack = dict(
-    type='UniversalPatchAttackOptim',
-    epoch=1,
-    lr=10,
-    is_train=False,
-    category_specify=False,
-    dataset_cfg=dict(
-        dataset=dict(type=dataset_type,
-                    data_root='../nuscenes_mini/',
-                    ann_file='../nuscenes_mini/nuscenes_infos_temporal_train.pkl',
-                    pipeline=test_pipeline,
-                    filter_empty_gt=False, 
-                    classes=class_names, modality=input_modality),
-        shuffle=True,
-        workers_per_gpu=32),
-    dynamic_patch_size=True,
-    scale=[0.3],
-    max_train_samples=323,
-    patch_path=['/home/cixie/shaoyuan/BEV-Attack/zoo/BEVDet/uni_patch_new/BEVDet_Adv_coslr_size100_scale0.3_lr0.0392156862745098_sample323.pkl'],
-    patch_size=(100,100),
+    type='PGD',
+    epsilon=5,
+    step_size=0.1,
+    num_steps=[10], # 2,4,6,8,20,30,40,50
     img_norm=img_norm_cfg,
-    loss_fn=dict(type='TargetedClassificationObjective',num_cls=10, random=True, thresh=0.1, targets=None),
+    single_camera=False,
+    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+    loss_fn=dict(type='ClassficationObjective', activate=False),
+    # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    category='Madry',
+    rand_init=True,
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+# attack_severity_type = 'scale'
+# attack = dict(
+#     type='UniversalPatchAttackOptim',
+#     epoch=1,
+#     lr=10,
+#     is_train=False,
+#     category_specify=False,
+#     dataset_cfg=dict(
+#         dataset=dict(type=dataset_type,
+#                     data_root='../nuscenes_mini/',
+#                     ann_file='../nuscenes_mini/nuscenes_infos_temporal_train.pkl',
+#                     pipeline=test_pipeline,
+#                     filter_empty_gt=False, 
+#                     classes=class_names, modality=input_modality),
+#         shuffle=True,
+#         workers_per_gpu=32),
+#     dynamic_patch_size=True,
+#     scale=[0.3],
+#     max_train_samples=323,
+#     patch_path=['/home/cixie/shaoyuan/BEV-Attack/zoo/BEVDet/uni_patch_new/BEVDet_Adv_coslr_size100_scale0.3_lr0.0392156862745098_sample323.pkl'],
+#     patch_size=(100,100),
+#     img_norm=img_norm_cfg,
+#     loss_fn=dict(type='TargetedClassificationObjective',num_cls=10, random=True, thresh=0.1, targets=None),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 
 

@@ -69,8 +69,8 @@ def nuscenes_data_prep(root_path,
         out_dir (str): Output directory of the groundtruth database info.
         max_sweeps (int): Number of input consecutive frames. Default: 10
     """
-    nuscenes_converter.create_nuscenes_infos(
-        root_path, out_dir, can_bus_root_path, info_prefix, version=version, max_sweeps=max_sweeps)
+    # nuscenes_converter.create_nuscenes_infos(
+    #     root_path, out_dir, can_bus_root_path, info_prefix, version=version, max_sweeps=max_sweeps)
 
     if version == 'v1.0-test':
         info_test_path = osp.join(

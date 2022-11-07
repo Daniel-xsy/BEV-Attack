@@ -188,7 +188,7 @@ def main():
         std = cfg.img_norm_cfg['std']
 
         if args.show:
-            orig_img = make_grid(data['img_inputs'][0][0].squeeze()[0])
+            orig_img = make_grid(data['img_inputs'][0][0].squeeze()[6:8])
             show(orig_img, mean, std)
             plt.savefig('original.png', dpi=200)
             plt.cla()
@@ -201,7 +201,7 @@ def main():
 
         if args.show:
             print('save results')
-            adv_img = make_grid(inputs['img_inputs'][0][0].squeeze()[0])
+            adv_img = make_grid(inputs['img_inputs'][0][0].squeeze()[6:8])
             show(adv_img, mean, std)
             plt.savefig('adver.png', dpi=200)
             plt.cla()
@@ -209,8 +209,9 @@ def main():
     else:
         data_loader = iter(data_loader)
         data = next(data_loader)
-        inputs = {'img': data['img'], 'img_metas': data['img_metas']}   
-        results = model(return_loss=False, rescale=True, **inputs)
+        inputs = {'img_inputs': data['img_inputs'], 'img_metas': data['img_metas']}   
+    results = model(return_loss=False, rescale=True, **inputs)
+    a = 1
     
 
 

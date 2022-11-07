@@ -144,21 +144,21 @@ lr_config = dict(
 total_epochs = 12
 evaluation = dict(interval=2)
 
-# attack_severity_type = 'num_steps'
-# attack = dict(
-#     type='PGD',
-#     epsilon=5,
-#     step_size=0.1,
-#     num_steps=[2,4,6,8,10,20,30,40,50],
-#     img_norm=img_norm_cfg,
-#     single_camera=False,
-#     mono_model=True,
-#     loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
-#     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
-#     # loss_fn=dict(type='ClassficationObjective', activate=False),
-#     category='Madry',
-#     rand_init=True,
-#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+attack_severity_type = 'num_steps'
+attack = dict(
+    type='PGD',
+    epsilon=5,
+    step_size=0.1,
+    num_steps=[10],
+    img_norm=img_norm_cfg,
+    single_camera=False,
+    mono_model=True,
+    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+    # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    loss_fn=dict(type='ClassficationObjective', activate=False),
+    category='Madry',
+    rand_init=True,
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 # attack_severity_type = 'scale'
 # attack = dict(
@@ -173,41 +173,41 @@ evaluation = dict(interval=2)
 #     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
-class_names = [
-    'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
-    'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
-]
-input_modality = dict(
-    use_lidar=False,
-    use_camera=True,
-    use_radar=False,
-    use_map=False,
-    use_external=False)
-attack_severity_type = 'scale'
-attack = dict(
-    type='UniversalPatchAttackOptim',
-    epoch=1,
-    lr=10,
-    is_train=False,
-    category_specify=False,
-    mono_model=True,
-    dataset_cfg=dict(
-        dataset=dict(type=dataset_type,
-                    data_root='../nuscenes_mini/',
-                    ann_file='../nuscenes_mini/' + 'nuscenes_infos_temporal_train_mono3d.coco.json',
-                    img_prefix='../nuscenes/',
-                    classes=class_names,
-                    pipeline=test_pipeline,
-                    modality=input_modality,
-                    test_mode=False,
-                    box_type_3d='Camera'),
-        shuffle=True,
-        workers_per_gpu=32),
-    dynamic_patch_size=True,
-    max_train_samples=323*6,
-    scale=[0.3],
-    patch_path=['/home/cixie/shaoyuan/BEV-Attack/zoo/BEVDet/uni_patch_new/BEVDet_Adv_coslr_size100_scale0.3_lr0.0392156862745098_sample323.pkl'],
-    patch_size=(100,100),
-    img_norm=img_norm_cfg,
-    loss_fn=dict(type='TargetedClassificationObjective',num_cls=10, random=True, thresh=0.1, targets=None),
-    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+# class_names = [
+#     'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
+#     'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
+# ]
+# input_modality = dict(
+#     use_lidar=False,
+#     use_camera=True,
+#     use_radar=False,
+#     use_map=False,
+#     use_external=False)
+# attack_severity_type = 'scale'
+# attack = dict(
+#     type='UniversalPatchAttackOptim',
+#     epoch=1,
+#     lr=10,
+#     is_train=False,
+#     category_specify=False,
+#     mono_model=True,
+#     dataset_cfg=dict(
+#         dataset=dict(type=dataset_type,
+#                     data_root='../nuscenes_mini/',
+#                     ann_file='../nuscenes_mini/' + 'nuscenes_infos_temporal_train_mono3d.coco.json',
+#                     img_prefix='../nuscenes/',
+#                     classes=class_names,
+#                     pipeline=test_pipeline,
+#                     modality=input_modality,
+#                     test_mode=False,
+#                     box_type_3d='Camera'),
+#         shuffle=True,
+#         workers_per_gpu=32),
+#     dynamic_patch_size=True,
+#     max_train_samples=323*6,
+#     scale=[0.3],
+#     patch_path=['/home/cixie/shaoyuan/BEV-Attack/zoo/BEVDet/uni_patch_new/BEVDet_Adv_coslr_size100_scale0.3_lr0.0392156862745098_sample323.pkl'],
+#     patch_size=(100,100),
+#     img_norm=img_norm_cfg,
+#     loss_fn=dict(type='TargetedClassificationObjective',num_cls=10, random=True, thresh=0.1, targets=None),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

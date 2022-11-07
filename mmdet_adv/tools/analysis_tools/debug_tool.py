@@ -191,8 +191,9 @@ def main():
             plt.cla()
 
         print('running attacks')
-        if attacker.is_train:
-            attacker.train(model)
+        if hasattr(attacker, 'loader'):
+            if attacker.is_train:
+                attacker.train(model)
         inputs = attacker.run(model, **data)   
 
         if args.show:
@@ -213,7 +214,8 @@ def main():
             plt.savefig('original.png', dpi=200)
             plt.cla()
         inputs = {'img': data['img'], 'img_metas': data['img_metas']}   
-        results = model(return_loss=False, rescale=True, **inputs)
+    results = model(return_loss=False, rescale=True, **inputs)
+    a = 1
         
 
 

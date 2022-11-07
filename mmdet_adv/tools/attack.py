@@ -44,6 +44,7 @@ def parse_args():
     parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument('--wb_checkpoint', help='white box checkpoint for transfer black box attack')
     parser.add_argument('--out', help='output result file in pickle format')
+    parser.add_argument('--save-results', help='output result file in pickle format')
     args = parser.parse_args()
 
     return args
@@ -185,6 +186,8 @@ def main():
         attacker = build_attack(cfg.attack)
 
         outputs = single_gpu_attack(model, wb_model, data_loader, attacker)
+        if args.save_results:
+            mmcv.dump(outputs, args.save_results)
 
         kwargs = {}
         kwargs['jsonfile_prefix'] = osp.join('results', cfg.model.type, args.out, f"{attack_severity_type}_{severity_list[i]}")

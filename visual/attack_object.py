@@ -19,7 +19,9 @@ PARAMETERS = dict(
     DETR3D_CBGS = 53.8,
     DETR3D = 53.8,
     PETR_R50 = 38.1,
+    PETR_Vov = 83.1,
     BEVDepth_R50 = 53.1,
+    BEVDepth4D_R50 = 53.4,
     BEVDepth_R101 = 72.1,
     BEVDet_R50 = 48.2,
     BEVDet4D_R50 = 48.2,
@@ -38,10 +40,12 @@ MARKER = dict(
     BEVFormer_Base_Temp = 'o', 
     DETR3D_CBGS = 'v', 
     DETR3D = 'v', 
-    PETR_R50 = 'p',
+    PETR_R50 = 'X',
+    PETR_Vov = 'X',
     FCOS3D = 's', 
     PGD = 'p', 
     BEVDepth_R50 = 'D', 
+    BEVDepth4D_R50 = 'D', 
     BEVDepth_R101 = 'D',
     BEVDet_R50 = 'd',
     BEVDet4D_R50 = 'd',
@@ -59,9 +63,11 @@ COLORS = dict(
     DETR3D_CBGS = '#A9A9A9', 
     DETR3D = '#696969', 
     PETR_R50 = '#D2691E',
+    PETR_Vov = '#8B4513',
     FCOS3D = '#32CD32', 
     PGD = '#006400', 
     BEVDepth_R50 = '#C0C000', 
+    BEVDepth4D_R50 = '#808000', 
     BEVDepth_R101 = '#9ACD32',
     BEVDet_R50 = '#DAA520',
     BEVDet4D_R50 = '#FFE4B5',
@@ -79,9 +85,11 @@ VAL_MAP = dict(
     DETR3D_CBGS = 0.3494,
     DETR3D = 0.3469,
     PETR_R50 = 0.3174,
+    PETR_Vov = 0.4035,
     FCOS3D = 0.3214,
     PGD = 0.3360,
     BEVDepth_R50 = 0.3327,
+    BEVDepth4D_R50 = 0.3609,
     BEVDepth_R101 = 0.3376,
     BEVDet_R50 = 0.2987,
     BEVDet4D_R50 = 0.3215,
@@ -98,9 +106,11 @@ VAL_NDS = dict(
     DETR3D_CBGS = 0.4342,
     DETR3D = 0.4223,
     PETR_R50 = 0.3667,
+    PETR_Vov = 0.4550,
     FCOS3D = 0.3949,
     PGD = 0.4089,
     BEVDepth_R50 = 0.4057,
+    BEVDepth4D_R50 = 0.4844,
     BEVDepth_R101 = 0.4167,
     BEVDet_R50 = 0.3770,
     BEVDet4D_R50 = 0.4570,
@@ -157,6 +167,11 @@ pgd_attack_untarget = dict(
         mAP = [0.2970,0.2353,0.1889,0.1497,0.1263,0.1025,0.0995,0.0709,0.0593,0.0551,0.0432,0.0105,0.0000,0.0000,0.0000],
     ),
 
+    PETR_Vov = dict(
+        NDS = [0.4024,0.3691,0.3325,0.3021,0.2639,0.2564,0.2545,0.2350,0.2277,0.1896,0.1741,0.1407,0.0728,0.0132,0.0003],
+        mAP = [0.3804,0.3046,0.2442,0.2057,0.1709,0.1535,0.1371,0.1254,0.1154,0.0961,0.0802,0.0287,0.0113,0.0027,0.0006],
+    ),
+
     FCOS3D = dict(
         NDS = [0.3309,0.2908,0.2701,0.2334,0.2191,0.2029,0.1747,0.1680,0.1678,0.1404,0.1438,0.1026,0.0373,0.0000,0.0000],
         mAP = [0.3083,0.2532,0.2082,0.1587,0.1385,0.1121,0.0929,0.0759,0.0627,0.0524,0.0423,0.0085,0.0005,0.0000,0.0000],
@@ -170,6 +185,11 @@ pgd_attack_untarget = dict(
     BEVDepth_R50 = dict( # double checked
         NDS = [0.3759,0.2857,0.2459,0.2244,0.1945,0.1821,0.1544,0.1297,0.1434,0.1157,0.1063,0.0600,0.0276,0.0052,0.0000], 
         mAP = [0.3248,0.2126,0.1655,0.1328,0.0992,0.0733,0.0680,0.0496,0.0415,0.0310,0.0275,0.0041,0.0003,0.0000,0.0000],
+    ), 
+
+    BEVDepth4D_R50 = dict(
+        NDS = [0.4309,0.3826,0.3586,0.3250,0.3006,0.2429,0.2674,0.2250,0.2166,0.1758,0.1998,0.1452,0.0729,0.0562,0.0319], 
+        mAP = [0.3620,0.2941,0.2388,0.1804,0.1519,0.1191,0.0987,0.0860,0.0693,0.0560,0.0502,0.0104,0.0021,0.0003,0.0000],
     ), 
 
     BEVDepth_R101 = dict( # double checked
@@ -281,6 +301,10 @@ pgd_attack_local = dict(
         NDS = [0.3205,0.2305,0.1881,0.1576,0.1439,0.1227,0.0920,0.0663,0.0312,0.0215],
         mAP = [0.2970,0.2110,0.1476,0.1119,0.0892,0.0648,0.0360,0.0201,0.0155,0.0114],
     ),
+    PETR_Vov = dict(
+        NDS = [0.4024,0.2721,0.1987,0.1650,0.1555,0.1420,0.1009,0.0702,0.0554,0.0298],
+        mAP = [0.3804,0.2415,0.1540,0.1164,0.0963,0.0725,0.0351,0.0200,0.0145,0.0099],
+    ),
     FCOS3D = dict(
         NDS = [0.3309,0.2115,0.1642,0.1466,0.1353,0.0927,0.0779,0.0596,0.0538,0.0517],
         mAP = [0.3083,0.1647,0.1015,0.0671,0.0544,0.0379,0.0185,0.0122,0.0091,0.0064],
@@ -293,6 +317,10 @@ pgd_attack_local = dict(
         NDS = [0.3759,0.2671,0.2270,0.2072,0.1898,0.1770,0.1339,0.0975,0.0891,0.0751],
         mAP = [0.3248,0.2508,0.2125,0.1787,0.1533,0.1449,0.0892,0.0614,0.0434,0.0368],
     ),
+    BEVDepth4D_R50 = dict(
+        NDS = [0.4309,0.3665,0.2997,0.2504,0.2268,0.1896,0.1388,0.0964,0.0918,0.0632], 
+        mAP = [0.3620,0.3120,0.2606,0.2141,0.1899,0.1463,0.0873,0.0539,0.0421,0.0338],
+    ), 
     BEVDepth_R101 = dict( # double checked
         NDS = [0.3767,0.2827,0.2401,0.2158,0.1932,0.1793,0.1297,0.1074,0.0888,0.0850],
         mAP = [0.3276,0.2701,0.2334,0.2077,0.1801,0.1549,0.0974,0.0665,0.0563,0.0437],
@@ -354,6 +382,10 @@ dynamic_patch_untarget_attack = dict(
         NDS = [0.3205,0.2439,0.1329,0.0478,0.0355],
         mAP = [0.2970,0.1483,0.0422,0.0073,0.0000],
     ),
+    PETR_Vov = dict(
+        NDS = [0.4024,0.2796,0.1674,0.1185,0.0660],
+        mAP = [0.3804,0.2045,0.0685,0.0122,0.0018],
+    ),
     FCOS3D = dict(
         NDS = [0.3309,0.2396,0.1396,0.1109,0.0000],
         mAP = [0.3083,0.1647,0.0458,0.0066,0.0000],
@@ -366,6 +398,10 @@ dynamic_patch_untarget_attack = dict(
         NDS = [0.3759,0.2868,0.1721,0.0710,0.0057],
         mAP = [0.3248,0.1753,0.0617,0.0043,0.0000],
     ),
+    BEVDepth4D_R50 = dict(
+        NDS = [0.4309,0.3631,0.2911,0.1664,0.1348], 
+        mAP = [0.3620,0.2404,0.1171,0.0262,0.0004],
+    ), 
     BEVDepth_R101 = dict( # double checked
         NDS = [0.3767,0.2824,0.1655,0.0658,0.0066],
         mAP = [0.3276,0.1693,0.0607,0.0007,0.0000],
@@ -429,6 +465,10 @@ dynamic_patch_loc_attack = dict(
         NDS = [0.3205,0.2269,0.1560,0.1012,0.0478],
         mAP = [0.2970,0.2043,0.1015,0.0457,0.0130],
     ),
+    PETR_Vov = dict(
+        NDS = [0.4024,0.2524,0.1627,0.1243,0.0798],
+        mAP = [0.3804,0.2317,0.1092,0.0479,0.0070],
+    ),
     FCOS3D = dict(
         NDS = [0.3309,0.2110,0.1494,0.0985,0.0596],
         mAP = [0.3083,0.1710,0.0897,0.0388,0.0201],
@@ -441,6 +481,10 @@ dynamic_patch_loc_attack = dict(
         NDS = [0.3759,0.2878,0.2039,0.1517,0.1128],
         mAP = [0.3248,0.2583,0.1532,0.0954,0.0393],
     ),
+    BEVDepth4D_R50 = dict(
+        NDS = [0.4309,0.3663,0.2919,0.1845,0.1275], 
+        mAP = [0.3620,0.3152,0.2192,0.1045,0.0359],
+    ), 
     BEVDepth_R101 = dict(
         NDS = [0.3767,0.2669,0.2104,0.1275,0.0956],
         mAP = [0.3276,0.2549,0.1689,0.0935,0.0482],
@@ -510,7 +554,7 @@ def visualize_object(data):
                 plot_api(x, y, 'patch_scale', f'{class_}_{severity_}', out_path=os.path.join('visual', 'patch_scale', f'ap_{class_}.pdf'))
             
 
-def multi_plot_api(xs, ys, labels, xtitle, ytitle, out_path, size=(10,6)):
+def multi_plot_api(xs, ys, labels, xtitle, ytitle, out_path, size=(10,6), legend_size=None, fontsize=None):
     assert isinstance(xs, list or tuple)
     assert isinstance(ys, list or tuple)
     assert isinstance(labels, list or tuple)
@@ -520,15 +564,20 @@ def multi_plot_api(xs, ys, labels, xtitle, ytitle, out_path, size=(10,6)):
     ax = plt.axes()
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.set_xlabel(..., fontsize=15)
-    ax.set_ylabel(..., fontsize=15)
+    if fontsize is None:
+        fontsize = 15
+    ax.set_xlabel(..., fontsize=fontsize)
+    ax.set_ylabel(..., fontsize=fontsize)
     for i in range(len(xs)):
         label_ = labels[i].replace('_', '-')
         assert len(xs[i]) == len(ys[i]), f"x doesn't match y in {label_}"
         ax.plot(xs[i], ys[i], f'{MARKER[labels[i]]}-', c=COLORS[labels[i]], label=label_, markersize=5)
     plt.xlabel(xtitle)
     plt.ylabel(ytitle)
-    plt.legend()
+    if legend_size:
+        plt.legend(prop={'size':legend_size})
+    else:
+        plt.legend()
     plt.savefig(out_path)
     plt.cla()
 
@@ -549,7 +598,7 @@ def plot_scatter_api(xs, ys, labels, xtitle, ytitle, parameters, out_path, size=
         
     plt.xlabel(xtitle)
     plt.ylabel(ytitle)
-    plt.legend(markerscale=0.3)
+    plt.legend(markerscale=0.3, loc='upper left')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.savefig(out_path)
@@ -564,6 +613,8 @@ def plot_bar_api(values, models, types, out_path, total_width=0.8, ylabel='mAP')
     total_width = 0.5
     width = total_width / model_num
 
+    hatches = [None, '/', '\\', '.']
+
     ax = plt.axes()
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -576,7 +627,7 @@ def plot_bar_api(values, models, types, out_path, total_width=0.8, ylabel='mAP')
 
     for i, model in enumerate(models):
         model_ = model.replace('_', '-')
-        ax.bar(x, values[model], width=width, label=model_, fc=COLORS[model])
+        ax.bar(x, values[model], width=width, label=model_, fc=COLORS[model], hatch=hatches[i])
         for j in range(len(x)):
             x[j] = x[j] + width
 
@@ -742,8 +793,8 @@ if __name__ == '__main__':
     # #  - [x] Use BEVDepth-R101 and BEVDet-R50 here
     # # 'BEVFormer_Tiny','BEVFormer_Tiny_Temp',
     # MODELS = ['BEVFormer_Small','BEVFormer_Small_Temp','BEVFormer_Base','BEVFormer_Base_Temp',
-    #           'DETR3D_CBGS','DETR3D','FCOS3D','PGD','BEVDepth_R50','BEVDepth_R101','BEVDet_R50','BEVDet_R101','BEVDet_Swin_Tiny',
-    #           'BEVDet4D_R50', 'PETR_R50']
+    #           'DETR3D_CBGS','DETR3D','FCOS3D','PGD','BEVDepth_R50','BEVDepth4D_R50','BEVDepth_R101','BEVDet_R50','BEVDet_R101','BEVDet_Swin_Tiny',
+    #           'BEVDet4D_R50', 'PETR_R50', 'PETR_Vov']
     # metric = 'NDS'
     # clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_untarget, pgd_attack_local, dynamic_patch_untarget_attack,dynamic_patch_loc_attack], 
     #                                         param=False, val=True, metric=metric, range=-1)
@@ -759,10 +810,10 @@ if __name__ == '__main__':
     # #  - [x] Add PETR here
     # #  - [x] Use BEVDepth-R101 and BEVDet-R101 here
     # metric = 'mAP'
-    # MODELS = ['BEVFormer_Base_Temp','DETR3D','FCOS3D','PGD','BEVDepth_R101','BEVDet_R101','PETR_R50']
+    # MODELS = ['BEVFormer_Base_Temp','DETR3D','FCOS3D','PGD','BEVDepth_R101','BEVDet_R101','PETR_Vov']
     # xs, ys, labels = parse_data(pgd_attack_untarget, relative=False, metric=metric)
     # multi_plot_api(xs, ys, labels, 'attack iterations', metric, 'visual/figure/pgd_attack_untarget_curve.pdf', \
-    #                size=(10, 6)) # visual/figure/pgd_attack_untarget_curve.pdf
+    #                size=(10, 6), legend_size=13) # visual/figure/pgd_attack_untarget_curve.pdf
 
 
     # ###############################################################
@@ -770,10 +821,10 @@ if __name__ == '__main__':
     # #  - [x] Add PETR here
     # #  - [x] Use BEVDepth-R101 and BEVDet-R101 here
     # metric = 'mAP'
-    # MODELS = ['BEVFormer_Base_Temp','DETR3D','FCOS3D','PGD','BEVDepth_R101','BEVDet_R101', 'PETR_R50']
+    # MODELS = ['BEVFormer_Base_Temp','DETR3D','FCOS3D','PGD','BEVDepth_R101','BEVDet_R101', 'PETR_Vov']
     # xs, ys, labels = parse_data(pgd_attack_local, relative=False, metric=metric)
     # multi_plot_api(xs, ys, labels, 'attack iterations', metric, 'visual/figure/pgd_attack_local_curve.pdf', \
-    #                size=(10, 6)) # visual/figure/pgd_attack_local_curve.pdf
+    #                size=(10, 6), legend_size=13) # visual/figure/pgd_attack_local_curve.pdf
 
 
     # ###############################################################
@@ -781,16 +832,16 @@ if __name__ == '__main__':
     # #  - [x] Add PETR, BEVDepth-R101, BEVDet-R101, BEVDet-Swin-Tiny, BEVDet4D_R50
     # metric = 'mAP'
     # MODELS = ['BEVFormer_Tiny','BEVFormer_Tiny_Temp','BEVFormer_Small','BEVFormer_Small_Temp','BEVFormer_Base','BEVFormer_Base_Temp',
-    #     'DETR3D_CBGS','DETR3D','FCOS3D','PGD','BEVDepth_R50','BEVDepth_R101','BEVDet_R50','BEVDet_R101','BEVDet_Swin_Tiny',
-    #     'PETR_R50', 'BEVDet4D_R50'
+    #     'DETR3D_CBGS','DETR3D','FCOS3D','PGD','BEVDepth_R50','BEVDepth4D_R50','BEVDepth_R101','BEVDet_R50','BEVDet_R101','BEVDet_Swin_Tiny',
+    #     'PETR_R50', 'PETR_Vov','BEVDet4D_R50'
     # ]
     # print(metric)
-    # clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_untarget, pgd_attack_local, dynamic_patch_untarget_attack, dynamic_patch_loc_attack], param=False, val=True, metric=metric, range=-1)
+    # clean_accs, adver_accs, model_names = collect_robustness_acc([dynamic_patch_loc_attack], param=False, val=True, metric=metric, range=-1)
     # for i in range(len(model_names)):
     #     print(f'{model_names[i]}  clean_{metric}: {clean_accs[i]}  adver_{metric}: {adver_accs[i]}')
     # metric = 'NDS' 
     # print(metric)
-    # clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_untarget, pgd_attack_local, dynamic_patch_untarget_attack, dynamic_patch_loc_attack], param=False, val=True, metric=metric, range=-1)
+    # clean_accs, adver_accs, model_names = collect_robustness_acc([dynamic_patch_loc_attack], param=False, val=True, metric=metric, range=-1)
     # for i in range(len(model_names)):
     #     print(f'{model_names[i]}  clean_{metric}: {clean_accs[i]}  adver_{metric}: {adver_accs[i]}')
 
@@ -798,29 +849,49 @@ if __name__ == '__main__':
     # plot_scatter_api(clean_accs, adver_accs, model_names, 'mAP', 'Adversarial mAP', PARAMETERS, 'visual/test.png') # visual/test.png
 
 
-    ###############################################################
-    # Bar1: Ablation Study: BEV Model v.s. Non-BEV Model
-    # - [ ] Make it look better !
-    metric = 'NDS'
-    MODELS = ['FCOS3D','PGD','BEVDepth_R101','BEVDet_R101']
-    model_accs = collect_average_adv_acc([pgd_attack_untarget, pgd_attack_local, dynamic_patch_untarget_attack, dynamic_patch_loc_attack], metric=metric)
-    plot_bar_api(model_accs, MODELS, ['pixel cls', 'pixel loc', 'patch cls', 'patch loc'], out_path='visual/figure/bev_nonbev.pdf', ylabel=metric)
-
-
-    # ##############################################################
-    # # Fig4: Ablation: model size
-    # #  - [] 
-    # # 'BEVFormer_Tiny','BEVFormer_Tiny_Temp',
-    # MODELS = ['BEVFormer_Small_Temp','BEVFormer_Base_Temp',
-    #           'DETR3D_CBGS','FCOS3D','PGD','BEVDepth_R50','BEVDet_R50','PETR_R50']
+    # ###############################################################
+    # # Bar1: Ablation Study: BEV Model v.s. Non-BEV Model
+    # # - [ ] Make it look better !
     # metric = 'NDS'
-    # clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_untarget, pgd_attack_local, dynamic_patch_untarget_attack,dynamic_patch_loc_attack], 
-    #                                         param=True, val=True, metric=metric, range=-1)
-    # for i in range(len(model_names)):
-    #     print(f'{model_names[i]}  clean_{metric}: {clean_accs[i]}  adver_{metric}: {adver_accs[i]}') # visual/figure/model_size.pdf
-    # plot_scatter_api(clean_accs, adver_accs, model_names, 'Model Size', f'Adversarial {metric}', PARAMETERS, 'visual/figure/model_size.pdf', \
-    #                  size=(6, 6), change_size=False) # 
+    # MODELS = ['FCOS3D','PGD','BEVDepth_R101','BEVDet_R101'] # visual/figure/bev_nonbev.pdf
+    # model_accs = collect_average_adv_acc([pgd_attack_untarget, pgd_attack_local, dynamic_patch_untarget_attack, dynamic_patch_loc_attack], metric=metric)
+    # plot_bar_api(model_accs, MODELS, ['pixel cls', 'pixel loc', 'patch cls', 'patch loc'], out_path='visual/figure/bev_nonbev.pdf', ylabel=metric)
 
+
+    ##############################################################
+    # Fig4: Ablation: model size
+    #  - [] 
+    # 'BEVFormer_Tiny','BEVFormer_Tiny_Temp',
+    MODELS = ['BEVFormer_Small','BEVFormer_Base','DETR3D_CBGS',
+            'FCOS3D','PGD',
+            'BEVDepth_R50','BEVDepth_R101','BEVDet_R50','BEVDet_R101','BEVDet_Swin_Tiny', 'PETR_R50','PETR_Vov']
+    metric = 'NDS'
+    clean_accs, adver_accs, model_names = collect_robustness_acc([pgd_attack_untarget, pgd_attack_local, dynamic_patch_untarget_attack,dynamic_patch_loc_attack], 
+                                            param=True, val=True, metric=metric, range=-1)
+    for i in range(len(model_names)):
+        print(f'{model_names[i]}  clean_{metric}: {clean_accs[i]}  adver_{metric}: {adver_accs[i]}') # visual/figure/model_size.pdf
+    plot_scatter_api(clean_accs, adver_accs, model_names, 'Model Size (M)', f'Adversarial {metric}', PARAMETERS, 'visual/figure/model_size.pdf', \
+                     size=(6, 6), change_size=False) # 
+
+
+    # ###############################################################
+    # # Fig5: DETR vs DETR-CBGS
+    # #  - [x] Add PETR here
+    # #  - [x] Use BEVDepth-R101 and BEVDet-R101 here
+    # metric = 'NDS'
+    # MODELS = ['DETR3D','DETR3D_CBGS']
+    # xs, ys, labels = parse_data(pgd_attack_untarget, relative=False, metric=metric)
+    # multi_plot_api(xs, ys, labels, 'attack iterations', metric, 'visual/figure/cbgs_pgd_attack_untarget.pdf', \
+    #                size=(5.5, 4.5), legend_size=17, fontsize=17)
+    # xs, ys, labels = parse_data(pgd_attack_local, relative=False, metric=metric)
+    # multi_plot_api(xs, ys, labels, 'attack iterations', metric, 'visual/figure/cbgs_pgd_attack_local.pdf', \
+    #                size=(5.5, 4.5), legend_size=17, fontsize=17)
+    # xs, ys, labels = parse_data(dynamic_patch_untarget_attack, relative=False, metric=metric)
+    # multi_plot_api(xs, ys, labels, 'attack iterations', metric, 'visual/figure/cbgs_patch_untarget_attack.pdf', \
+    #                size=(5.5, 4.5), legend_size=17, fontsize=17)
+    # xs, ys, labels = parse_data(dynamic_patch_loc_attack, relative=False, metric=metric)
+    # multi_plot_api(xs, ys, labels, 'attack iterations', metric, 'visual/figure/cbgs_patch_loc_attack.pdf', \
+    #                size=(5.5, 4.5), legend_size=17, fontsize=17)
 
     # ###############################################################
     # # Appendix: All attacks curve results
