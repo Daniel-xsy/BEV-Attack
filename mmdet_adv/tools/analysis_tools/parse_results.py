@@ -12,17 +12,20 @@ def collect_metric(results, logging):
     if not results.get('pts_bbox_NuScenes/NDS', None):
         prefix = 'img_bbox'
     
-    logging.write('Evaluating Results\n')
-    logging.write('| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |')
-    logging.write('| ------- | ------- | -------- | -------- | -------- | -------- | -------- |')
-    NDS = results[f'{prefix}_NuScenes/NDS']
-    mAP = results[f'{prefix}_NuScenes/mAP']
-    mATE = results[f'{prefix}_NuScenes/mATE']
-    mASE = results[f'{prefix}_NuScenes/mASE']
-    mAOE = results[f'{prefix}_NuScenes/mAOE']
-    mAVE = results[f'{prefix}_NuScenes/mAVE']
-    mAAE = results[f'{prefix}_NuScenes/mAAE']
-    logging.write(f'| {NDS:.4f}    | {mAP:.4f}    | {mATE:.4f}     | {mASE:.4f}     | {mAOE:.4f}     | {mAVE:.4f}     | {mAAE:.4f}     |\n')
+    try:
+        logging.write('Evaluating Results\n')
+        logging.write('| **NDS** | **mAP** | **mATE** | **mASE** | **mAOE** | **mAVE** | **mAAE** |')
+        logging.write('| ------- | ------- | -------- | -------- | -------- | -------- | -------- |')
+        NDS = results[f'{prefix}_NuScenes/NDS']
+        mAP = results[f'{prefix}_NuScenes/mAP']
+        mATE = results[f'{prefix}_NuScenes/mATE']
+        mASE = results[f'{prefix}_NuScenes/mASE']
+        mAOE = results[f'{prefix}_NuScenes/mAOE']
+        mAVE = results[f'{prefix}_NuScenes/mAVE']
+        mAAE = results[f'{prefix}_NuScenes/mAAE']
+        logging.write(f'| {NDS:.4f}    | {mAP:.4f}    | {mATE:.4f}     | {mASE:.4f}     | {mAOE:.4f}     | {mAVE:.4f}     | {mAAE:.4f}     |\n')
+    except:
+        logging.write(str(results))
 
 
 def collect_average_metric(results_list, logging):
