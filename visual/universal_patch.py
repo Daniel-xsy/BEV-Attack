@@ -52,25 +52,25 @@ def patch_normalize_bevdet(patch_paths, new_path_folder):
 
 
 transfer_mAP = dict(
-    source = ['Random', 'BEVFormer', 'DETR3D', 'PETR', 'FCOS3D', 'PGD', 'BEVDet', 'BEVDepth'],
-    BEVFormer = [0.2816,0.2608,0.2717,0.2374,0.2205,0.2357,0.2760,0.2693],
-    DETR3D = [0.3014,0.2889,0.2711,0.2405,0.2266,0.2463,0.2887,0.2874,0.2874],
-    PETR = [0.2515,0.2252,0.2252,0.0455,0.0683,0.1885,0.2416,0.2422],
-    FCOS3D = [0.2379,0.2108,0.2140,0.1510,0.0724,0.1069,0.2334,0.2275],
-    PGD = [0.2546,0.2178,0.2391,0.1414,0.0893,0.0879,0.2513,0.2445],
-    BEVDet = [0.1924,0.1668,0.1693,0.0941,0.1018,0.1186,0.1758,0.1829],
-    BEVDepth = [0.2388,0.2089,0.2251,0.1621,0.1410,0.1128,0.2283,0.2213]
+    source = ['Random', 'BEVFormer', 'DETR3D', 'PETR', 'FCOS3D', 'PGD-Det', 'BEVDet', 'BEVDepth'],
+    BEVFormer = [0.2816,0.2663,0.2767,0.2561,0.2205,0.2357,0.2760,0.2693],
+    DETR3D = [0.3014,0.2827,0.2799,0.2613,0.2266,0.2463,0.2887,0.2874,0.2874],
+    PETR = [0.2515,0.2301,0.2195,0.1236,0.0683,0.1885,0.2416,0.2422],
+    FCOS3D = [0.2379,0.2098,0.1936,0.1825,0.0724,0.1069,0.2334,0.2275],
+    PGD_Det = [0.2546,0.2316,0.2221,0.1904,0.0893,0.0879,0.2513,0.2445],
+    BEVDet = [0.1924,0.1676,0.1634,0.1256,0.1018,0.1186,0.1758,0.1829],
+    BEVDepth = [0.2388,0.2132,0.2017,0.1895,0.1410,0.1128,0.2283,0.2213]
 )
 
 transfer_NDS = dict(
-    source = ['Random', 'BEVFormer', 'DETR3D', 'PETR', 'FCOS3D', 'PGD', 'BEVDet', 'BEVDepth'],
-    BEVFormer = [0.3179,0.3105,0.3138,0.2784,0.2604,0.2811,0.3079,0.3140],
-    DETR3D = [0.3746,0.3639,0.3460,0.3282,0.3149,0.3350,0.3672,0.3655],
-    PETR = [0.2857,0.2606,0.2584,0.1150,0.1125,0.2315,0.2715,0.2687],
-    FCOS3D = [0.2776,0.2488,0.2485,0.2093,0.1473,0.1733,0.2734,0.2648],
-    PGD = [0.2919,0.2651,0.2836,0.2074,0.1669,0.1670,0.2887,0.2750],
-    BEVDet = [0.2670,0.2342,0.2335,0.1398,0.1461,0.1552,0.2551,0.2467],
-    BEVDepth = [0.3206,0.2934,0.3045,0.2562,0.2336,0.2088,0.3131,0.3011]
+    source = ['Random', 'BEVFormer', 'DETR3D', 'PETR', 'FCOS3D', 'PGD-Det', 'BEVDet', 'BEVDepth'],
+    BEVFormer = [0.3179,0.3141,0.3235,0.2954,0.2604,0.2811,0.3079,0.3140],
+    DETR3D = [0.3746,0.3589,0.3609,0.3412,0.3149,0.3350,0.3672,0.3655],
+    PETR = [0.2857,0.2648,0.2566,0.1890,0.1125,0.2315,0.2715,0.2687],
+    FCOS3D = [0.2776,0.2475,0.2264,0.2127,0.1473,0.1733,0.2734,0.2648],
+    PGD_Det = [0.2919,0.2696,0.2592,0.2396,0.1669,0.1670,0.2887,0.2750],
+    BEVDet = [0.2670,0.2254,0.2177,0.1769,0.1461,0.1552,0.2551,0.2467],
+    BEVDepth = [0.3206,0.2965,0.2876,0.2804,0.2336,0.2088,0.3131,0.3011]
 )
 
 
@@ -86,9 +86,14 @@ def plot_heat_map_api(results, relative=True):
             else:
                 heatmap[i, j] = results[targets[j]][i]
 
+    new_targets = []
+    for target in targets:
+        target = target.replace('_', '-')
+        new_targets.append(target)
+
     ax = sns.heatmap(heatmap, cmap="viridis", annot=True, fmt='.2f',
-                    xticklabels=targets, yticklabels=source[1:])
-    plt.xticks(rotation=60)
+                    xticklabels=new_targets, yticklabels=source[1:])
+    plt.xticks(rotation=30)
     plt.tight_layout()
     plt.savefig('./visual/figure/uni_patch.pdf')
 
@@ -114,9 +119,9 @@ if __name__=='__main__':
     # patch_paths = [
     #     '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch/BEVFormer_coslr_size100_scale0.3_lr10_sample323.pkl',
     #     '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch/Detr3D_coslr_size100_scale0.3_lr10_sample323.pkl',
-    #     '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch/FCOSMono3D_coslr_size100_scale0.3_lr10_sample1938.pkl',
+    #     # '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch/FCOSMono3D_coslr_size100_scale0.3_lr10_sample1938.pkl',
     #     '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch/Petr3D_Adv_coslr_size100_scale0.3_lr10_sample323.pkl',
-    #     '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch/PGDMono3D_coslr_size100_scale0.3_lr10_sample1938.pkl',
+    #     # '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch/PGDMono3D_coslr_size100_scale0.3_lr10_sample1938.pkl',
     # ]
     # new_path_folder = '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch_new'
     # patch_normalize(patch_paths, new_path_folder)
@@ -131,18 +136,18 @@ if __name__=='__main__':
     # patch_normalize_bevdet(patch_paths, new_path_folder)
 
 
-    # # Plot heat map of transferbility
-    # plot_heat_map_api(transfer_mAP)
+    # Plot heat map of transferbility
+    plot_heat_map_api(transfer_mAP)
 
     
-    # Plot cosine similarity between patches
-    patch_paths = [
-        '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch_new/BEVFormer_coslr_size100_scale0.3_lr10_sample323.pkl',
-        '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch_new/Detr3D_coslr_size100_scale0.3_lr10_sample323.pkl',
-        '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch_new/FCOSMono3D_coslr_size100_scale0.3_lr10_sample1938.pkl',
-        '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch_new/Petr3D_Adv_coslr_size100_scale0.3_lr10_sample323.pkl',
-        '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch_new/PGDMono3D_coslr_size100_scale0.3_lr10_sample1938.pkl',
-        '/home/cixie/shaoyuan/BEV-Attack/zoo/BEVDet/uni_patch_new/BEVDepth_Adv_coslr_size100_scale0.3_lr0.0392156862745098_sample323.pkl',
-        '/home/cixie/shaoyuan/BEV-Attack/zoo/BEVDet/uni_patch_new/BEVDet_Adv_coslr_size100_scale0.3_lr0.0392156862745098_sample323.pkl'
-    ]
-    plot_patch_similarity(patch_paths)
+    # # Plot cosine similarity between patches
+    # patch_paths = [
+    #     '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch_new/BEVFormer_coslr_size100_scale0.3_lr10_sample323.pkl',
+    #     '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch_new/Detr3D_coslr_size100_scale0.3_lr10_sample323.pkl',
+    #     '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch_new/FCOSMono3D_coslr_size100_scale0.3_lr10_sample1938.pkl',
+    #     '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch_new/Petr3D_Adv_coslr_size100_scale0.3_lr10_sample323.pkl',
+    #     '/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/uni_patch_new/PGDMono3D_coslr_size100_scale0.3_lr10_sample1938.pkl',
+    #     '/home/cixie/shaoyuan/BEV-Attack/zoo/BEVDet/uni_patch_new/BEVDepth_Adv_coslr_size100_scale0.3_lr0.0392156862745098_sample323.pkl',
+    #     '/home/cixie/shaoyuan/BEV-Attack/zoo/BEVDet/uni_patch_new/BEVDet_Adv_coslr_size100_scale0.3_lr0.0392156862745098_sample323.pkl'
+    # ]
+    # plot_patch_similarity(patch_paths)
