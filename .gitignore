@@ -20,3 +20,8 @@ nuscenes_mini
 # visual results
 visual/*/*.png
 visual/*/*.pdf
+
+# tex
+Overleaf
+Overleaf_arXiv
+paper
