@@ -1,8 +1,10 @@
 # BEV Attack
 
+This is the codebase of our paper [On the Adversarial Robustness of Camera-based 3D Object Detection](https://arxiv.org/abs/2301.10766).
+
 ## About
 
-3D visual perception tasks, including 3D detection and map segmentation are essential for autonomous driving systems. One promising method is BEV perception, which perform detection or segmentaion from bird's eye view. Large numbers of works have demonstrated the vulnerability of 3D detection models either using LiDAR or camera images. However, the robustness of BEV model is less exploited. In this work, we try to study the robustness of BEV model under different adversarial attacks or common corruptions.
+In recent years, camera-based 3D object detection has gained widespread attention for its ability to achieve high performance with low computational cost. However, the robustness of these methods to adversarial attacks has not been thoroughly examined. In this study, we conduct the first comprehensive investigation of the robustness of leading camera-based 3D object detection methods under various adversarial conditions. Our experiments reveal five interesting findings: (a) the use of accurate depth estimation effectively improves robustness; (b) depth-estimation-free approaches do not show superior robustness; (c) bird's-eye-view-based representations exhibit greater robustness against localization attacks; (d) incorporating multi-frame benign inputs can effectively mitigate adversarial attacks; and (e) addressing long-tail problems can enhance robustness. We hope our work can provide guidance for the design of future camera-based object detection modules with improved adversarial robustness.
 
 ## Updates
 
@@ -10,10 +12,14 @@
 - [2022.09.29] - Build baseline attack
 
 ## Outline
-- [Installation](#installation)
-- [Data Preparation](#data-preparation)
-- [Getting Started](#getting-started)
-- [TODO List](#todo-list)
+- [BEV Attack](#bev-attack)
+  - [About](#about)
+  - [Updates](#updates)
+  - [Outline](#outline)
+  - [Installation](#installation)
+  - [Data Preparation](#data-preparation)
+  - [Getting Started](#getting-started)
+  - [TODO List](#todo-list)
 
 ## Installation
 
