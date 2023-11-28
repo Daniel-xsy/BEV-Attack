@@ -131,7 +131,7 @@ model = dict(
 
 # Data
 dataset_type = 'NuScenesDataset'
-data_root = '../../nuscenes_mini/'
+data_root = '../../data/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
@@ -230,11 +230,15 @@ data = dict(
             box_type_3d='LiDAR',
             img_info_prototype='bevdet')),
     val=dict(pipeline=test_pipeline, 
+             data_root=data_root,
+             ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
              classes=class_names,
              filter_empty_gt=False,
              modality=input_modality, 
              img_info_prototype='bevdet'),
     test=dict(pipeline=test_pipeline, 
+              data_root=data_root,
+              ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
              classes=class_names,
              filter_empty_gt=False,
              modality=input_modality, 
@@ -270,15 +274,26 @@ img_norm_cfg = dict(
 #     rand_init=True,
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
-attack_severity_type='scale'
+# attack_severity_type='scale'
+# attack = dict(
+#     type='PatchAttack',
+#     step_size=[5/255/0.229, 5/255/0.224, 5/255/0.225],
+#     dynamic_patch_size=True,
+#     scale=[0.1, 0.2, 0.3, 0.4],
+#     num_steps=50,
+#     totensor=True,
+#     img_norm=img_norm_cfg,
+#     # loss_fn=dict(type='ClassficationObjective', activate=False),
+#     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+attack_severity_type = 'epsilon'
 attack = dict(
-    type='PatchAttack',
-    step_size=[5/255/0.229, 5/255/0.224, 5/255/0.225],
-    dynamic_patch_size=True,
-    scale=[0.1, 0.2, 0.3, 0.4],
-    num_steps=50,
-    totensor=True,
+    type='FGSM',
+    epsilon=[[5/255/0.229, 5/255/0.224, 5/255/0.225]],
     img_norm=img_norm_cfg,
-    # loss_fn=dict(type='ClassficationObjective', activate=False),
-    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    single_camera=False,
+    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1, targets=0),
+    # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    loss_fn=dict(type='ClassficationObjective', activate=False),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))

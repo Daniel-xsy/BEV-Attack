@@ -165,6 +165,7 @@ class PatchAttack(BaseAttacker):
             eta = eta * patch_mask
             x_adv = x_adv.detach() + eta
             x_adv = torch.clamp(x_adv, self.lower.view(self.size), self.upper.view(self.size))
+            torch.cuda.empty_cache()
 
 
         img[0].data[0] = x_adv.detach()

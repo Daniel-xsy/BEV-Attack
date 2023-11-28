@@ -275,6 +275,23 @@ class BEVFormer(MVXTwoStageDetector):
             self.prev_frame_info['prev_pos'] = tmp_pos
             self.prev_frame_info['prev_angle'] = tmp_angle
             self.prev_frame_info['prev_bev'] = new_prev_bev
+            
+            # import pickle
+            # import os
+            # filename = 'clean_adv_prev_bev.pkl'
+            # if os.path.exists(filename) and os.path.getsize(filename) > 0:
+            #     with open(filename, 'rb+') as f:
+            #         data = pickle.load(f)
+            #         if isinstance(data, list):
+            #             data.append(new_prev_bev)
+            #         else:
+            #             data = [data, new_prev_bev]
+            #         f.seek(0)
+            #         pickle.dump(data, f)
+            #         f.truncate()
+            # else:
+            #     with open(filename, 'wb') as f:
+            #         pickle.dump([new_prev_bev], f)
         return bbox_results
 
     def simple_test_pts(self, x, img_metas, prev_bev=None, rescale=False):

@@ -168,7 +168,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'CustomNuScenesDataset_Adv'
-data_root = '../nuscenes_mini/'
+data_root = '../data/nuscenes/'
 file_client_args = dict(backend='disk')
 
 
@@ -202,7 +202,7 @@ test_pipeline = [
                 type='DefaultFormatBundle3D',
                 class_names=class_names,
                 with_label=False),
-            dict(type='CustomCollect3D', keys=['img']) # 'gt_bboxes_3d', 'gt_labels_3d', 
+            dict(type='CustomCollect3D', keys=['gt_bboxes_3d', 'gt_labels_3d', 'img']) # 'gt_bboxes_3d', 'gt_labels_3d', 
         ])
 ]
 
@@ -285,15 +285,30 @@ checkpoint_config = dict(interval=1)
 #     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
+# attack_severity_type = 'num_steps'
+# attack = dict(
+#     type='PGD',
+#     epsilon=5,
+#     step_size=0.1,
+#     num_steps=[2,4,6,8,10,20,30,40,50],
+#     img_norm=img_norm_cfg,
+#     single_camera=False,
+#     loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+#     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     category='Madry',
+#     rand_init=True,
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
 attack_severity_type = 'num_steps'
 attack = dict(
     type='PGD',
     epsilon=5,
     step_size=0.1,
-    num_steps=[2,4,6,8,10,20,30,40,50],
+    num_steps=[50],
     img_norm=img_norm_cfg,
     single_camera=False,
-    loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+    loss_fn=dict(type='ClassficationObjective', activate=False),
     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
     category='Madry',
     rand_init=True,

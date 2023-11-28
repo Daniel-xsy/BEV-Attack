@@ -117,6 +117,7 @@ def main():
     # chnage after build the dataset to avoid data filtering
     # an ugly workaround to set test_mode = False
     dataset.test_mode = False
+    a = dataset[0]
     data_loader = build_dataloader(
         dataset,
         samples_per_gpu=samples_per_gpu,

@@ -41,6 +41,9 @@ def single_gpu_attack(model,
     prog_bar = mmcv.ProgressBar(len(dataset))
     for i, data in enumerate(data_loader):
 
+        # if i < 10:
+        # inputs = {'img': data['img'], 'img_metas': data['img_metas']}   
+        # else:
         inputs = attacker.run(wb_model, **data)    
         # inputs = {'img': data['img'], 'img_metas': data['img_metas']}   
         with torch.no_grad():

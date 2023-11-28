@@ -252,7 +252,7 @@ class ViewTransformerLiftSplatShoot(BaseModule):
 
         return final
 
-    def forward(self, input):
+    def forward(self, input, adv_mode=False):
         x, rots, trans, intrins, post_rots, post_trans = input
         B, N, C, H, W = x.shape
         x = x.view(B * N, C, H, W)
@@ -271,6 +271,7 @@ class ViewTransformerLiftSplatShoot(BaseModule):
         else:
             geom = self.get_geometry(rots, trans, intrins, post_rots, post_trans)
             bev_feat = self.voxel_pooling(geom, volume)
+            
         return bev_feat
 
 

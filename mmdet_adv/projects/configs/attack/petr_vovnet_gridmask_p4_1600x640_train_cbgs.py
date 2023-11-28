@@ -106,7 +106,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'PETRCustomNuScenesDataset'
-data_root = '../nuscenes/'
+data_root = '../data/nuscenes/'
 
 file_client_args = dict(backend='disk')
 
@@ -211,8 +211,20 @@ data = dict(
             # and box_type_3d='Depth' in sunrgbd and scannet dataset.
             box_type_3d='LiDAR'),
     ),
-    val=dict(type=dataset_type, pipeline=test_pipeline, filter_empty_gt=False, classes=class_names, modality=input_modality),
-    test=dict(type=dataset_type, pipeline=test_pipeline, filter_empty_gt=False, classes=class_names, modality=input_modality),
+    val=dict(type=dataset_type, 
+             data_root=data_root,
+             ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+             pipeline=test_pipeline, 
+             filter_empty_gt=False, 
+             classes=class_names, 
+             modality=input_modality),
+    test=dict(type=dataset_type, 
+             data_root=data_root,
+             ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+             pipeline=test_pipeline, 
+             filter_empty_gt=False, 
+             classes=class_names, 
+             modality=input_modality),
     nonshuffler_sampler=dict(type='DistributedSampler'))
 
 optimizer = dict(
@@ -244,18 +256,30 @@ load_from='ckpts/fcos3d_vovnet_imgbackbone-remapped.pth'
 resume_from=None
 
 
-attack_severity_type = 'scale'
+attack_severity_type = 'epsilon'
 attack = dict(
-    type='PatchAttack',
-    step_size=[5/57.375, 5/57.120, 5/58.395],
-    dynamic_patch_size=True,
-    scale=[0.1, 0.2, 0.3, 0.4],
-    num_steps=50,
-    # patch_size=(15,15),
+    type='FGSM',
+    epsilon=[5],
     img_norm=img_norm_cfg,
-    # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
-    loss_fn=dict(type='ClassficationObjective', activate=False),
+    single_camera=False,
+    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1, targets=0),
+    loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    # loss_fn=dict(type='ClassficationObjective', activate=False),
     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+
+# attack_severity_type = 'scale'
+# attack = dict(
+#     type='PatchAttack',
+#     step_size=[5/57.375, 5/57.120, 5/58.395],
+#     dynamic_patch_size=True,
+#     scale=[0.1, 0.2, 0.3, 0.4],
+#     num_steps=50,
+#     # patch_size=(15,15),
+#     img_norm=img_norm_cfg,
+#     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 # attack_severity_type = 'num_steps'
 # attack = dict(

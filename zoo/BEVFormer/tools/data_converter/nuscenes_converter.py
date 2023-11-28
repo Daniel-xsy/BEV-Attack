@@ -427,6 +427,8 @@ def export_2d_annotation(root_path, info_path, version, mono3d=True):
                     ego2global_rotation=info['ego2global_rotation'],
                     ego2global_translation=info['ego2global_translation'],
                     cam_intrinsic=cam_info['cam_intrinsic'],
+                    sensor2lidar_rotation=cam_info['sensor2lidar_rotation'],
+                    sensor2lidar_translation=cam_info['sensor2lidar_translation'],
                     width=width,
                     height=height))
             for coco_info in coco_infos:

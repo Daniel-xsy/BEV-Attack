@@ -2,9 +2,9 @@
 
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python ./tools/attack.py \
-/home/cixie/shaoyuan/BEV-Attack/mmdet_adv/projects/configs/attack/detr3d_wo_cbgs.py \
-/home/cixie/shaoyuan/BEV-Attack/models/detr3d/detr3d_resnet101.pth \
---out pgd_new \
+./projects/configs/attack/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d.py \
+../checkpoints/FCOS3D/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d_finetune_20210717_095645-8d806dc2.pth \
+--out rebuttal \
 
 # patch_loc_vel_orie
 # patch

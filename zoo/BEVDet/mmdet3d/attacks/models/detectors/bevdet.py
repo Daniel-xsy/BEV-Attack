@@ -33,16 +33,16 @@ class BEVDet_Adv(CenterPoint_Adv):
         x = self.img_bev_encoder_neck(x)
         return x
 
-    def extract_img_feat(self, img, img_metas):
+    def extract_img_feat(self, img, img_metas, adv_mode=False):
         """Extract features of images."""
         x = self.image_encoder(img[0])
-        x = self.img_view_transformer([x] + img[1:])
+        x = self.img_view_transformer([x] + img[1:], adv_mode=adv_mode)
         x = self.bev_encoder(x)
         return [x]
 
-    def extract_feat(self, points, img, img_metas):
+    def extract_feat(self, points, img, img_metas, adv_mode=False):
         """Extract features from images and points."""
-        img_feats = self.extract_img_feat(img, img_metas)
+        img_feats = self.extract_img_feat(img, img_metas, adv_mode)
         pts_feats = None
         return (img_feats, pts_feats)
 
@@ -133,9 +133,9 @@ class BEVDet_Adv(CenterPoint_Adv):
         else:
             assert False
 
-    def simple_test(self, points, img_metas, img=None, rescale=False):
+    def simple_test(self, points, img_metas, img=None, rescale=False, adv_mode=False):
         """Test function without augmentaiton."""
-        img_feats, _ = self.extract_feat(points, img=img, img_metas=img_metas)
+        img_feats, _ = self.extract_feat(points, img=img, img_metas=img_metas, adv_mode=adv_mode)
         bbox_list = [dict() for _ in range(len(img_metas))]
         bbox_pts = self.simple_test_pts(img_feats, img_metas, rescale=rescale)
         for result_dict, pts_bbox in zip(bbox_list, bbox_pts):

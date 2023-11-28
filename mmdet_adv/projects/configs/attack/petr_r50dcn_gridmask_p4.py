@@ -113,7 +113,7 @@ model = dict(
             pc_range=point_cloud_range))))
 
 dataset_type = 'PETRCustomNuScenesDataset'
-data_root = '../nuscenes_mini/'
+data_root = '../data/nuscenes/'
 
 file_client_args = dict(backend='disk')
 db_sampler = dict()
@@ -179,8 +179,20 @@ data = dict(
         # we use box_type_3d='LiDAR' in kitti and nuscenes dataset
         # and box_type_3d='Depth' in sunrgbd and scannet dataset.
         box_type_3d='LiDAR'),
-    val=dict(type=dataset_type, pipeline=test_pipeline, filter_empty_gt=False, classes=class_names, modality=input_modality),
-    test=dict(type=dataset_type, pipeline=test_pipeline, filter_empty_gt=False, classes=class_names, modality=input_modality),
+    val=dict(type=dataset_type, 
+             data_root=data_root,
+             ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+             pipeline=test_pipeline, 
+             filter_empty_gt=False, 
+             classes=class_names, 
+             modality=input_modality),
+    test=dict(type=dataset_type, 
+             data_root=data_root,
+             ann_file=data_root + 'nuscenes_infos_temporal_val.pkl',
+             pipeline=test_pipeline, 
+             filter_empty_gt=False, 
+             classes=class_names, 
+             modality=input_modality),
     nonshuffler_sampler=dict(type='DistributedSampler'))
 
 optimizer = dict(
@@ -212,6 +224,48 @@ load_from=None
 resume_from=None
 
 
+# attack_severity_type = 'initial_const'
+# attack = dict(
+#     type='CWAttack',
+#     max_iterations=50,
+#     # learning_rate=0.1, # adv0 not that good
+#     # learning_rate=1, # adv1
+#     # learning_rate=5, # adv4
+#     # learning_rate=100, # adv2 new
+#     learning_rate=25, # adv4 new
+#     initial_const=[50],
+#     img_norm=img_norm_cfg,
+#     single_camera=False,
+#     # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1, targets=0),
+#     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+attack_severity_type = 'num_steps'
+attack = dict(
+    type='AutoPGD',
+    epsilon=5.0,
+    num_steps=[10],
+    img_norm=img_norm_cfg,
+    single_camera=False,
+    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+    # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+    loss_fn=dict(type='ClassficationObjective', activate=False),
+    category='Madry',
+    rand_init=True,
+    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
+# attack_severity_type = 'epsilon'
+# attack = dict(
+#     type='FGSM',
+#     epsilon=[5],
+#     img_norm=img_norm_cfg,
+#     single_camera=False,
+#     # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1, targets=0),
+#     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+
 # attack_severity_type = 'scale'
 # attack = dict(
 #     type='PatchAttack',
@@ -224,20 +278,20 @@ resume_from=None
 #     loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
 #     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
-attack_severity_type = 'num_steps'
-attack = dict(
-    type='PGD',
-    epsilon=5,
-    step_size=0.1,
-    num_steps=[10], # 2,4,6,8,20,30,40,50
-    img_norm=img_norm_cfg,
-    single_camera=False,
-    # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
-    loss_fn=dict(type='ClassficationObjective', activate=False),
-    # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
-    category='Madry',
-    rand_init=True,
-    assigner=dict(type='NuScenesAssigner', dis_thresh=4))
+# attack_severity_type = 'num_steps'
+# attack = dict(
+#     type='PGD',
+#     epsilon=5,
+#     step_size=0.1,
+#     num_steps=[10], # 2,4,6,8,20,30,40,50
+#     img_norm=img_norm_cfg,
+#     single_camera=False,
+#     # loss_fn=dict(type='TargetedClassificationObjective', num_cls=len(class_names), random=True, thresh=0.1),
+#     loss_fn=dict(type='ClassficationObjective', activate=False),
+#     # loss_fn=dict(type='LocalizationObjective',l2loss=False,loc=True,vel=True,orie=True),
+#     category='Madry',
+#     rand_init=True,
+#     assigner=dict(type='NuScenesAssigner', dis_thresh=4))
 
 # attack_severity_type = 'scale'
 # attack = dict(
