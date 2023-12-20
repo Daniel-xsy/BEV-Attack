@@ -37,3 +37,14 @@ Coming soon.
 - [x] Intial release.
 - [x] Build attack baseline.
 - [ ] Add patch attack, reorganize code structure for more flexible usage.
+
+## Citation
+If you find this work helpful, please kindly consider citing the following:
+```bib
+@article{xie2023adversarial,
+  title={On the Adversarial Robustness of Camera-based 3D Object Detection},
+  author={Xie, Shaoyuan and Li, Zichao and Wang, Zeyu and Xie, Cihang},
+  journal={Transactions on Machine Learning Research (TMLR)},
+  year={2024}
+}
+```
