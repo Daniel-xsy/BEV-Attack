@@ -31,7 +31,13 @@ Please refer to [prepare_dataset.md](docs/prepare_dataset.md) for more details.
 
 ## Getting Started
 
-Coming soon.
+Coming soon. Codebase will be organized when the author has time 💦.
+
+### Brief information
+For `BEVFormer`, `PETR`, and `DETR3D`, please refer to the [config](./mmdet_adv/projects/configs/attack) folder, and the [script](mmdet_adv/tools/attack.sh), just un-comment the attack at the end of each `config` you need to run.
+
+For `BEVDet` and `BEVDepth`, please refer to the [config](./zoo/BEVDet/configs/attack) folder and the [script](./zoo/BEVDet/tools/attack.sh). 
+> Offical `BEVDet` codebase has been changed and there might be some mismatch between this codebase and the current [official](https://github.com/HuangJunJie2017/BEVDet) one.
 
 ## TODO List
 - [x] Intial release.
