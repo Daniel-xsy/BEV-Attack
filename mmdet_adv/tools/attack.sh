@@ -14,9 +14,6 @@ python ./tools/attack.py \
 
 
 # -m debugpy --listen 5679 --wait-for-client 
-# BEVDepth 
-# config = 'projects/configs/attack/bevdepth-r50.py'
-# checkpoint_path = '../models/bevdepth/bevdepth-r50.pth'
 
 # FCOS3D
 # config = 'projects/configs/attack/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d.py'
